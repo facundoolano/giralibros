@@ -36,6 +36,7 @@ class UserLocation(models.Model):
 class BaseBook(models.Model):
     title = models.CharField(max_length=200)
     author = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         abstract = True  # This is the key!
@@ -49,3 +50,16 @@ class OfferedBook(BaseBook):
 
 class WantedBook(BaseBook):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="wanted")
+
+
+class ExchangeRequest(models.Model):
+    from_user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="sent_requests"
+    )
+    to_user = models.ForeignKey(
+        User, on_delete=models.SET_NULL, related_name="received_requests", null=True
+    )
+    book_title = models.CharField(max_length=200)
+    book_author = models.CharField(max_length=200)
+
+    created_at = models.DateTimeField(auto_now_add=True)
