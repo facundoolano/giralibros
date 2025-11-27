@@ -1,0 +1,26 @@
+{% extends "base_logged.html" %}
+
+{% block title %}Inicio - Cambio Libros{% endblock %}
+
+{% block logged_content %}
+    <h1 class="title">Libros Disponibles</h1>
+
+    <div class="columns is-multiline">
+        {% for book in offered_books %}
+            <div class="column is-one-third">
+                <div class="box">
+                    <h2 class="subtitle">{{ book.title }}</h2>
+                    <p><strong>Autor:</strong> {{ book.author }}</p>
+                    <p><strong>Usuario:</strong> {{ book.user }}</p>
+                    {% if book.notes %}
+                        <p><strong>Notas:</strong> {{ book.notes }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        {% empty %}
+            <div class="column">
+                <p>No hay libros disponibles en este momento.</p>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
