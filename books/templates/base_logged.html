@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <nav class="navbar is-light" role="navigation" aria-label="main navigation">
+    <nav class="navbar" role="navigation" aria-label="main navigation" style="background-color: #f0f4ff;">
         <div class="container">
             <div class="navbar-brand">
                 <a class="navbar-item has-text-weight-bold is-size-4" href="{% url 'home' %}">
@@ -12,15 +12,11 @@
             <div class="navbar-menu">
                 <div class="navbar-start is-flex-grow-1 is-justify-content-center">
                     <div class="navbar-item" style="width: 100%; max-width: 500px;">
-                        <div class="field has-addons" style="width: 100%;">
-                            <div class="control is-expanded">
-                                <input class="input" type="search" placeholder="Buscar Libro o Autor">
-                            </div>
-                            <div class="control">
-                                <button class="button is-info">
-                                    Buscar
-                                </button>
-                            </div>
+                        <div class="control has-icons-right" style="width: 100%;">
+                            <input class="input" type="search" placeholder="Buscar Libro o Autor">
+                            <span class="icon is-right" style="pointer-events: none;">
+                                <i class="fas fa-search"></i>
+                            </span>
                         </div>
                     </div>
                 </div>
