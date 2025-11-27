@@ -35,7 +35,11 @@
                                                 <span class="tag is-success is-light mr-1">{{ location.get_area_display }}</span>
                                             {% endfor %}
                                         </div>
-                                        <button class="button is-primary">Cambiar!</button>
+                                        {% if book.already_requested %}
+                                            <button class="button is-light" disabled>Ya pedido</button>
+                                        {% else %}
+                                            <button class="button is-primary">Cambiar!</button>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>

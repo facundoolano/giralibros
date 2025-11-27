@@ -51,62 +51,79 @@ def home(request):
     ]
 
     # Create mock OfferedBook instances (not saved to DB)
-    offered_books = [
-        OfferedBook(
-            title="Cien años de soledad",
-            author="Gabriel García Márquez",
-            user=user1,
-            notes="Buen estado, tapa blanda",
-        ),
-        OfferedBook(
-            title="Rayuela",
-            author="Julio Cortázar",
-            user=user2,
-            notes="Como nuevo",
-        ),
-        OfferedBook(
-            title="El túnel",
-            author="Ernesto Sábato",
-            user=user3,
-            notes="",
-        ),
-        OfferedBook(
-            title="Ficciones",
-            author="Jorge Luis Borges",
-            user=user1,
-            notes="Primera edición, excelente estado",
-        ),
-        OfferedBook(
-            title="La casa de los espíritus",
-            author="Isabel Allende",
-            user=user2,
-            notes="",
-        ),
-        OfferedBook(
-            title="El Aleph",
-            author="Jorge Luis Borges",
-            user=user3,
-            notes="Algunas páginas subrayadas",
-        ),
-        OfferedBook(
-            title="Crónica de una muerte anunciada",
-            author="Gabriel García Márquez",
-            user=user1,
-            notes="",
-        ),
-        OfferedBook(
-            title="La tregua",
-            author="Mario Benedetti",
-            user=user2,
-            notes="Muy buen estado",
-        ),
-        OfferedBook(
-            title="Pedro Páramo",
-            author="Juan Rulfo",
-            user=user3,
-            notes="Edición de bolsillo",
-        ),
-    ]
+    book1 = OfferedBook(
+        title="Cien años de soledad",
+        author="Gabriel García Márquez",
+        user=user1,
+        notes="Buen estado, tapa blanda",
+    )
+    book1.already_requested = False
+
+    book2 = OfferedBook(
+        title="Rayuela",
+        author="Julio Cortázar",
+        user=user2,
+        notes="Como nuevo",
+    )
+    book2.already_requested = True
+
+    book3 = OfferedBook(
+        title="El túnel",
+        author="Ernesto Sábato",
+        user=user3,
+        notes="",
+    )
+    book3.already_requested = False
+
+    book4 = OfferedBook(
+        title="Ficciones",
+        author="Jorge Luis Borges",
+        user=user1,
+        notes="Primera edición, excelente estado",
+    )
+    book4.already_requested = False
+
+    book5 = OfferedBook(
+        title="La casa de los espíritus",
+        author="Isabel Allende",
+        user=user2,
+        notes="",
+    )
+    book5.already_requested = False
+
+    book6 = OfferedBook(
+        title="El Aleph",
+        author="Jorge Luis Borges",
+        user=user3,
+        notes="Algunas páginas subrayadas",
+    )
+    book6.already_requested = True
+
+    book7 = OfferedBook(
+        title="Crónica de una muerte anunciada",
+        author="Gabriel García Márquez",
+        user=user1,
+        notes="",
+    )
+    book7.already_requested = False
+
+    book8 = OfferedBook(
+        title="La tregua",
+        author="Mario Benedetti",
+        user=user2,
+        notes="Muy buen estado",
+    )
+    book8.already_requested = False
+
+    book9 = OfferedBook(
+        title="Pedro Páramo",
+        author="Juan Rulfo",
+        user=user3,
+        notes="Edición de bolsillo",
+    )
+    book9.already_requested = True
+
+    offered_books = [book1, book2, book3, book4, book5, book6, book7, book8, book9]
 
     return render(request, "home.html", {
         "offered_books": offered_books,

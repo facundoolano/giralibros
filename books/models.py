@@ -58,7 +58,40 @@ class BaseBook(models.Model):
 
 
 class OfferedBook(BaseBook):
-    "A book a user offers for exchanging."
+    """
+    A book a user offers for exchanging.
+
+    QUERYING WITH USER-SPECIFIC 'ALREADY_REQUESTED' FLAG:
+
+    When querying OfferedBook for display to a logged-in user, annotate with an
+    'already_requested' boolean to indicate if the current user has already sent an
+    ExchangeRequest for that specific book.
+
+    Example:
+        from django.db.models import Exists, OuterRef
+
+        offered_books = OfferedBook.objects.filter(
+            user__locations__area__in=request.user.locations.values_list('area', flat=True)
+        ).annotate(
+            already_requested=Exists(
+                ExchangeRequest.objects.filter(
+                    from_user=request.user,
+                    to_user=OuterRef('user'),
+                    book_title=OuterRef('title'),
+                    book_author=OuterRef('author')
+                )
+            )
+        ).select_related('user').prefetch_related('user__locations')
+
+    This performs a single efficient query with a subquery for the existence check,
+    avoiding N+1 queries. Each book object will have .already_requested boolean
+    that the template can use to conditionally disable the "Cambiar!" button.
+
+    Note: The existence check uses denormalized fields (title, author) since
+    ExchangeRequest stores these directly rather than a ForeignKey to OfferedBook.
+
+    FIXME remove this long comment when we actually implement
+    """
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="offered")
     notes = models.TextField(blank=True)
