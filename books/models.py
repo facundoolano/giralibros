@@ -8,12 +8,12 @@ class UserProfile(models.Model):
     # user.email
 
     contact_email = models.EmailField()
-    alternate_contact = models.CharField(blank=True)
+    alternate_contact = models.CharField(blank=True, max_length=200)
 
     about = models.TextField(blank=True)
 
 
-class Area(models.TextChoices):
+class LocationArea(models.TextChoices):
     CABA = "CABA", "CABA"
     GBA_NORTE = "GBA_NORTE", "GBA Norte"
     GBA_OESTE = "GBA_OESTE", "GBA Oeste"
@@ -21,12 +21,18 @@ class Area(models.TextChoices):
 
 
 class UserLocation(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="locations")
-    area = models.CharField(max_length=20, choices=Area.choices)
+    """
+    Represent where users offer to make exchanges, which affects which other user's books
+    are visible to them.
+    """
 
-    constraints = [
-        models.UniqueConstraint(fields=["user", "area"], name="unique_user_area")
-    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="locations")
+    area = models.CharField(max_length=20, choices=LocationArea.choices)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["user", "area"], name="unique_user_area")
+        ]
 
     def __str__(self):
         return f"{self.user.username} - {self.get_area_display()}"
@@ -44,7 +50,7 @@ class BaseBook(models.Model):
 
 class OfferedBook(BaseBook):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="offered")
-    notes = models.TextField()
+    notes = models.TextField(blank=True)
     reserved = models.BooleanField(default=False)
 
 
