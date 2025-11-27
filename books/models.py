@@ -7,10 +7,19 @@ class UserProfile(models.Model):
     # user.username
     # user.email
 
-    contact_email = models.EmailField()
-    alternate_contact = models.CharField(blank=True, max_length=200)
+    contact_email = models.EmailField(
+        help_text="The email the user wants to share with others when sending an exchange request."
+    )
+    alternate_contact = models.CharField(
+        blank=True,
+        max_length=200,
+        help_text="Some alternative means of contact for exchanging books, e.g. WhatsApp phone number.",
+    )
 
-    about = models.TextField(blank=True)
+    about = models.TextField(
+        blank=True,
+        help_text="Miscelaneous notes to be displayed on the user public profile and on exchange requests.",
+    )
 
 
 class LocationArea(models.TextChoices):
@@ -22,7 +31,7 @@ class LocationArea(models.TextChoices):
 
 class UserLocation(models.Model):
     """
-    Represent where users offer to make exchanges, which affects which other user's books
+    Represent a region where users offer to make exchanges, which affects which other user's books
     are visible to them.
     """
 
@@ -49,12 +58,19 @@ class BaseBook(models.Model):
 
 
 class OfferedBook(BaseBook):
+    "A book a user offers for exchanging."
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="offered")
     notes = models.TextField(blank=True)
-    reserved = models.BooleanField(default=False)
+    reserved = models.BooleanField(
+        default=False,
+        help_text="Used to mark that this book is reserved for a not yet fulfilled exchange.",
+    )
 
 
 class WantedBook(BaseBook):
+    "A book a user is interested in."
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="wanted")
 
 
@@ -62,6 +78,7 @@ class ExchangeRequest(models.Model):
     from_user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="sent_requests"
     )
+    # denormalized fields to accomodate changes/deletions of the target book
     to_user = models.ForeignKey(
         User, on_delete=models.SET_NULL, related_name="received_requests", null=True
     )
