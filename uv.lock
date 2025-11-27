@@ -17,6 +17,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "django" },
+    { name = "django-bulma" },
 ]
 
 [package.dev-dependencies]
@@ -25,7 +26,10 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "django", specifier = ">=4.2.26" }]
+requires-dist = [
+    { name = "django", specifier = ">=4.2.26" },
+    { name = "django-bulma", specifier = ">=0.10.0" },
+]
 
 [package.metadata.requires-dev]
 dev = [{ name = "django-stubs", extras = ["compatible-mypy"], specifier = ">=5.2.7" }]
@@ -42,6 +46,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/05/a2/933dbbb3dd9990494960f6e64aca2af4c0745b63b7113f59a822df92329e/django-5.2.8.tar.gz", hash = "sha256:23254866a5bb9a2cfa6004e8b809ec6246eba4b58a7589bc2772f1bcc8456c7f", size = 10849032, upload-time = "2025-11-05T14:07:32.778Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/5e/3d/a035a4ee9b1d4d4beee2ae6e8e12fe6dee5514b21f62504e22efcbd9fb46/django-5.2.8-py3-none-any.whl", hash = "sha256:37e687f7bd73ddf043e2b6b97cfe02fcbb11f2dbb3adccc6a2b18c6daa054d7f", size = 8289692, upload-time = "2025-11-05T14:07:28.761Z" },
+]
+
+[[package]]
+name = "django-bulma"
+version = "0.10.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/70/05/e19419d2f09eb0cd4bfe5a6237a9f3011e294d6741bf249f9e9faa1e044d/django_bulma-0.10.0.tar.gz", hash = "sha256:96a6c60dec445fdcd6729c714ab2f81343afb3fce1be390f9ad2ba65ceae3c30", size = 193339, upload-time = "2025-07-27T18:45:01.259Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c8/65/3627af7483a0627d3ecad4fc0e062908fddde58b6f08931c5af0bfc2fbc7/django_bulma-0.10.0-py3-none-any.whl", hash = "sha256:404dffed09fbc808642b5ac582c2dcdbd13722aa3e6cd14bfbd187b3a874628a", size = 203525, upload-time = "2025-07-27T18:44:59.819Z" },
 ]
 
 [[package]]
