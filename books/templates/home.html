@@ -15,18 +15,25 @@
             <div class="column is-one-third">
                 <div class="card">
                     <div class="card-content">
-                        <p class="title is-5">{{ book.title }}</p>
-                        <p class="subtitle is-6">{{ book.author }}</p>
-                        <div class="content">
-                            <p>
-                                <span class="tag is-info is-light mr-2">{{ book.user.username }}</span>
-                                {% for location in book.user.locations.all %}
-                                    <span class="tag is-success is-light mr-1">{{ location.get_area_display }}</span>
-                                {% endfor %}
-                            </p>
-                            {% if book.notes %}
-                                <p class="is-size-7 has-text-grey">{{ book.notes }}</p>
-                            {% endif %}
+                        <div class="columns is-mobile is-gapless">
+                            <div class="column is-narrow">
+                                <div style="width: 80px; height: 120px; background-color: #f5f5f5; margin-right: 1rem;"></div>
+                            </div>
+                            <div class="column">
+                                <p class="mb-2 is-size-5"><strong>{{ book.title }}</strong></p>
+                                <p class="mb-3 is-size-5">{{ book.author }}</p>
+                                <div class="content">
+                                    <p>
+                                        <span class="mr-2">{{ book.user.username }}</span>
+                                        {% for location in book.user.locations.all %}
+                                            <span class="tag is-success is-light mr-1">{{ location.get_area_display }}</span>
+                                        {% endfor %}
+                                    </p>
+                                    {% if book.notes %}
+                                        <p class="is-size-7 has-text-grey">Observaciones: {{ book.notes }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
