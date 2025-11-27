@@ -13,13 +13,13 @@
     <div class="columns is-multiline">
         {% for book in offered_books %}
             <div class="column is-one-third">
-                <div class="card">
+                <div class="card" style="height: 100%;">
                     <div class="card-content">
-                        <div class="columns is-mobile is-gapless">
-                            <div class="column is-narrow">
-                                <div style="width: 80px; height: 120px; background-color: #f5f5f5; margin-right: 1rem;"></div>
-                            </div>
-                            <div class="column">
+                        <article class="media">
+                            <figure class="media-left">
+                                <div style="width: 80px; height: 120px; background-color: #f5f5f5;"></div>
+                            </figure>
+                            <div class="media-content">
                                 <p class="mb-2 is-size-5"><strong>{{ book.title }}</strong></p>
                                 <p class="mb-3 is-size-5">{{ book.author }}</p>
                                 <div class="content">
@@ -34,7 +34,7 @@
                                     {% endif %}
                                 </div>
                             </div>
-                        </div>
+                        </article>
                     </div>
                 </div>
             </div>
