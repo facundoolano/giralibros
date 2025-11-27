@@ -7,3 +7,11 @@ requires-python = ">=3.14"
 dependencies = [
     "django>=4.2.26",
 ]
+
+[dependency-groups]
+dev = [
+    "django-stubs[compatible-mypy]>=5.2.7",
+]
+
+[mypy.plugins.django-stubs]
+django_settings_module = "cambiolibros.settings"
