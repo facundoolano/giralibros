@@ -3,47 +3,47 @@
 {% block title %}Inicio - Cambio Libros{% endblock %}
 
 {% block logged_content %}
-    <div class="mb-4">
+    <div class="mb-4 has-text-centered">
         <span class="mr-2">Mostrando libros disponibles en</span>
         {% for location in user_locations %}
             <span class="tag is-info is-light mr-1">{{ location.get_area_display }}</span>
         {% endfor %}
     </div>
 
-    <div class="columns is-multiline">
-        {% for book in offered_books %}
-            <div class="column is-one-third">
-                <div class="card" style="height: 100%;">
+    <div class="columns is-centered">
+        <div class="column is-half">
+            {% for book in offered_books %}
+                <div class="card mb-4">
                     <div class="card-content">
                         <article class="media">
                             <figure class="media-left">
                                 <div style="width: 80px; height: 120px; background-color: #f5f5f5;"></div>
                             </figure>
-                            <div class="media-content">
-                                <p class="mb-2 is-size-5"><strong>{{ book.title }}</strong></p>
-                                <p class="mb-3 is-size-5">{{ book.author }}</p>
-                                <div class="content">
+                            <div class="media-content" style="display: flex; flex-direction: column; min-height: 120px;">
+                                <div>
+                                    <p class="mb-1 is-size-5"><strong>{{ book.title }}</strong></p>
+                                    <p class="mb-3 is-size-6">{{ book.author }}</p>
+                                    {% if book.notes %}
+                                        <p class="is-size-7 has-text-grey mb-2">Observaciones: {{ book.notes }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="content" style="margin-top: auto;">
                                     <p>
                                         <span class="mr-2">{{ book.user.username }}</span>
                                         {% for location in book.user.locations.all %}
                                             <span class="tag is-success is-light mr-1">{{ location.get_area_display }}</span>
                                         {% endfor %}
                                     </p>
-                                    {% if book.notes %}
-                                        <p class="is-size-7 has-text-grey">Observaciones: {{ book.notes }}</p>
-                                    {% endif %}
                                 </div>
                             </div>
                         </article>
                     </div>
                 </div>
-            </div>
-        {% empty %}
-            <div class="column">
+            {% empty %}
                 <div class="notification is-info is-light">
                     <p>No hay libros disponibles en este momento.</p>
                 </div>
-            </div>
-        {% endfor %}
+            {% endfor %}
+        </div>
     </div>
 {% endblock %}
