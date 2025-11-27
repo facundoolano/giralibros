@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.shortcuts import render
 
-from .models import OfferedBook
+from books.models import OfferedBook
 
 
 def home(request):
@@ -32,4 +32,10 @@ def home(request):
         ),
     ] * 10
 
-    return render(request, "home.html", {"offered_books": offered_books})
+    # Mock user locations for display
+    user_locations = "CABA y GBA Norte"
+
+    return render(request, "home.html", {
+        "offered_books": offered_books,
+        "user_locations": user_locations,
+    })

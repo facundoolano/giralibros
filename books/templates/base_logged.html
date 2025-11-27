@@ -1,11 +1,47 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <nav class="navbar" role="navigation">
-        <div class="navbar-brand">
-            <a class="navbar-item" href="{% url 'home' %}">
-                <strong>CambioLibros</strong>
-            </a>
+    <nav class="navbar is-light" role="navigation" aria-label="main navigation">
+        <div class="container">
+            <div class="navbar-brand">
+                <a class="navbar-item has-text-weight-bold is-size-4" href="{% url 'home' %}">
+                    CambioLibros
+                </a>
+            </div>
+
+            <div class="navbar-menu">
+                <div class="navbar-start is-flex-grow-1 is-justify-content-center">
+                    <div class="navbar-item" style="width: 100%; max-width: 500px;">
+                        <div class="field has-addons" style="width: 100%;">
+                            <div class="control is-expanded">
+                                <input class="input" type="search" placeholder="Buscar Libro o Autor">
+                            </div>
+                            <div class="control">
+                                <button class="button is-info">
+                                    Buscar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="navbar-end">
+                    <div class="navbar-item has-dropdown is-hoverable">
+                        <a class="navbar-link">
+                            Usuario
+                        </a>
+                        <div class="navbar-dropdown">
+                            <a class="navbar-item" href="#">
+                                Editar Perfil/Libros
+                            </a>
+                            <hr class="navbar-divider">
+                            <a class="navbar-item" href="#">
+                                Cerrar Sesión
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </nav>
 
