@@ -1,15 +1,17 @@
 {% extends "base.html" %}
 
-{% block header %}
+{% block content %}
     <nav class="navbar" role="navigation">
         <div class="navbar-brand">
             <a class="navbar-item" href="{% url 'home' %}">
-                <strong>cambiolibros</strong>
+                <strong>CambioLibros</strong>
             </a>
         </div>
     </nav>
-{% endblock %}
 
-{% block content %}
-    {% block logged_content %}{% endblock %}
+    <section class="section">
+        <div class="container">
+            {% block logged_content %}{% endblock %}
+        </div>
+    </section>
 {% endblock %}

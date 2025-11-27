@@ -30,6 +30,6 @@ def home(request):
             user=user3,
             notes="",
         ),
-    ]
+    ] * 10
 
     return render(request, "home.html", {"offered_books": offered_books})

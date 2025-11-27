@@ -1,7 +1,13 @@
-{% extends 'bulma/base.html' %}
-
-{% block title %}Cambio Libros{% endblock %}
-
-{% block header %}{% endblock %}
-
-{% block footer %}{% endblock %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Cambio Libros{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% block content %}{% endblock %}
+</body>
+</html>
