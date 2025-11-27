@@ -35,15 +35,26 @@
                                                 <span class="tag is-success is-light mr-1">{{ location.get_area_display }}</span>
                                             {% endfor %}
                                         </div>
-                                        {% if book.already_requested %}
-                                            <button class="button is-light" disabled>Ya pedido</button>
-                                        {% else %}
-                                            <button class="button is-primary">Cambiar!</button>
-                                        {% endif %}
+                                        <div class="is-hidden-mobile">
+                                            {% if book.already_requested %}
+                                                <button class="button is-light" disabled>Ya pedido</button>
+                                            {% else %}
+                                                <button class="button is-primary">Cambiar!</button>
+                                            {% endif %}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </article>
+                    </div>
+                    <div class="card-content pt-0 is-hidden-tablet">
+                        <div class="has-text-centered">
+                            {% if book.already_requested %}
+                                <button class="button is-light" disabled>Ya pedido</button>
+                            {% else %}
+                                <button class="button is-primary">Cambiar!</button>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             {% empty %}
