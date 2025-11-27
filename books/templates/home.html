@@ -11,7 +11,7 @@
                 <div class="box">
                     <h2 class="subtitle">{{ book.title }}</h2>
                     <p><strong>Autor:</strong> {{ book.author }}</p>
-                    <p><strong>Usuario:</strong> {{ book.user }}</p>
+                    <p><strong>Usuario:</strong> {{ book.user.username }}</p>
                     {% if book.notes %}
                         <p><strong>Notas:</strong> {{ book.notes }}</p>
                     {% endif %}
