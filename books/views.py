@@ -125,6 +125,10 @@ def logout(request):
 
 @login_required
 def home(request):
+    # Redirect to profile completion if user hasn't set up their profile
+    if not hasattr(request.user, 'profile'):
+        return redirect('profile_edit')
+
     # Get books available in user's locations with already_requested annotation
     offered_books = OfferedBook.objects.for_user(request.user)
 
