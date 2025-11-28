@@ -1,5 +1,4 @@
 from django.contrib.auth.models import User
-from django.db.models import Value
 from django.shortcuts import render
 
 from books.models import OfferedBook
@@ -10,12 +9,8 @@ def home(request):
     # For now, mock with testuser from fixtures
     mock_user = User.objects.get(username="testuser")
 
-    # Load all offered books from the database
-    # TODO: When authentication is implemented, use Exists() subquery to check
-    # if current user has already requested each book (see OfferedBook model docstring)
-    offered_books = OfferedBook.objects.annotate(
-        already_requested=Value(False)
-    )
+    # Get books available in user's locations with already_requested annotation
+    offered_books = OfferedBook.objects.for_user(mock_user)
 
     return render(request, "home.html", {
         "offered_books": offered_books,
