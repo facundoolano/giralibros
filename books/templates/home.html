@@ -1,5 +1,6 @@
 {% extends "base_logged.html" %}
 {% load static %}
+{% load book_filters %}
 {% block logged_content %}
 <div class="mb-5 has-text-centered" style="margin-top: -1rem">
   <span class="mr-2">Mostrando libros disponibles en</span>
@@ -24,6 +25,12 @@
             <div>
               <p class="mb-1 is-size-5"><strong>{{ book.title }}</strong></p>
               <p class="mb-2 is-size-6">{{ book.author }}</p>
+              <p class="is-size-7 has-text-grey mb-2">
+                <span class="icon is-small">
+                  <i class="fas fa-clock"></i>
+                </span>
+                <span>{{ book.created_at|timeago }}</span>
+              </p>
               {% if book.notes %}
               <p class="is-size-7 has-text-grey mb-2">
                 Observaciones: {{ book.notes }}
