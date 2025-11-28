@@ -57,41 +57,42 @@ class BaseBook(models.Model):
         abstract = True  # This is the key!
 
 
-class OfferedBook(BaseBook):
-    """
-    A book a user offers for exchanging.
+class OfferedBookManager(models.Manager):
+    def for_user(self, user):
+        """
+        Return books available in the user's locations, annotated with whether
+        the user has already requested each book.
 
-    QUERYING WITH USER-SPECIFIC 'ALREADY_REQUESTED' FLAG:
-
-    When querying OfferedBook for display to a logged-in user, annotate with an
-    'already_requested' boolean to indicate if the current user has already sent an
-    ExchangeRequest for that specific book.
-
-    Example:
+        This query:
+        - Filters books by user's location areas
+        - Excludes the user's own books
+        - Annotates with 'already_requested' flag via Exists subquery
+        - Optimizes with select_related and prefetch_related to avoid N+1 queries
+        """
         from django.db.models import Exists, OuterRef
 
-        offered_books = OfferedBook.objects.filter(
-            user__locations__area__in=request.user.locations.values_list('area', flat=True)
-        ).annotate(
-            already_requested=Exists(
-                ExchangeRequest.objects.filter(
-                    from_user=request.user,
-                    to_user=OuterRef('user'),
-                    book_title=OuterRef('title'),
-                    book_author=OuterRef('author')
+        user_areas = user.locations.values_list("area", flat=True)
+
+        return (
+            self.filter(user__locations__area__in=user_areas)
+            .exclude(user=user)
+            .annotate(
+                already_requested=Exists(
+                    ExchangeRequest.objects.filter(
+                        from_user=user,
+                        offered_book=OuterRef("pk"),
+                    )
                 )
             )
-        ).select_related('user').prefetch_related('user__locations')
+            .select_related("user")
+            .prefetch_related("user__locations")
+            .distinct()
+            .order_by("-created_at")
+        )
 
-    This performs a single efficient query with a subquery for the existence check,
-    avoiding N+1 queries. Each book object will have .already_requested boolean
-    that the template can use to conditionally disable the "Cambiar!" button.
 
-    Note: The existence check uses denormalized fields (title, author) since
-    ExchangeRequest stores these directly rather than a ForeignKey to OfferedBook.
-
-    FIXME remove this long comment when we actually implement
-    """
+class OfferedBook(BaseBook):
+    """A book a user offers for exchanging."""
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="offered")
     notes = models.TextField(blank=True)
@@ -99,6 +100,8 @@ class OfferedBook(BaseBook):
         default=False,
         help_text="Used to mark that this book is reserved for a not yet fulfilled exchange.",
     )
+
+    objects = OfferedBookManager()
 
 
 class WantedBook(BaseBook):
@@ -111,10 +114,14 @@ class ExchangeRequest(models.Model):
     from_user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="sent_requests"
     )
-    # denormalized fields to accomodate changes/deletions of the target book
     to_user = models.ForeignKey(
         User, on_delete=models.SET_NULL, related_name="received_requests", null=True
     )
+    # Reference to the actual book, set to null if book is deleted
+    offered_book = models.ForeignKey(
+        OfferedBook, on_delete=models.SET_NULL, null=True, related_name="requests"
+    )
+    # Denormalized fields to preserve request details when book is deleted or edited
     book_title = models.CharField(max_length=200)
     book_author = models.CharField(max_length=200)
 

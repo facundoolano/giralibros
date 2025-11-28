@@ -3,7 +3,7 @@
 {% block logged_content %}
     <div class="mb-5 has-text-centered" style="margin-top: -1rem;">
         <span class="mr-2">Mostrando libros disponibles en</span>
-        {% for location in user_locations %}
+        {% for location in user.locations.all %}
             <span class="tag is-light mr-1">{{ location.get_area_display }}</span>
         {% endfor %}
     </div>
