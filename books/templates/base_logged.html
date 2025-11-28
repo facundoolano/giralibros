@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation" style="background-color: #e8f5e9;">
+        <div class="container" style="position: relative;">
+            <div class="navbar-brand">
+                <a class="navbar-item has-text-weight-bold is-size-4" href="{% url 'home' %}">
+                    CambioLibros
+                </a>
+                <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarMenu">
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                </a>
+            </div>
+
+            <div id="navbarMenu" class="navbar-menu" style="background-color: #e8f5e9;">
+                <div class="navbar-start">
+                    <div class="navbar-item is-hidden-tablet">
+                        <div class="control has-icons-right" style="width: 100%;">
+                            <input class="input" type="search" placeholder="Buscar Libro o Autor">
+                            <span class="icon is-right" style="pointer-events: none;">
+                                <i class="fas fa-search"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <a class="navbar-item is-hidden-tablet" href="#">
+                        Mis libros
+                    </a>
+                    <a class="navbar-item is-hidden-tablet" href="#">
+                        Editar perfil
+                    </a>
+                    <a class="navbar-item is-hidden-tablet" href="#">
+                        Cerrar sesión
+                    </a>
+                </div>
+                <div class="navbar-end">
+                    <div class="navbar-item has-dropdown is-hoverable is-hidden-mobile">
+                        <a class="navbar-link">
+                            Usuario
+                        </a>
+                        <div class="navbar-dropdown">
+                            <a class="navbar-item" href="#">
+                                Mis libros
+                            </a>
+                            <a class="navbar-item" href="#">
+                                Editar perfil
+                            </a>
+                            <hr class="navbar-divider">
+                            <a class="navbar-item" href="#">
+                                Cerrar sesión
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="is-hidden-mobile" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 100%; max-width: 500px; pointer-events: none;">
+                <div class="control has-icons-right" style="pointer-events: auto;">
+                    <input class="input" type="search" placeholder="Buscar Libro o Autor">
+                    <span class="icon is-right" style="pointer-events: none;">
+                        <i class="fas fa-search"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+            $navbarBurgers.forEach( el => {
+                el.addEventListener('click', () => {
+                    const target = el.dataset.target;
+                    const $target = document.getElementById(target);
+                    el.classList.toggle('is-active');
+                    $target.classList.toggle('is-active');
+                });
+            });
+        });
+    </script>
+
+    <section class="section">
+        <div class="container">
+            {% block logged_content %}{% endblock %}
+        </div>
+    </section>
+{% endblock %}

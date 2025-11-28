@@ -1,0 +1,65 @@
+{% extends "base_logged.html" %}
+
+{% block logged_content %}
+    <div class="mb-5 has-text-centered" style="margin-top: -1rem;">
+        <span class="mr-2">Mostrando libros disponibles en</span>
+        {% for location in user_locations %}
+            <span class="tag is-light mr-1">{{ location.get_area_display }}</span>
+        {% endfor %}
+    </div>
+
+    <div class="columns is-centered">
+        <div class="column is-half">
+            {% for book in offered_books %}
+                <div class="card mb-4">
+                    <div class="card-content">
+                        <article class="media">
+                            <figure class="media-left">
+                                <div style="width: 80px; height: 120px; background-color: #f5f5f5;"></div>
+                            </figure>
+                            <div class="media-content" style="display: flex; flex-direction: column; min-height: 100px;">
+                                <div>
+                                    <p class="mb-1 is-size-5"><strong>{{ book.title }}</strong></p>
+                                    <p class="mb-2 is-size-6">{{ book.author }}</p>
+                                    {% if book.notes %}
+                                        <p class="is-size-7 has-text-grey mb-2">Observaciones: {{ book.notes }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="content" style="margin-top: auto;">
+                                    <div class="is-flex is-justify-content-space-between is-align-items-center">
+                                        <div>
+                                            <span class="mr-2">{{ book.user.username }}</span>
+                                            {% for location in book.user.locations.all %}
+                                                <span class="tag is-light mr-1">{{ location.get_area_display }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        <div class="is-hidden-mobile">
+                                            {% if book.already_requested %}
+                                                <button class="button is-light" disabled>Ya pedido</button>
+                                            {% else %}
+                                                <button class="button is-primary">Cambiar!</button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                    <div class="card-content pt-0 is-hidden-tablet">
+                        <div class="has-text-centered">
+                            {% if book.already_requested %}
+                                <button class="button is-light" disabled>Ya pedido</button>
+                            {% else %}
+                                <button class="button is-primary">Cambiar!</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="notification is-info is-light">
+                    <p>No hay libros disponibles en este momento.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
