@@ -54,7 +54,7 @@ class RegistrationForm(forms.ModelForm):
             }),
         }
         labels = {
-            'username': 'Nombre de usuario',
+            'username': 'Usuario',
             'email': 'Email',
         }
 
