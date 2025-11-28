@@ -4,7 +4,7 @@
     <div class="mb-5 has-text-centered" style="margin-top: -1rem;">
         <span class="mr-2">Mostrando libros disponibles en</span>
         {% for location in user_locations %}
-            <span class="tag is-info is-light mr-1">{{ location.get_area_display }}</span>
+            <span class="tag is-light mr-1">{{ location.get_area_display }}</span>
         {% endfor %}
     </div>
 
@@ -30,7 +30,7 @@
                                         <div>
                                             <span class="mr-2">{{ book.user.username }}</span>
                                             {% for location in book.user.locations.all %}
-                                                <span class="tag is-success is-light mr-1">{{ location.get_area_display }}</span>
+                                                <span class="tag is-light mr-1">{{ location.get_area_display }}</span>
                                             {% endfor %}
                                         </div>
                                         <div class="is-hidden-mobile">
