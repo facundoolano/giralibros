@@ -127,7 +127,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Authentication
 AUTHENTICATION_BACKENDS = [
     'books.backends.EmailOrUsernameBackend',
-    'django.contrib.auth.backends.ModelBackend',  # Keep as fallback for admin
 ]
 
 LOGIN_URL = 'login'

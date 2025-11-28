@@ -76,6 +76,12 @@
                         </p>
                     </div>
 
+                    {% if register_form.non_field_errors %}
+                        <div class="notification is-danger is-light">
+                            {{ register_form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
                     <form method="post" action="{% url 'register' %}">
                         {% csrf_token %}
                         {% for field in register_form %}
