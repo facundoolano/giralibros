@@ -21,31 +21,19 @@
     <section class="section">
         <div class="container">
             <div class="columns is-centered">
-                <div class="column is-6-tablet is-5-desktop is-4-widescreen">
-                    <div class="box has-text-centered">
-                        <h1 class="title is-4 mb-4 has-text-danger">
-                            ❌ Enlace inválido o expirado
-                        </h1>
-                        <div class="content">
-                            <p>
-                                El enlace de verificación no es válido o ya expiró.
-                            </p>
-                            <p class="has-text-grey">
-                                Esto puede ocurrir si:
-                            </p>
-                            <ul class="has-text-left has-text-grey">
-                                <li>El enlace ya fue usado anteriormente</li>
-                                <li>El enlace es demasiado antiguo</li>
-                                <li>El enlace está incompleto o corrupto</li>
-                            </ul>
-                        </div>
-                        <hr>
-                        <div class="mt-5">
-                            <a href="{% url 'login' %}" class="button is-light">
-                                Volver al inicio
-                            </a>
-                        </div>
+                <div class="column is-5-tablet is-4-desktop is-3-widescreen has-text-centered">
+                    <h2 class="title is-4 mb-4 has-text-danger">
+                        ❌ Enlace inválido o expirado
+                    </h2>
+                    <div class="content">
+                        <p>
+                            El enlace de verificación no es válido o ya expiró.
+                        </p>
                     </div>
+                    <hr class="my-5">
+                    <a href="{% url 'login' %}" class="button is-light is-fullwidth">
+                        Volver al inicio
+                    </a>
                 </div>
             </div>
         </div>
