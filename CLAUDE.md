@@ -8,11 +8,10 @@ Cambiolibros is a Django-based book exchange platform where users can offer book
 
 ## Development Commands
 
+**Note**: This project uses `uv` for dependency management. All Python commands should be run with `uv run` prefix (e.g., `uv run python manage.py`).
+
 ### Environment Setup
 ```bash
-# Activate virtual environment
-source .venv/bin/activate
-
 # Install dependencies
 uv sync
 
@@ -23,19 +22,22 @@ uv sync --group dev
 ### Database Management
 ```bash
 # Run migrations
-python manage.py migrate
+uv run python manage.py migrate
 
 # Create migrations after model changes
-python manage.py makemigrations
+uv run python manage.py makemigrations
+
+# Load sample/test data from fixtures
+uv run python manage.py loaddata sample_books
 
 # Create superuser for admin access
-python manage.py createsuperuser
+uv run python manage.py createsuperuser
 ```
 
 ### Running the Application
 ```bash
 # Start development server
-python manage.py runserver
+uv run python manage.py runserver
 
 # Admin interface available at http://localhost:8000/admin/
 ```
@@ -43,10 +45,10 @@ python manage.py runserver
 ### Testing and Type Checking
 ```bash
 # Run tests
-python manage.py test
+uv run python manage.py test
 
 # Type checking with mypy (django-stubs configured)
-mypy .
+uv run mypy .
 ```
 
 ## Architecture
@@ -91,6 +93,8 @@ books/                 # Main application
   admin.py            # Admin interface configuration
   views.py            # View logic (currently empty)
   migrations/         # Database migrations
+  fixtures/           # Test/sample data fixtures
+    sample_books.json # Sample users, locations, and books
 ```
 
 ## Django Configuration
