@@ -20,17 +20,19 @@
           </figure>
           <div
             class="media-content"
-            style="display: flex; flex-direction: column; min-height: 100px"
+            style="display: flex; flex-direction: column; min-height: 100px;"
           >
             <div>
-              <p class="mb-1 is-size-5"><strong>{{ book.title }}</strong></p>
+              <div class="is-flex is-justify-content-space-between is-align-items-center mb-1">
+                <p class="is-size-5"><strong>{{ book.title }}</strong></p>
+                <p class="is-size-7 has-text-grey timeago-tooltip" style="white-space: nowrap; margin-left: 1rem;" data-timestamp="{{ book.created_at|date:'c' }}">
+                  <span class="icon is-small">
+                    <i class="fas fa-clock"></i>
+                  </span>
+                  <span>{{ book.created_at|timeago }}</span>
+                </p>
+              </div>
               <p class="mb-2 is-size-6">{{ book.author }}</p>
-              <p class="is-size-7 has-text-grey mb-2">
-                <span class="icon is-small">
-                  <i class="fas fa-clock"></i>
-                </span>
-                <span>{{ book.created_at|timeago }}</span>
-              </p>
               {% if book.notes %}
               <p class="is-size-7 has-text-grey mb-2">
                 Observaciones: {{ book.notes }}
@@ -88,4 +90,23 @@
     {% endfor %}
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.timeago-tooltip').forEach(element => {
+    const timestamp = element.dataset.timestamp;
+    if (timestamp) {
+      const date = new Date(timestamp);
+      element.title = date.toLocaleString('es-AR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    }
+  });
+});
+</script>
 {% endblock %}
