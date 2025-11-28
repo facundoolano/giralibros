@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="columns is-centered">
+            <div class="column is-8-tablet is-6-desktop">
+                <h1 class="title">Completá tu perfil</h1>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="field">
+                        <label class="label">Ubicación <span class="has-text-danger">*</span></label>
+                        <div class="control">
+                            <div class="field is-grouped is-grouped-multiline">
+                                <div class="control">
+                                    <label class="tag is-medium is-light location-tag" style="cursor: pointer;">
+                                        <input type="checkbox" name="locations" value="CABA" style="margin-right: 0.5rem;">
+                                        CABA
+                                    </label>
+                                </div>
+                                <div class="control">
+                                    <label class="tag is-medium is-light location-tag" style="cursor: pointer;">
+                                        <input type="checkbox" name="locations" value="GBA_NORTE" style="margin-right: 0.5rem;">
+                                        GBA Norte
+                                    </label>
+                                </div>
+                                <div class="control">
+                                    <label class="tag is-medium is-light location-tag" style="cursor: pointer;">
+                                        <input type="checkbox" name="locations" value="GBA_OESTE" style="margin-right: 0.5rem;">
+                                        GBA Oeste
+                                    </label>
+                                </div>
+                                <div class="control">
+                                    <label class="tag is-medium is-light location-tag" style="cursor: pointer;">
+                                        <input type="checkbox" name="locations" value="GBA_SUR" style="margin-right: 0.5rem;">
+                                        GBA Sur
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="help">Seleccioná las zonas donde estarías dispuesto/a a intercambiar libros. La selección afecta los libros que te mostramos.</p>
+                    </div>
+
+                    <div class="box">
+                        <h2 class="title is-5">Datos de contacto</h2>
+                        <p class="mb-4">Esta información será compartida cuando envíes solicitudes de intercambio. No forma parte de tu perfil público. <span class="has-text-danger">*</span> Campos obligatorios</p>
+
+                        <div class="field">
+                            <label class="label">Nombre <span class="has-text-danger">*</span></label>
+                            <div class="control">
+                                <input class="input" type="text" name="first_name" placeholder="Tu nombre" required>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Email <span class="has-text-danger">*</span></label>
+                            <div class="control">
+                                <input class="input" type="email" name="email" value="usuario@ejemplo.com" placeholder="tu@email.com" required>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Contacto alternativo</label>
+                            <div class="control">
+                                <input class="input" type="text" name="alternate_contact" placeholder="@usuario, teléfono, etc.">
+                            </div>
+                            <p class="help">Opcional: otra forma de contactarte (usuario de redes sociales, teléfono, etc.)</p>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Acerca de vos</label>
+                        <div class="control">
+                            <textarea class="textarea" name="about" rows="4" placeholder="Lo que quieras que se vea en tu perfil público."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="field mt-5 has-text-centered">
+                        <div class="control">
+                            <button class="button is-primary" type="submit">
+                                Guardar perfil
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .location-tag {
+        transition: all 0.2s;
+    }
+    .location-tag:hover {
+        background-color: hsl(0, 0%, 90%) !important;
+    }
+</style>
+
+<script>
+    // Make the entire tag clickable and show visual feedback
+    document.querySelectorAll('.location-tag').forEach(tag => {
+        const checkbox = tag.querySelector('input[type="checkbox"]');
+
+        // Update tag style based on checkbox state
+        function updateTagStyle() {
+            if (checkbox.checked) {
+                tag.classList.remove('is-light');
+                tag.classList.add('is-info');
+            } else {
+                tag.classList.remove('is-info');
+                tag.classList.add('is-light');
+            }
+        }
+
+        // Initialize
+        updateTagStyle();
+
+        // Toggle on click
+        tag.addEventListener('click', (e) => {
+            if (e.target !== checkbox) {
+                checkbox.checked = !checkbox.checked;
+                updateTagStyle();
+            } else {
+                updateTagStyle();
+            }
+        });
+    });
+</script>
+{% endblock %}

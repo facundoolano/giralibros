@@ -28,7 +28,7 @@
                     <a class="navbar-item is-hidden-desktop" href="#">
                         Mis libros
                     </a>
-                    <a class="navbar-item is-hidden-desktop" href="#">
+                    <a class="navbar-item is-hidden-desktop" href="{% url 'profile_edit' %}">
                         Editar perfil
                     </a>
                     <a class="navbar-item is-hidden-desktop" href="{% url 'logout' %}">
@@ -47,7 +47,7 @@
                             <a class="navbar-item" href="#">
                                 Mis libros
                             </a>
-                            <a class="navbar-item" href="#">
+                            <a class="navbar-item" href="{% url 'profile_edit' %}">
                                 Editar perfil
                             </a>
                             <hr class="navbar-divider">

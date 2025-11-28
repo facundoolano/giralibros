@@ -132,3 +132,13 @@ def home(request):
         "offered_books": offered_books,
         "user": request.user,
     })
+
+
+@login_required
+def profile_edit(request):
+    """
+    Edit user profile.
+    TODO: Implement form handling and save logic.
+    """
+    # For now, just render the template
+    return render(request, 'profile_edit.html')
