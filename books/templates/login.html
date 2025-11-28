@@ -29,27 +29,25 @@
                         📚 CambioLibros
                     </h1>
 
-                    {% if error %}
+                    {% if login_form.non_field_errors %}
                         <div class="notification is-danger is-light">
-                            {{ error }}
+                            {{ login_form.non_field_errors }}
                         </div>
                     {% endif %}
 
                     <form method="post" action="{% url 'login' %}">
                         {% csrf_token %}
-                        <div class="field">
-                            <label class="label">Email o usuario</label>
-                            <div class="control">
-                                <input class="input" type="text" name="email" placeholder="tu@email.com o tu_usuario" required>
+                        {% for field in login_form %}
+                            <div class="field">
+                                <label class="label">{{ field.label }}</label>
+                                <div class="control">
+                                    {{ field }}
+                                </div>
+                                {% if field.errors %}
+                                    <p class="help is-danger">{{ field.errors.0 }}</p>
+                                {% endif %}
                             </div>
-                        </div>
-
-                        <div class="field">
-                            <label class="label">Contraseña</label>
-                            <div class="control">
-                                <input class="input" type="password" name="password" placeholder="••••••••" required>
-                            </div>
-                        </div>
+                        {% endfor %}
 
                         <div class="field">
                             <div class="control">
@@ -70,26 +68,17 @@
 
                     <form method="post" action="{% url 'register' %}">
                         {% csrf_token %}
-                        <div class="field">
-                            <label class="label">Nombre de usuario</label>
-                            <div class="control">
-                                <input class="input" type="text" name="username" placeholder="tu_usuario" required>
+                        {% for field in register_form %}
+                            <div class="field">
+                                <label class="label">{{ field.label }}</label>
+                                <div class="control">
+                                    {{ field }}
+                                </div>
+                                {% if field.errors %}
+                                    <p class="help is-danger">{{ field.errors.0 }}</p>
+                                {% endif %}
                             </div>
-                        </div>
-
-                        <div class="field">
-                            <label class="label">Email</label>
-                            <div class="control">
-                                <input class="input" type="email" name="email" placeholder="tu@email.com" required>
-                            </div>
-                        </div>
-
-                        <div class="field">
-                            <label class="label">Contraseña</label>
-                            <div class="control">
-                                <input class="input" type="password" name="password" placeholder="••••••••" required>
-                            </div>
-                        </div>
+                        {% endfor %}
 
                         <div class="field">
                             <div class="control">

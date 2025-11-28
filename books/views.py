@@ -1,8 +1,8 @@
-from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 
+from books.forms import EmailOrUsernameAuthenticationForm, RegistrationForm
 from books.models import OfferedBook
 
 
@@ -10,22 +10,20 @@ def login(request):
     if request.user.is_authenticated:
         return redirect('home')
 
+    login_form = EmailOrUsernameAuthenticationForm(request, data=request.POST or None)
+    register_form = RegistrationForm()
+
     if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-
-        # authenticate() will use our EmailBackend
-        user = authenticate(request, username=email, password=password)
-
-        if user is not None:
+        if login_form.is_valid():
+            user = login_form.get_user()
             auth_login(request, user)
             next_url = request.GET.get('next', 'home')
             return redirect(next_url)
-        else:
-            error = 'Email/usuario o contraseña incorrectos'
-            return render(request, 'login.html', {'error': error})
 
-    return render(request, 'login.html')
+    return render(request, 'login.html', {
+        'login_form': login_form,
+        'register_form': register_form,
+    })
 
 
 def register(request):
