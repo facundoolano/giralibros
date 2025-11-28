@@ -3,9 +3,9 @@
     "model": "auth.user",
     "pk": 1,
     "fields": {
-      "username": "testuser",
+      "username": "test",
       "email": "test@example.com",
-      "password": "pbkdf2_sha256$600000$placeholder$hash",
+      "password": "pbkdf2_sha256$1000000$JkVN1XNOj1qHIRnM8MemmM$3ZUSr7hu2L4091NPCSoofazPgIQBFkpxuPiuZyv/VLg=",
       "is_superuser": false,
       "is_staff": false,
       "is_active": true,
@@ -116,7 +116,7 @@
       "user": 2,
       "notes": "Buen estado, tapa blanda",
       "reserved": false,
-      "created_at": "2025-01-15T10:00:00Z"
+      "created_at": "2025-11-28T19:18:00Z"
     }
   },
   {
@@ -128,7 +128,7 @@
       "user": 3,
       "notes": "Como nuevo",
       "reserved": false,
-      "created_at": "2025-01-16T11:00:00Z"
+      "created_at": "2025-11-28T18:20:00Z"
     }
   },
   {
@@ -140,7 +140,7 @@
       "user": 4,
       "notes": "",
       "reserved": false,
-      "created_at": "2025-01-17T12:00:00Z"
+      "created_at": "2025-11-27T12:00:00Z"
     }
   },
   {
@@ -152,7 +152,7 @@
       "user": 2,
       "notes": "Primera edición, excelente estado",
       "reserved": false,
-      "created_at": "2025-01-18T13:00:00Z"
+      "created_at": "2025-11-25T13:00:00Z"
     }
   },
   {
@@ -164,7 +164,7 @@
       "user": 3,
       "notes": "",
       "reserved": false,
-      "created_at": "2025-01-19T14:00:00Z"
+      "created_at": "2025-11-21T14:00:00Z"
     }
   },
   {
@@ -176,7 +176,7 @@
       "user": 4,
       "notes": "Algunas páginas subrayadas",
       "reserved": false,
-      "created_at": "2025-01-20T15:00:00Z"
+      "created_at": "2025-11-14T15:00:00Z"
     }
   },
   {
@@ -188,7 +188,7 @@
       "user": 2,
       "notes": "",
       "reserved": false,
-      "created_at": "2025-01-21T16:00:00Z"
+      "created_at": "2025-10-28T16:00:00Z"
     }
   },
   {
@@ -200,7 +200,7 @@
       "user": 3,
       "notes": "Muy buen estado",
       "reserved": false,
-      "created_at": "2025-01-22T17:00:00Z"
+      "created_at": "2025-09-15T17:00:00Z"
     }
   },
   {
@@ -212,7 +212,7 @@
       "user": 4,
       "notes": "Edición de bolsillo",
       "reserved": false,
-      "created_at": "2025-01-23T18:00:00Z"
+      "created_at": "2025-08-01T18:00:00Z"
     }
   }
 ]

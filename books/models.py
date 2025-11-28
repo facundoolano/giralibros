@@ -103,6 +103,17 @@ class OfferedBook(BaseBook):
 
     objects = OfferedBookManager()
 
+    @property
+    def cover_image(self) -> str:
+        """
+        Return a consistent book cover image filename based on book ID.
+        Uses modulo to cycle through available book images.
+        """
+        # Number of available book images
+        NUM_BOOK_IMAGES = 4
+        image_num = ((self.id - 1) % NUM_BOOK_IMAGES) + 1
+        return f"img/book{image_num}.webp"
+
 
 class WantedBook(BaseBook):
     "A book a user is interested in."
