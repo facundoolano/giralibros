@@ -27,13 +27,40 @@ def login(request):
 
 
 def register(request):
+    """
+    Handle user registration.
+
+    TODO: In production, this should send an email verification link instead of
+    immediately creating an active user. The flow should be:
+    1. User submits registration form
+    2. Inactive user is created
+    3. Email with verification link is sent
+    4. User clicks verification link
+    5. User is activated and can log in
+    6. On first login, user is redirected to profile completion
+    """
     if request.user.is_authenticated:
         return redirect('home')
 
     if request.method == 'POST':
-        # TODO: Implement registration logic with email confirmation
-        # For now, just redirect back to login
-        return redirect('login')
+        form = RegistrationForm(request.POST)
+        if form.is_valid():
+            # Create the user (in production, set is_active=False until email verified)
+            user = form.save()
+
+            # Auto-login for convenience (in production, redirect to "check your email" page)
+            auth_login(request, user)
+
+            # Redirect to profile completion (to be implemented)
+            # For now, redirect to home
+            return redirect('home')
+        else:
+            # If form is invalid, re-render login page with errors
+            login_form = EmailOrUsernameAuthenticationForm(request)
+            return render(request, 'login.html', {
+                'login_form': login_form,
+                'register_form': form,
+            })
 
     return redirect('login')
 
