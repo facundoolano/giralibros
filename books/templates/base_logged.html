@@ -2,7 +2,7 @@
 
 {% block content %}
     <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation" style="background-color: #e8f5e9;">
-        <div class="container" style="position: relative;">
+        <div class="container py-1" style="position: relative;">
             <div class="navbar-brand">
                 <a class="navbar-item has-text-weight-bold is-size-4" href="{% url 'home' %}">
                     📚 CambioLibros
@@ -17,7 +17,7 @@
 
             <div id="navbarMenu" class="navbar-menu" style="background-color: #e8f5e9;">
                 <div class="navbar-start">
-                    <div class="navbar-item is-hidden-tablet">
+                    <div class="navbar-item is-hidden-desktop">
                         <div class="control has-icons-right" style="width: 100%;">
                             <input class="input" type="search" placeholder="Buscar Libro o Autor">
                             <span class="icon is-right" style="pointer-events: none;">
@@ -25,18 +25,18 @@
                             </span>
                         </div>
                     </div>
-                    <a class="navbar-item is-hidden-tablet" href="#">
+                    <a class="navbar-item is-hidden-desktop" href="#">
                         Mis libros
                     </a>
-                    <a class="navbar-item is-hidden-tablet" href="#">
+                    <a class="navbar-item is-hidden-desktop" href="#">
                         Editar perfil
                     </a>
-                    <a class="navbar-item is-hidden-tablet" href="{% url 'logout' %}">
+                    <a class="navbar-item is-hidden-desktop" href="{% url 'logout' %}">
                         Cerrar sesión
                     </a>
                 </div>
                 <div class="navbar-end">
-                    <div class="navbar-item has-dropdown is-hoverable is-hidden-mobile">
+                    <div class="navbar-item has-dropdown is-hoverable is-hidden-touch">
                         <a class="navbar-link">
                             <span class="icon">
                                 <i class="fas fa-user"></i>
@@ -59,7 +59,7 @@
                 </div>
             </div>
 
-            <div class="is-hidden-mobile" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 100%; max-width: 500px; pointer-events: none;">
+            <div class="is-hidden-touch" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 100%; max-width: 500px; pointer-events: none;">
                 <div class="control has-icons-right" style="pointer-events: auto;">
                     <input class="input" type="search" placeholder="Buscar Libro o Autor">
                     <span class="icon is-right" style="pointer-events: none;">
