@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block extra_css %}
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+    body {
+        padding-top: 0 !important;
+    }
+    .login-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+    }
+</style>
+<script src="{% static 'js/form-validation.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+    <section class="section">
+        <div class="container">
+            <div class="columns is-centered">
+                <div class="column is-7-tablet is-6-desktop is-5-widescreen">
+                    <h1 class="title has-text-centered mb-3">
+                        📚 CambioLibros
+                    </h1>
+                    <p class="has-text-centered mb-6">
+                        La comunidad gratuita de intercambio de libros en Buenos Aires
+                    </p>
+                </div>
+            </div>
+            <div class="columns is-centered">
+                <div class="column is-5-tablet is-4-desktop is-3-widescreen">
+
+                    {% if login_form.non_field_errors %}
+                        <div class="notification is-danger is-light">
+                            {{ login_form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <form method="post" action="{% url 'login' %}">
+                        {% csrf_token %}
+                        {% for field in login_form %}
+                            <div class="field">
+                                <label class="label">{{ field.label }}</label>
+                                <div class="control">
+                                    {{ field }}
+                                </div>
+                                {% if field.errors %}
+                                    <p class="help is-danger">{{ field.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+
+                        <div class="field">
+                            <div class="control">
+                                <button class="button is-light is-fullwidth" type="submit" disabled>
+                                    Iniciar sesión
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <hr class="my-5">
+
+                    <div class="has-text-centered mb-4">
+                        <p class="is-size-6 has-text-grey mb-4">
+                            ¿No tenés cuenta? Registrate acá
+                        </p>
+                    </div>
+
+                    <form method="post" action="{% url 'register' %}">
+                        {% csrf_token %}
+                        {% for field in register_form %}
+                            <div class="field">
+                                <label class="label">{{ field.label }}</label>
+                                <div class="control">
+                                    {{ field }}
+                                </div>
+                                {% if field.errors %}
+                                    <p class="help is-danger">{{ field.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+
+                        <div class="field">
+                            <div class="control">
+                                <button class="button is-light is-fullwidth" type="submit" disabled>
+                                    Registrarse
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

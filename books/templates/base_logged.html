@@ -5,7 +5,7 @@
         <div class="container" style="position: relative;">
             <div class="navbar-brand">
                 <a class="navbar-item has-text-weight-bold is-size-4" href="{% url 'home' %}">
-                    CambioLibros
+                    📚 CambioLibros
                 </a>
                 <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarMenu">
                     <span aria-hidden="true"></span>
@@ -31,14 +31,17 @@
                     <a class="navbar-item is-hidden-tablet" href="#">
                         Editar perfil
                     </a>
-                    <a class="navbar-item is-hidden-tablet" href="#">
+                    <a class="navbar-item is-hidden-tablet" href="{% url 'logout' %}">
                         Cerrar sesión
                     </a>
                 </div>
                 <div class="navbar-end">
                     <div class="navbar-item has-dropdown is-hoverable is-hidden-mobile">
                         <a class="navbar-link">
-                            Usuario
+                            <span class="icon">
+                                <i class="fas fa-user"></i>
+                            </span>
+                            <span>{{ request.user.username }}</span>
                         </a>
                         <div class="navbar-dropdown">
                             <a class="navbar-item" href="#">
@@ -48,7 +51,7 @@
                                 Editar perfil
                             </a>
                             <hr class="navbar-divider">
-                            <a class="navbar-item" href="#">
+                            <a class="navbar-item" href="{% url 'logout' %}">
                                 Cerrar sesión
                             </a>
                         </div>
