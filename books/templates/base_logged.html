@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+    {% if user.profile %}
     <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation" style="background-color: #e8f5e9;">
         <div class="container py-1" style="position: relative;">
             <div class="navbar-brand">
@@ -83,6 +84,7 @@
             });
         });
     </script>
+    {% endif %}
 
     <section class="section">
         <div class="container">

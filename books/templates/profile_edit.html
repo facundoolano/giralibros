@@ -1,11 +1,9 @@
-{% extends "base.html" %}
+{% extends "base_logged.html" %}
 
-{% block content %}
-<section class="section">
-    <div class="container">
-        <div class="columns is-centered">
-            <div class="column is-8-tablet is-6-desktop">
-                <h1 class="title">Completá tu perfil</h1>
+{% block logged_content %}
+    <div class="columns is-centered">
+        <div class="column is-8-tablet is-6-desktop">
+            <h1 class="title">{% if user.profile %}Tu perfil{% else %}Completá tu perfil{% endif %}</h1>
 
                 <form method="post">
                     {% csrf_token %}
@@ -85,10 +83,8 @@
                         </div>
                     </div>
                 </form>
-            </div>
         </div>
     </div>
-</section>
 
 <style>
     .location-tag {
