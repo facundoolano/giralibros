@@ -80,9 +80,7 @@ class OfferedBookManager(models.Manager):
                 already_requested=Exists(
                     ExchangeRequest.objects.filter(
                         from_user=user,
-                        to_user=OuterRef("user"),
-                        book_title=OuterRef("title"),
-                        book_author=OuterRef("author"),
+                        offered_book=OuterRef("pk"),
                     )
                 )
             )
@@ -116,10 +114,14 @@ class ExchangeRequest(models.Model):
     from_user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="sent_requests"
     )
-    # denormalized fields to accomodate changes/deletions of the target book
     to_user = models.ForeignKey(
         User, on_delete=models.SET_NULL, related_name="received_requests", null=True
     )
+    # Reference to the actual book, set to null if book is deleted
+    offered_book = models.ForeignKey(
+        OfferedBook, on_delete=models.SET_NULL, null=True, related_name="requests"
+    )
+    # Denormalized fields to preserve request details when book is deleted or edited
     book_title = models.CharField(max_length=200)
     book_author = models.CharField(max_length=200)
 
