@@ -2,6 +2,8 @@ from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 
+from books.models import LocationArea, UserProfile
+
 
 class EmailOrUsernameAuthenticationForm(AuthenticationForm):
     """
@@ -66,3 +68,44 @@ class RegistrationForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+
+class ProfileForm(forms.Form):
+    """
+    Form for creating/editing user profile.
+    Handles User.first_name, UserProfile fields, and UserLocation selections.
+    """
+    first_name = forms.CharField(
+        max_length=150,
+        widget=forms.TextInput(attrs={
+            'class': 'input',
+            'placeholder': 'Tu nombre',
+        })
+    )
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            'class': 'input',
+            'placeholder': 'tu@email.com',
+        })
+    )
+    alternate_contact = forms.CharField(
+        required=False,
+        max_length=200,
+        widget=forms.TextInput(attrs={
+            'class': 'input',
+            'placeholder': '@usuario, teléfono, etc.',
+        })
+    )
+    locations = forms.MultipleChoiceField(
+        choices=LocationArea.choices,
+        widget=forms.CheckboxSelectMultiple,
+        required=True,
+    )
+    about = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'textarea',
+            'rows': 4,
+            'placeholder': 'Lo que quieras que se vea en tu perfil público.',
+        })
+    )

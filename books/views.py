@@ -8,8 +8,8 @@ from django.urls import reverse
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
-from books.forms import EmailOrUsernameAuthenticationForm, RegistrationForm
-from books.models import OfferedBook
+from books.forms import EmailOrUsernameAuthenticationForm, ProfileForm, RegistrationForm
+from books.models import OfferedBook, UserLocation, UserProfile
 
 
 def login(request):
@@ -141,8 +141,67 @@ def home(request):
 @login_required
 def profile_edit(request):
     """
-    Edit user profile.
-    TODO: Implement form handling and save logic.
+    Create or edit user profile.
     """
-    # For now, just render the template
-    return render(request, 'profile_edit.html')
+    # Get existing profile if it exists
+    try:
+        profile = request.user.profile
+        is_new_profile = False
+    except UserProfile.DoesNotExist:
+        profile = None
+        is_new_profile = True
+
+    if request.method == 'POST':
+        form = ProfileForm(request.POST)
+        if form.is_valid():
+            # Update User.first_name
+            request.user.first_name = form.cleaned_data['first_name']
+            request.user.save()
+
+            # Create or update UserProfile
+            if profile:
+                profile.contact_email = form.cleaned_data['email']
+                profile.alternate_contact = form.cleaned_data['alternate_contact']
+                profile.about = form.cleaned_data['about']
+                profile.save()
+            else:
+                profile = UserProfile.objects.create(
+                    user=request.user,
+                    contact_email=form.cleaned_data['email'],
+                    alternate_contact=form.cleaned_data['alternate_contact'],
+                    about=form.cleaned_data['about'],
+                )
+
+            # Update UserLocation entries
+            # Delete existing locations
+            UserLocation.objects.filter(user=request.user).delete()
+            # Create new locations
+            for area in form.cleaned_data['locations']:
+                UserLocation.objects.create(user=request.user, area=area)
+
+            # Redirect based on whether this is first-time setup or edit
+            if is_new_profile:
+                # TODO: Redirect to 'my_books' view once implemented
+                # return redirect('my_books')
+                return redirect('home')  # Temporary: redirect to home until my_books exists
+            else:
+                return redirect('home')
+    else:
+        # Pre-populate form with existing data
+        initial = {}
+        if profile:
+            initial = {
+                'first_name': request.user.first_name,
+                'email': profile.contact_email,
+                'alternate_contact': profile.alternate_contact,
+                'about': profile.about,
+                'locations': [loc.area for loc in request.user.locations.all()],
+            }
+        else:
+            # Default email to registration email
+            initial = {
+                'email': request.user.email,
+            }
+        form = ProfileForm(initial=initial)
+
+    return render(request, 'profile_edit.html', {'form': form})
