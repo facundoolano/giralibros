@@ -1,0 +1,218 @@
+[
+  {
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+      "username": "testuser",
+      "email": "test@example.com",
+      "password": "pbkdf2_sha256$600000$placeholder$hash",
+      "is_superuser": false,
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 2,
+    "fields": {
+      "username": "juanperez",
+      "email": "juan@example.com",
+      "password": "pbkdf2_sha256$600000$placeholder$hash",
+      "is_superuser": false,
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 3,
+    "fields": {
+      "username": "mariagomez",
+      "email": "maria@example.com",
+      "password": "pbkdf2_sha256$600000$placeholder$hash",
+      "is_superuser": false,
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 4,
+    "fields": {
+      "username": "carloslopez",
+      "email": "carlos@example.com",
+      "password": "pbkdf2_sha256$600000$placeholder$hash",
+      "is_superuser": false,
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "books.userlocation",
+    "pk": 1,
+    "fields": {
+      "user": 1,
+      "area": "CABA"
+    }
+  },
+  {
+    "model": "books.userlocation",
+    "pk": 2,
+    "fields": {
+      "user": 1,
+      "area": "GBA_NORTE"
+    }
+  },
+  {
+    "model": "books.userlocation",
+    "pk": 3,
+    "fields": {
+      "user": 2,
+      "area": "CABA"
+    }
+  },
+  {
+    "model": "books.userlocation",
+    "pk": 4,
+    "fields": {
+      "user": 3,
+      "area": "GBA_NORTE"
+    }
+  },
+  {
+    "model": "books.userlocation",
+    "pk": 5,
+    "fields": {
+      "user": 3,
+      "area": "GBA_SUR"
+    }
+  },
+  {
+    "model": "books.userlocation",
+    "pk": 6,
+    "fields": {
+      "user": 4,
+      "area": "CABA"
+    }
+  },
+  {
+    "model": "books.userlocation",
+    "pk": 7,
+    "fields": {
+      "user": 4,
+      "area": "GBA_OESTE"
+    }
+  },
+  {
+    "model": "books.offeredbook",
+    "pk": 1,
+    "fields": {
+      "title": "Cien años de soledad",
+      "author": "Gabriel García Márquez",
+      "user": 2,
+      "notes": "Buen estado, tapa blanda",
+      "reserved": false,
+      "created_at": "2025-01-15T10:00:00Z"
+    }
+  },
+  {
+    "model": "books.offeredbook",
+    "pk": 2,
+    "fields": {
+      "title": "Rayuela",
+      "author": "Julio Cortázar",
+      "user": 3,
+      "notes": "Como nuevo",
+      "reserved": false,
+      "created_at": "2025-01-16T11:00:00Z"
+    }
+  },
+  {
+    "model": "books.offeredbook",
+    "pk": 3,
+    "fields": {
+      "title": "El túnel",
+      "author": "Ernesto Sábato",
+      "user": 4,
+      "notes": "",
+      "reserved": false,
+      "created_at": "2025-01-17T12:00:00Z"
+    }
+  },
+  {
+    "model": "books.offeredbook",
+    "pk": 4,
+    "fields": {
+      "title": "Ficciones",
+      "author": "Jorge Luis Borges",
+      "user": 2,
+      "notes": "Primera edición, excelente estado",
+      "reserved": false,
+      "created_at": "2025-01-18T13:00:00Z"
+    }
+  },
+  {
+    "model": "books.offeredbook",
+    "pk": 5,
+    "fields": {
+      "title": "La casa de los espíritus",
+      "author": "Isabel Allende",
+      "user": 3,
+      "notes": "",
+      "reserved": false,
+      "created_at": "2025-01-19T14:00:00Z"
+    }
+  },
+  {
+    "model": "books.offeredbook",
+    "pk": 6,
+    "fields": {
+      "title": "El Aleph",
+      "author": "Jorge Luis Borges",
+      "user": 4,
+      "notes": "Algunas páginas subrayadas",
+      "reserved": false,
+      "created_at": "2025-01-20T15:00:00Z"
+    }
+  },
+  {
+    "model": "books.offeredbook",
+    "pk": 7,
+    "fields": {
+      "title": "Crónica de una muerte anunciada",
+      "author": "Gabriel García Márquez",
+      "user": 2,
+      "notes": "",
+      "reserved": false,
+      "created_at": "2025-01-21T16:00:00Z"
+    }
+  },
+  {
+    "model": "books.offeredbook",
+    "pk": 8,
+    "fields": {
+      "title": "La tregua",
+      "author": "Mario Benedetti",
+      "user": 3,
+      "notes": "Muy buen estado",
+      "reserved": false,
+      "created_at": "2025-01-22T17:00:00Z"
+    }
+  },
+  {
+    "model": "books.offeredbook",
+    "pk": 9,
+    "fields": {
+      "title": "Pedro Páramo",
+      "author": "Juan Rulfo",
+      "user": 4,
+      "notes": "Edición de bolsillo",
+      "reserved": false,
+      "created_at": "2025-01-23T18:00:00Z"
+    }
+  }
+]
