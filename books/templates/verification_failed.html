@@ -1,41 +1,18 @@
-{% extends "base.html" %}
+{% extends "base_logged_out.html" %}
 
-{% block extra_css %}
-<style>
-    html, body {
-        margin: 0;
-        padding: 0;
-    }
-    body {
-        padding-top: 0 !important;
-    }
-    .section {
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-    }
-</style>
-{% endblock %}
+{% block column_classes %} has-text-centered{% endblock %}
 
-{% block content %}
-    <section class="section">
-        <div class="container">
-            <div class="columns is-centered">
-                <div class="column is-5-tablet is-4-desktop is-3-widescreen has-text-centered">
-                    <h2 class="title is-4 mb-4 has-text-danger">
-                        ❌ Enlace inválido o expirado
-                    </h2>
-                    <div class="content">
-                        <p>
-                            El enlace de verificación no es válido o ya expiró.
-                        </p>
-                    </div>
-                    <hr class="my-5">
-                    <a href="{% url 'login' %}" class="button is-light is-fullwidth">
-                        Volver al inicio
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
+{% block main_content %}
+    <h2 class="title is-4 mb-4 has-text-danger">
+        ❌ Enlace inválido o expirado
+    </h2>
+    <div class="content">
+        <p>
+            El enlace de verificación no es válido o ya expiró.
+        </p>
+    </div>
+    <hr class="my-5">
+    <a href="{% url 'login' %}" class="button is-light is-fullwidth">
+        Volver al inicio
+    </a>
 {% endblock %}

@@ -35,72 +35,71 @@
             </div>
             <div class="columns is-centered">
                 <div class="column is-5-tablet is-4-desktop is-3-widescreen">
+    {% if login_form.non_field_errors %}
+        <div class="notification is-danger is-light">
+            {{ login_form.non_field_errors }}
+        </div>
+    {% endif %}
 
-                    {% if login_form.non_field_errors %}
-                        <div class="notification is-danger is-light">
-                            {{ login_form.non_field_errors }}
-                        </div>
-                    {% endif %}
+    <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        {% for field in login_form %}
+            <div class="field">
+                <label class="label">{{ field.label }}</label>
+                <div class="control">
+                    {{ field }}
+                </div>
+                {% if field.errors %}
+                    <p class="help is-danger">{{ field.errors.0 }}</p>
+                {% endif %}
+            </div>
+        {% endfor %}
 
-                    <form method="post" action="{% url 'login' %}">
-                        {% csrf_token %}
-                        {% for field in login_form %}
-                            <div class="field">
-                                <label class="label">{{ field.label }}</label>
-                                <div class="control">
-                                    {{ field }}
-                                </div>
-                                {% if field.errors %}
-                                    <p class="help is-danger">{{ field.errors.0 }}</p>
-                                {% endif %}
-                            </div>
-                        {% endfor %}
+        <div class="field">
+            <div class="control">
+                <button class="button is-light is-fullwidth" type="submit" disabled>
+                    Iniciar sesión
+                </button>
+            </div>
+        </div>
+    </form>
 
-                        <div class="field">
-                            <div class="control">
-                                <button class="button is-light is-fullwidth" type="submit" disabled>
-                                    Iniciar sesión
-                                </button>
-                            </div>
-                        </div>
-                    </form>
+    <hr class="my-5">
 
-                    <hr class="my-5">
+    <div class="has-text-centered mb-4">
+        <p class="is-size-6 has-text-grey mb-4">
+            ¿No tenés cuenta? Registrate acá
+        </p>
+    </div>
 
-                    <div class="has-text-centered mb-4">
-                        <p class="is-size-6 has-text-grey mb-4">
-                            ¿No tenés cuenta? Registrate acá
-                        </p>
-                    </div>
+    {% if register_form.non_field_errors %}
+        <div class="notification is-danger is-light">
+            {{ register_form.non_field_errors }}
+        </div>
+    {% endif %}
 
-                    {% if register_form.non_field_errors %}
-                        <div class="notification is-danger is-light">
-                            {{ register_form.non_field_errors }}
-                        </div>
-                    {% endif %}
+    <form method="post" action="{% url 'register' %}">
+        {% csrf_token %}
+        {% for field in register_form %}
+            <div class="field">
+                <label class="label">{{ field.label }}</label>
+                <div class="control">
+                    {{ field }}
+                </div>
+                {% if field.errors %}
+                    <p class="help is-danger">{{ field.errors.0 }}</p>
+                {% endif %}
+            </div>
+        {% endfor %}
 
-                    <form method="post" action="{% url 'register' %}">
-                        {% csrf_token %}
-                        {% for field in register_form %}
-                            <div class="field">
-                                <label class="label">{{ field.label }}</label>
-                                <div class="control">
-                                    {{ field }}
-                                </div>
-                                {% if field.errors %}
-                                    <p class="help is-danger">{{ field.errors.0 }}</p>
-                                {% endif %}
-                            </div>
-                        {% endfor %}
-
-                        <div class="field">
-                            <div class="control">
-                                <button class="button is-light is-fullwidth" type="submit" disabled>
-                                    Registrarse
-                                </button>
-                            </div>
-                        </div>
-                    </form>
+        <div class="field">
+            <div class="control">
+                <button class="button is-light is-fullwidth" type="submit" disabled>
+                    Registrarse
+                </button>
+            </div>
+        </div>
+    </form>
                 </div>
             </div>
         </div>

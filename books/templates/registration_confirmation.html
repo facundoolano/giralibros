@@ -1,48 +1,21 @@
-{% extends "base.html" %}
+{% extends "base_logged_out.html" %}
 
-{% block extra_css %}
-<style>
-    html, body {
-        margin: 0;
-        padding: 0;
-    }
-    body {
-        padding-top: 0 !important;
-    }
-    .section {
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-    }
-</style>
-{% endblock %}
+{% block column_classes %} has-text-centered{% endblock %}
 
-{% block content %}
-    <section class="section">
-        <div class="container">
-            <div class="columns is-centered">
-                <div class="column is-7-tablet is-6-desktop is-5-widescreen">
-                </div>
-            </div>
-            <div class="columns is-centered">
-                <div class="column is-5-tablet is-4-desktop is-3-widescreen has-text-centered">
-                    <h2 class="title is-4 mb-4">
-                        ✉️ Verificá tu email
-                    </h2>
-                    <div class="content">
-                        <p>
-                            Te enviamos un email a <strong>{{ email }}</strong> con un enlace para confirmar tu cuenta.
-                        </p>
-                        <p>
-                            Revisá tu bandeja de entrada (y spam) y hacé click en el enlace para activar tu cuenta.
-                        </p>
-                    </div>
-                    <hr class="my-5">
-                    <a href="{% url 'login' %}" class="button is-light is-fullwidth">
-                        Volver al inicio
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
+{% block main_content %}
+    <h2 class="title is-4 mb-4">
+        ✉️ Verificá tu email
+    </h2>
+    <div class="content">
+        <p>
+            Te enviamos un email a <strong>{{ email }}</strong> con un enlace para confirmar tu cuenta.
+        </p>
+        <p>
+            Revisá tu bandeja de entrada (y spam) y hacé click en el enlace para activar tu cuenta.
+        </p>
+    </div>
+    <hr class="my-5">
+    <a href="{% url 'login' %}" class="button is-light is-fullwidth">
+        Volver al inicio
+    </a>
 {% endblock %}
