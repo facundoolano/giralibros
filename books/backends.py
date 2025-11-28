@@ -1,20 +1,20 @@
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.models import User
+from django.db.models import Q
 
 
-class EmailBackend(ModelBackend):
+class EmailOrUsernameBackend(ModelBackend):
     """
-    Authenticate using email address instead of username.
+    Authenticate using either email address or username.
     """
 
     def authenticate(self, request, username=None, password=None, **kwargs):
-        # The 'username' parameter actually contains the email in our case
-        email = username
-        if email is None or password is None:
+        if username is None or password is None:
             return None
 
         try:
-            user = User.objects.get(email=email)
+            # Try to find user by email or username
+            user = User.objects.get(Q(email=username) | Q(username=username))
         except User.DoesNotExist:
             # Run the default password hasher once to reduce timing attacks
             User().set_password(password)

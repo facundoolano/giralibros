@@ -22,7 +22,7 @@ def login(request):
             next_url = request.GET.get('next', 'home')
             return redirect(next_url)
         else:
-            error = 'Invalid email or password'
+            error = 'Email/usuario o contraseña incorrectos'
             return render(request, 'login.html', {'error': error})
 
     return render(request, 'login.html')

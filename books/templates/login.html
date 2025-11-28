@@ -38,9 +38,9 @@
                     <form method="post" action="{% url 'login' %}">
                         {% csrf_token %}
                         <div class="field">
-                            <label class="label">Email</label>
+                            <label class="label">Email o usuario</label>
                             <div class="control">
-                                <input class="input" type="email" name="email" placeholder="tu@email.com" required>
+                                <input class="input" type="text" name="email" placeholder="tu@email.com o tu_usuario" required>
                             </div>
                         </div>
 
