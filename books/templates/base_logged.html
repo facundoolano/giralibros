@@ -31,7 +31,7 @@
                     <a class="navbar-item is-hidden-tablet" href="#">
                         Editar perfil
                     </a>
-                    <a class="navbar-item is-hidden-tablet" href="#">
+                    <a class="navbar-item is-hidden-tablet" href="{% url 'logout' %}">
                         Cerrar sesión
                     </a>
                 </div>
@@ -48,7 +48,7 @@
                                 Editar perfil
                             </a>
                             <hr class="navbar-divider">
-                            <a class="navbar-item" href="#">
+                            <a class="navbar-item" href="{% url 'logout' %}">
                                 Cerrar sesión
                             </a>
                         </div>
