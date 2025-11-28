@@ -5,19 +5,16 @@
 {% block extra_css %}
 <style>
     html, body {
-        height: 100%;
         margin: 0;
         padding: 0;
-        overflow: hidden;
     }
     body {
         padding-top: 0 !important;
     }
-    .login-container {
+    .section {
+        min-height: 100vh;
         display: flex;
         align-items: center;
-        justify-content: center;
-        min-height: 100vh;
     }
 </style>
 <script src="{% static 'js/form-validation.js' %}"></script>

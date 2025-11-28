@@ -3,13 +3,16 @@
 {% block extra_css %}
 <style>
     html, body {
-        height: 100%;
         margin: 0;
         padding: 0;
-        overflow: hidden;
     }
     body {
         padding-top: 0 !important;
+    }
+    .section {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
     }
 </style>
 {% endblock %}
