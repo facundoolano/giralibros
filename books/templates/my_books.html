@@ -1,0 +1,226 @@
+{% extends "base_logged.html" %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+  /* Deleted row styling */
+  tr.is-deleted {
+    opacity: 0.5;
+  }
+  tr.is-deleted input {
+    text-decoration: line-through;
+  }
+</style>
+{% endblock %}
+
+{% block logged_content %}
+<div class="columns is-centered">
+  <div class="column is-full-mobile is-10-tablet is-8-desktop">
+    <h1 class="title is-4 mb-2">Mis libros ofrecidos</h1>
+    <p class="mb-4 has-text-grey">
+      Agregá abajo los libros que tenés para cambiar. Usá las observaciones para aclarar lo que quieras (editorial, condición, género, etc).
+    </p>
+
+    <form method="post" id="books-form">
+      {% csrf_token %}
+
+      <div class="table-container">
+        <table class="table is-fullwidth is-hoverable is-striped" id="books-table">
+          <thead>
+            <tr>
+              <th>Título</th>
+              <th>Autor</th>
+              <th>Observaciones</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="books-tbody">
+            <!-- Example existing books (will be replaced with actual data later) -->
+            <tr class="book-row" data-book-id="1">
+              <td>
+                <input class="input" type="text" name="title_1" value="El túnel" required>
+              </td>
+              <td>
+                <input class="input" type="text" name="author_1" value="Ernesto Sábato" required>
+              </td>
+              <td>
+                <input class="input" type="text" name="notes_1" value="Buen estado">
+              </td>
+              <td>
+                <button type="button" class="button is-small is-danger is-light delete-btn" title="Eliminar">
+                  <span class="icon is-small">
+                    <i class="fas fa-trash"></i>
+                  </span>
+                </button>
+              </td>
+            </tr>
+            <tr class="book-row" data-book-id="2">
+              <td>
+                <input class="input" type="text" name="title_2" value="Rayuela" required>
+              </td>
+              <td>
+                <input class="input" type="text" name="author_2" value="Julio Cortázar" required>
+              </td>
+              <td>
+                <input class="input" type="text" name="notes_2" value="">
+              </td>
+              <td>
+                <button type="button" class="button is-small is-danger is-light delete-btn" title="Eliminar">
+                  <span class="icon is-small">
+                    <i class="fas fa-trash"></i>
+                  </span>
+                </button>
+              </td>
+            </tr>
+            <!-- Empty row for new book -->
+            <tr class="book-row new-row">
+              <td>
+                <input class="input" type="text" name="title_new_1" placeholder="Título del libro" required>
+              </td>
+              <td>
+                <input class="input" type="text" name="author_new_1" placeholder="Autor" required>
+              </td>
+              <td>
+                <input class="input" type="text" name="notes_new_1" placeholder="Observaciones (opcional)">
+              </td>
+              <td>
+                <button type="button" class="button is-small is-danger is-light delete-btn" title="Eliminar">
+                  <span class="icon is-small">
+                    <i class="fas fa-trash"></i>
+                  </span>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="field is-grouped is-grouped-right mt-4">
+        <div class="control">
+          <button type="button" class="button" id="cancel-btn">
+            Cancelar
+          </button>
+        </div>
+        <div class="control">
+          <button type="submit" class="button is-primary">
+            Guardar cambios
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const tbody = document.getElementById('books-tbody');
+  const form = document.getElementById('books-form');
+  let newRowCounter = 1;
+
+  // Auto-add new row when typing in the last row
+  function setupAutoAddRow() {
+    const lastRow = tbody.querySelector('tr.new-row:last-of-type');
+    if (!lastRow) return;
+
+    const inputs = lastRow.querySelectorAll('input[type="text"]');
+    inputs.forEach(input => {
+      input.addEventListener('input', (e) => {
+        // Check if any field in the last row has content
+        const hasContent = Array.from(inputs).some(inp => inp.value.trim() !== '');
+
+        if (hasContent) {
+          // Check if there's already another empty row
+          const emptyRows = tbody.querySelectorAll('tr.new-row');
+          const hasEmptyRow = Array.from(emptyRows).some(row => {
+            const rowInputs = row.querySelectorAll('input[type="text"]');
+            return Array.from(rowInputs).every(inp => inp.value.trim() === '');
+          });
+
+          if (!hasEmptyRow) {
+            addNewRow();
+          }
+        }
+      });
+    });
+  }
+
+  // Add a new empty row
+  function addNewRow() {
+    newRowCounter++;
+    const newRow = document.createElement('tr');
+    newRow.className = 'book-row new-row';
+    newRow.innerHTML = `
+      <td>
+        <input class="input" type="text" name="title_new_${newRowCounter}" placeholder="Título del libro" required>
+      </td>
+      <td>
+        <input class="input" type="text" name="author_new_${newRowCounter}" placeholder="Autor" required>
+      </td>
+      <td>
+        <input class="input" type="text" name="notes_new_${newRowCounter}" placeholder="Observaciones (opcional)">
+      </td>
+      <td>
+        <button type="button" class="button is-small is-danger is-light delete-btn" title="Eliminar">
+          <span class="icon is-small">
+            <i class="fas fa-trash"></i>
+          </span>
+        </button>
+      </td>
+    `;
+    tbody.appendChild(newRow);
+    setupAutoAddRow();
+    setupDeleteButtons();
+  }
+
+  // Handle delete buttons
+  function setupDeleteButtons() {
+    const deleteButtons = tbody.querySelectorAll('.delete-btn');
+    deleteButtons.forEach(btn => {
+      // Remove old listeners by cloning
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+
+      newBtn.addEventListener('click', (e) => {
+        const row = e.currentTarget.closest('tr');
+
+        // If it's an existing book (has data-book-id), mark for deletion
+        if (row.dataset.bookId) {
+          row.classList.add('is-deleted');
+          // TODO: Add hidden input to mark for deletion
+          const inputs = row.querySelectorAll('input');
+          inputs.forEach(input => input.disabled = true);
+        } else {
+          // If it's a new row, just remove it (but keep at least one empty row)
+          const newRows = tbody.querySelectorAll('tr.new-row:not(.is-deleted)');
+          if (newRows.length > 1) {
+            row.remove();
+          } else {
+            // Clear the inputs instead of removing
+            const inputs = row.querySelectorAll('input');
+            inputs.forEach(input => input.value = '');
+          }
+        }
+      });
+    });
+  }
+
+  // Cancel button
+  document.getElementById('cancel-btn').addEventListener('click', () => {
+    if (confirm('¿Descartar los cambios?')) {
+      window.location.reload();
+    }
+  });
+
+  // Form submission (mock for now)
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    alert('Form submission - backend not implemented yet');
+    // TODO: Submit formset
+  });
+
+  // Initialize
+  setupAutoAddRow();
+  setupDeleteButtons();
+});
+</script>
+{% endblock %}
