@@ -1,3 +1,5 @@
+import re
+
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -53,8 +55,28 @@ class BaseBook(models.Model):
     author = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    title_normalized = models.CharField(max_length=200, db_index=True)
+    author_normalized = models.CharField(max_length=200, db_index=True)
+
+    def normalize_spanish(self, text):
+        """Normalize text for search"""
+        text = text.lower()
+        replacements = {"á": "a", "é": "e", "í": "i", "ó": "o", "ú": "u", "ü": "u"}
+        for old, new in replacements.items():
+            text = text.replace(old, new)
+        text = text.replace("100", "cien")
+        text = re.sub(r"[^\wñ\s]", "", text)
+        text = re.sub(r"\s+", " ", text).strip()
+        return text
+
+    def save(self, *args, **kwargs):
+        # This runs for ALL child models
+        self.title_normalized = self.normalize_spanish(self.title)
+        self.author_normalized = self.normalize_spanish(self.author)
+        super().save(*args, **kwargs)
+
     class Meta:
-        abstract = True  # This is the key!
+        abstract = True
 
 
 class OfferedBookManager(models.Manager):
