@@ -4,44 +4,63 @@
 <div class="columns is-centered">
   <div class="column is-full-mobile is-10-tablet is-8-desktop">
 
-    {# Header with username and stats #}
+    {# Header with username and info #}
     <div class="box">
-      <div class="level is-mobile">
+      <div class="level is-mobile mb-3">
         <div class="level-left">
           <div class="level-item">
             <div>
-              <h1 class="title is-4 mb-2">{{ profile_username }}</h1>
-              <div class="tags">
+              <h1 class="title is-4 is-inline mb-0">{{ profile_username }}</h1>
+              <div class="tags is-inline ml-2">
                 {# Location tags - placeholder #}
-                <span class="tag is-info">CABA</span>
-                <span class="tag is-info">GBA Norte</span>
+                <span class="tag is-light">CABA</span>
+                <span class="tag is-light">GBA Norte</span>
               </div>
             </div>
           </div>
         </div>
         <div class="level-right">
-          <div class="level-item has-text-centered mr-4">
-            <div>
-              <p class="heading">Solicitudes recibidas</p>
-              <p class="title is-5">0</p>
-            </div>
-          </div>
-          <div class="level-item has-text-centered">
-            <div>
-              <p class="heading">Solicitudes enviadas</p>
-              <p class="title is-5">0</p>
-            </div>
+          <div class="level-item">
+            {# Only show edit link if viewing own profile #}
+            {# TODO: Add conditional {% if request.user.username == profile_username %} #}
+            <a href="{% url 'profile_edit' %}" class="button is-small is-link is-light">
+              <span class="icon is-small">
+                <i class="fas fa-edit"></i>
+              </span>
+              <span>Editar</span>
+            </a>
           </div>
         </div>
       </div>
 
       {# About section - only show if exists #}
       {# TODO: Conditionally show only if about is not blank #}
-      <div class="content mt-4">
+      <div class="content mb-3">
         <p class="has-text-grey-dark">
           {# About text placeholder - will be populated from backend #}
           Lorem ipsum dolor sit amet, consectetur adipiscing elit.
         </p>
+      </div>
+
+      <div class="is-size-7 has-text-grey">
+        <span class="mr-4">
+          <span class="icon is-small">
+            <i class="fas fa-calendar-alt"></i>
+          </span>
+          Miembro desde enero 2025
+        </span>
+        <span class="mr-4">
+          <span class="icon is-small">
+            <i class="fas fa-inbox"></i>
+          </span>
+          0 solicitudes recibidas
+        </span>
+        <span>
+          <span class="icon is-small">
+            <i class="fas fa-paper-plane"></i>
+          </span>
+          0 solicitudes enviadas
+        </span>
       </div>
     </div>
 

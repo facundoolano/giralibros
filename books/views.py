@@ -184,7 +184,7 @@ def profile_edit(request):
             if is_new_profile:
                 return redirect('my_books')
             else:
-                return redirect('home')
+                return redirect('profile', username=request.user.username)
     else:
         # Pre-populate form with existing data
         initial = {}
