@@ -150,6 +150,7 @@ When working with tests:
 - **Discuss before adjusting code for tests**: If a test requires changing production code, discuss the approach first rather than immediately modifying the code to make tests pass
 - **Use docstrings**: Every test method should have a one-sentence docstring explaining the use case or business rule being tested (e.g., "Test that a user is redirected to profile setup on first login")
 - **Propose tests for new business logic**: When adding new features with business rules, propose test cases (with FIXME placeholders for specs) for the human to review and fill in, but don't implement them without permission
+- **No direct database access in client tests**: Tests using Django's test client should only check observable application behavior (status codes, redirects, response content, outbound emails). Don't directly access the database to verify state (e.g., `User.objects.get()`, checking model attributes). The only exception is helper methods with explicit FIXME notes for temporary workarounds.
 
 ## Frontend & Styling
 
