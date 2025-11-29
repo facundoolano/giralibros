@@ -80,31 +80,6 @@ class BaseBook(models.Model):
 
 
 class OfferedBookManager(models.Manager):
-    def _annotate_already_requested(self, queryset, requesting_user):
-        """
-        Helper to add already_requested annotation to a queryset.
-
-        Checks if the user has a recent exchange request (within EXCHANGE_REQUEST_EXPIRY_DAYS)
-        for each book. After the expiry period, requests can be retried.
-        """
-        from django.conf import settings
-        from django.db.models import Exists, OuterRef
-        from django.utils import timezone
-        from datetime import timedelta
-
-        expiry_days = getattr(settings, 'EXCHANGE_REQUEST_EXPIRY_DAYS', 15)
-        cutoff_date = timezone.now() - timedelta(days=expiry_days)
-
-        return queryset.annotate(
-            already_requested=Exists(
-                ExchangeRequest.objects.filter(
-                    from_user=requesting_user,
-                    offered_book=OuterRef("pk"),
-                    created_at__gte=cutoff_date,
-                )
-            )
-        )
-
     def for_user(self, user):
         """
         Return books available in the user's locations, annotated with whether
@@ -142,6 +117,32 @@ class OfferedBookManager(models.Manager):
             queryset = self._annotate_already_requested(queryset, viewing_user)
 
         return queryset
+
+    def _annotate_already_requested(self, queryset, requesting_user):
+        """
+        Helper to add already_requested annotation to a queryset.
+
+        Checks if the user has a recent exchange request (within EXCHANGE_REQUEST_EXPIRY_DAYS)
+        for each book. After the expiry period, requests can be retried.
+        """
+        from datetime import timedelta
+
+        from django.conf import settings
+        from django.db.models import Exists, OuterRef
+        from django.utils import timezone
+
+        expiry_days = getattr(settings, "EXCHANGE_REQUEST_EXPIRY_DAYS", 15)
+        cutoff_date = timezone.now() - timedelta(days=expiry_days)
+
+        return queryset.annotate(
+            already_requested=Exists(
+                ExchangeRequest.objects.filter(
+                    from_user=requesting_user,
+                    offered_book=OuterRef("pk"),
+                    created_at__gte=cutoff_date,
+                )
+            )
+        )
 
 
 class OfferedBook(BaseBook):
