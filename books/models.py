@@ -166,6 +166,30 @@ class WantedBook(BaseBook):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="wanted")
 
 
+class ExchangeRequestManager(models.Manager):
+    def recent_sent_by(self, user, limit=10):
+        """
+        Return recent exchange requests sent by a user.
+        Ordered by most recent first, limited to specified count.
+        """
+        return (
+            self.filter(from_user=user)
+            .select_related("to_user")
+            .order_by("-created_at")[:limit]
+        )
+
+    def recent_received_by(self, user, limit=10):
+        """
+        Return recent exchange requests received by a user.
+        Ordered by most recent first, limited to specified count.
+        """
+        return (
+            self.filter(to_user=user)
+            .select_related("from_user")
+            .order_by("-created_at")[:limit]
+        )
+
+
 class ExchangeRequest(models.Model):
     from_user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="sent_requests"
@@ -182,3 +206,5 @@ class ExchangeRequest(models.Model):
     book_author = models.CharField(max_length=200)
 
     created_at = models.DateTimeField(auto_now_add=True)
+
+    objects = ExchangeRequestManager()

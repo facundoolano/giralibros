@@ -10,7 +10,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
 from books.forms import EmailOrUsernameAuthenticationForm, OfferedBookForm, ProfileForm, RegistrationForm
-from books.models import OfferedBook, UserLocation, UserProfile
+from books.models import ExchangeRequest, OfferedBook, UserLocation, UserProfile
 
 
 def login(request):
@@ -229,8 +229,8 @@ def profile(request, username):
     sent_requests = None
     received_requests = None
     if is_own_profile:
-        sent_requests = profile_user.sent_requests.select_related('to_user').order_by('-created_at')[:10]
-        received_requests = profile_user.received_requests.select_related('from_user').order_by('-created_at')[:10]
+        sent_requests = ExchangeRequest.objects.recent_sent_by(profile_user)
+        received_requests = ExchangeRequest.objects.recent_received_by(profile_user)
 
     return render(request, 'profile.html', {
         'profile_user': profile_user,
