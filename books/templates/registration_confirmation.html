@@ -1,0 +1,21 @@
+{% extends "base_logged_out.html" %}
+
+{% block column_classes %} has-text-centered{% endblock %}
+
+{% block main_content %}
+    <h2 class="title is-4 mb-4">
+        ✉️ Verificá tu email
+    </h2>
+    <div class="content">
+        <p>
+            Te enviamos un email a <strong>{{ email }}</strong> con un enlace para confirmar tu cuenta.
+        </p>
+        <p>
+            Revisá tu bandeja de entrada (y spam) y hacé click en el enlace para activar tu cuenta.
+        </p>
+    </div>
+    <hr class="my-5">
+    <a href="{% url 'login' %}" class="button is-light is-fullwidth">
+        Volver al inicio
+    </a>
+{% endblock %}

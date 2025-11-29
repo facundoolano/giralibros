@@ -1,9 +1,15 @@
+from django.conf import settings
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
-from books.forms import EmailOrUsernameAuthenticationForm, RegistrationForm
-from books.models import OfferedBook
+from books.forms import EmailOrUsernameAuthenticationForm, ProfileForm, RegistrationForm
+from books.models import OfferedBook, UserLocation, UserProfile
 
 
 def login(request):
@@ -27,15 +33,89 @@ def login(request):
 
 
 def register(request):
+    """
+    Handle user registration.
+
+    TODO: In production, this should send an email verification link instead of
+    immediately creating an active user. The flow should be:
+    1. User submits registration form
+    2. Inactive user is created (is_active=False)
+    3. Email with verification link is sent
+    4. User clicks verification link
+    5. User is activated and can log in
+    6. On first login, user is redirected to profile completion
+    """
     if request.user.is_authenticated:
         return redirect('home')
 
     if request.method == 'POST':
-        # TODO: Implement registration logic with email confirmation
-        # For now, just redirect back to login
-        return redirect('login')
+        form = RegistrationForm(request.POST)
+        if form.is_valid():
+            # Create inactive user pending email verification
+            user = form.save(commit=False)
+            user.is_active = False
+            user.save()
+
+            # Generate verification token and URL
+            token = default_token_generator.make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+            # Build absolute URL for verification link
+            verification_path = reverse('verify_email', kwargs={'uidb64': uid, 'token': token})
+            verification_url = request.build_absolute_uri(verification_path)
+
+            if settings.DEBUG:
+                # In development, print verification link to console
+                print("\n" + "="*80)
+                print("EMAIL VERIFICATION LINK (Debug Mode)")
+                print("="*80)
+                print(f"User: {user.username} ({user.email})")
+                print(f"Verification URL: {verification_url}")
+                print("="*80 + "\n")
+            else:
+                # FIXME: Implement send verification email
+                # send_verification_email(user, verification_url)
+                pass
+
+            # Show confirmation page
+            return render(request, 'registration_confirmation.html', {
+                'email': user.email,
+            })
+        else:
+            # If form is invalid, re-render login page with errors
+            login_form = EmailOrUsernameAuthenticationForm(request)
+            return render(request, 'login.html', {
+                'login_form': login_form,
+                'register_form': form,
+            })
 
     return redirect('login')
+
+
+def verify_email(request, uidb64, token):
+    """
+    Verify user's email address using the token sent via email.
+    On success, activate the user and log them in.
+    """
+    try:
+        # Decode the user ID
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        # Valid token - activate user and log them in
+        user.is_active = True
+        user.save()
+        auth_login(request, user)
+
+        # Redirect to profile completion (to be implemented)
+        # For now, redirect to home
+        return redirect('home')
+    else:
+        # Invalid or expired token
+        return render(request, 'verification_failed.html')
 
 
 def logout(request):
@@ -45,6 +125,10 @@ def logout(request):
 
 @login_required
 def home(request):
+    # Redirect to profile completion if user hasn't set up their profile
+    if not hasattr(request.user, 'profile'):
+        return redirect('profile_edit')
+
     # Get books available in user's locations with already_requested annotation
     offered_books = OfferedBook.objects.for_user(request.user)
 
@@ -52,3 +136,72 @@ def home(request):
         "offered_books": offered_books,
         "user": request.user,
     })
+
+
+@login_required
+def profile_edit(request):
+    """
+    Create or edit user profile.
+    """
+    # Get existing profile if it exists
+    try:
+        profile = request.user.profile
+        is_new_profile = False
+    except UserProfile.DoesNotExist:
+        profile = None
+        is_new_profile = True
+
+    if request.method == 'POST':
+        form = ProfileForm(request.POST)
+        if form.is_valid():
+            # Update User.first_name
+            request.user.first_name = form.cleaned_data['first_name']
+            request.user.save()
+
+            # Create or update UserProfile
+            if profile:
+                profile.contact_email = form.cleaned_data['email']
+                profile.alternate_contact = form.cleaned_data['alternate_contact']
+                profile.about = form.cleaned_data['about']
+                profile.save()
+            else:
+                profile = UserProfile.objects.create(
+                    user=request.user,
+                    contact_email=form.cleaned_data['email'],
+                    alternate_contact=form.cleaned_data['alternate_contact'],
+                    about=form.cleaned_data['about'],
+                )
+
+            # Update UserLocation entries
+            # Delete existing locations
+            UserLocation.objects.filter(user=request.user).delete()
+            # Create new locations
+            for area in form.cleaned_data['locations']:
+                UserLocation.objects.create(user=request.user, area=area)
+
+            # Redirect based on whether this is first-time setup or edit
+            if is_new_profile:
+                # TODO: Redirect to 'my_books' view once implemented
+                # return redirect('my_books')
+                return redirect('home')  # Temporary: redirect to home until my_books exists
+            else:
+                return redirect('home')
+    else:
+        # Pre-populate form with existing data
+        initial = {}
+        if profile:
+            initial = {
+                'first_name': request.user.first_name,
+                'email': profile.contact_email,
+                'alternate_contact': profile.alternate_contact,
+                'about': profile.about,
+                'locations': [loc.area for loc in request.user.locations.all()],
+            }
+        else:
+            # Default email to registration email
+            initial = {
+                'email': request.user.email,
+            }
+        form = ProfileForm(initial=initial)
+
+    return render(request, 'profile_edit.html', {'form': form})

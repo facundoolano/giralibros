@@ -1,0 +1,18 @@
+{% extends "base_logged_out.html" %}
+
+{% block column_classes %} has-text-centered{% endblock %}
+
+{% block main_content %}
+    <h2 class="title is-4 mb-4 has-text-danger">
+        ❌ Enlace inválido o expirado
+    </h2>
+    <div class="content">
+        <p>
+            El enlace de verificación no es válido o ya expiró.
+        </p>
+    </div>
+    <hr class="my-5">
+    <a href="{% url 'login' %}" class="button is-light is-fullwidth">
+        Volver al inicio
+    </a>
+{% endblock %}

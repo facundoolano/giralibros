@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+    }
+    body {
+        padding-top: 0 !important;
+    }
+    .section {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+    }
+</style>
+{% block extra_logged_out_css %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+    <section class="section">
+        <div class="container">
+            <div class="columns is-centered">
+                <div class="column is-5-tablet is-4-desktop is-3-widescreen{% block column_classes %}{% endblock %}">
+                    {% block main_content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

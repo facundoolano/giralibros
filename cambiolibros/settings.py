@@ -104,9 +104,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "es-ar"  # Spanish (Argentina)
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "America/Argentina/Buenos_Aires"
 
 USE_I18N = True
 
@@ -127,7 +127,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Authentication
 AUTHENTICATION_BACKENDS = [
     'books.backends.EmailOrUsernameBackend',
-    'django.contrib.auth.backends.ModelBackend',  # Keep as fallback for admin
 ]
 
 LOGIN_URL = 'login'
