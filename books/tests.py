@@ -135,19 +135,7 @@ class UserTest(BaseTestCase):
     def test_login_wrong_password(self):
         """Test that login fails with appropriate error message for wrong password."""
         # Register and verify user
-        response = self.client.post(
-            reverse("register"),
-            {
-                "username": "testuser",
-                "email": "test@example.com",
-                "password": "testpass123",
-            },
-        )
-        self.assertEqual(response.status_code, 200)
-
-        verify_url = self.get_verification_url_from_email("test@example.com")
-        response = self.client.get(verify_url)
-        self.assertEqual(response.status_code, 302)
+        self.register_and_verify_user()
 
         # Clear session (verification auto-logs user in)
         self.client.logout()
@@ -168,19 +156,7 @@ class UserTest(BaseTestCase):
     def test_logout_redirects(self):
         """Test that logout redirects to login and clears authentication."""
         # Register and verify user
-        response = self.client.post(
-            reverse("register"),
-            {
-                "username": "testuser",
-                "email": "test@example.com",
-                "password": "testpass123",
-            },
-        )
-        self.assertEqual(response.status_code, 200)
-
-        verify_url = self.get_verification_url_from_email("test@example.com")
-        response = self.client.get(verify_url)
-        self.assertEqual(response.status_code, 302)  # Redirects and logs user in
+        self.register_and_verify_user()
 
         # Logout should redirect to login
         response = self.client.post(reverse("logout"))
@@ -195,19 +171,7 @@ class UserTest(BaseTestCase):
     def test_login_username(self):
         """Test that users can log in with either username or email."""
         # Register and verify user
-        response = self.client.post(
-            reverse("register"),
-            {
-                "username": "testuser",
-                "email": "test@example.com",
-                "password": "testpass123",
-            },
-        )
-        self.assertEqual(response.status_code, 200)
-
-        verify_url = self.get_verification_url_from_email("test@example.com")
-        response = self.client.get(verify_url)
-        self.assertEqual(response.status_code, 302)
+        self.register_and_verify_user()
 
         # Logout
         self.client.logout()
