@@ -1,0 +1,218 @@
+{% extends "base_logged.html" %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+  /* Position delete button in top-right corner */
+  .book-entry {
+    position: relative;
+    padding-right: 3rem; /* Make room for delete button */
+  }
+  .book-entry .delete {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+
+  /* Hide deleted entries but keep in DOM for form submission */
+  .book-entry.is-deleted {
+    display: none;
+  }
+</style>
+{% endblock %}
+
+{% block logged_content %}
+<div class="columns is-centered">
+  <div class="column is-full-mobile is-10-tablet is-8-desktop">
+    <h1 class="title is-4 mb-2">Mis libros ofrecidos</h1>
+    <p class="mb-4 has-text-grey">
+      Agregá abajo los libros que tenés para cambiar. Usá las observaciones para aclarar lo que quieras (editorial, condición, género, etc).
+    </p>
+
+    <form method="post" id="books-form">
+      {% csrf_token %}
+      {{ formset.management_form }}
+
+      <div id="books-container">
+        {% for form in formset %}
+          {% include "_book_form_entry.html" with form=form entry_class=forloop.last|yesno:"new-entry," book_id=form.instance.pk %}
+        {% endfor %}
+      </div>
+
+      {# Template for new entries - using Django's empty_form #}
+      <template id="empty-form-template">
+        {% include "_book_form_entry.html" with form=formset.empty_form entry_class="new-entry" %}
+      </template>
+
+      <div class="field is-grouped is-grouped-right mt-4">
+        <div class="control">
+          <button type="button" class="button" id="cancel-btn">
+            <span id="cancel-btn-text">Volver</span>
+          </button>
+        </div>
+        <div class="control" id="save-btn-container" style="display: none;">
+          <button type="submit" class="button is-primary">
+            Guardar cambios
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const container = document.getElementById('books-container');
+  const form = document.getElementById('books-form');
+  const cancelBtn = document.getElementById('cancel-btn');
+  const cancelBtnText = document.getElementById('cancel-btn-text');
+  const saveBtnContainer = document.getElementById('save-btn-container');
+  let newEntryCounter = 1;
+  let isDirty = false;
+
+  // Track form changes
+  function markDirty() {
+    if (!isDirty) {
+      isDirty = true;
+      cancelBtnText.textContent = 'Cancelar';
+      saveBtnContainer.style.display = '';
+    }
+  }
+
+  // Setup change listeners to track form modifications
+  function setupChangeListeners(element) {
+    const inputs = element.querySelectorAll('input[type="text"], textarea');
+    inputs.forEach(input => {
+      input.addEventListener('input', () => {
+        markDirty();
+      });
+    });
+  }
+
+  // Auto-add new entry when typing in the last entry
+  function setupAutoAddEntry() {
+    const lastEntry = container.querySelector('.new-entry:last-of-type');
+    if (!lastEntry) return;
+
+    const inputs = lastEntry.querySelectorAll('input[type="text"], textarea');
+    inputs.forEach(input => {
+      input.addEventListener('input', (e) => {
+        // Check if any field in the last entry has content
+        const hasContent = Array.from(inputs).some(inp => inp.value.trim() !== '');
+
+        if (hasContent) {
+          // Check if there's already another empty entry
+          const emptyEntries = container.querySelectorAll('.new-entry');
+          const hasEmptyEntry = Array.from(emptyEntries).some(entry => {
+            const entryInputs = entry.querySelectorAll('input[type="text"], textarea');
+            return Array.from(entryInputs).every(inp => inp.value.trim() === '');
+          });
+
+          if (!hasEmptyEntry) {
+            addNewEntry();
+          }
+        }
+      });
+    });
+  }
+
+  // Add a new empty entry
+  function addNewEntry() {
+    // Get current total forms count
+    const totalFormsInput = document.querySelector('[name$="TOTAL_FORMS"]');
+    const currentTotal = parseInt(totalFormsInput.value);
+    const newIndex = currentTotal;
+
+    // Update total forms
+    totalFormsInput.value = currentTotal + 1;
+
+    // Clone the template
+    const template = document.getElementById('empty-form-template');
+    const newEntry = template.content.cloneNode(true).querySelector('.book-entry');
+
+    // Replace __prefix__ with the actual index
+    newEntry.innerHTML = newEntry.innerHTML.replace(/__prefix__/g, newIndex);
+
+    container.appendChild(newEntry);
+    setupAutoAddEntry();
+    setupDeleteButtons();
+    setupChangeListeners(newEntry);
+  }
+
+  // Handle delete buttons
+  function setupDeleteButtons() {
+    const deleteButtons = container.querySelectorAll('.delete-btn');
+    deleteButtons.forEach(btn => {
+      // Remove old listeners by cloning
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+
+      newBtn.addEventListener('click', (e) => {
+        const entry = e.currentTarget.closest('.book-entry');
+
+        // If it's an existing book (has data-book-id), mark for deletion
+        if (entry.dataset.bookId) {
+          entry.classList.add('is-deleted');
+
+          // Check the Django formset DELETE checkbox
+          const deleteCheckbox = entry.querySelector('input[name$="-DELETE"]');
+          if (deleteCheckbox) {
+            deleteCheckbox.checked = true;
+          }
+
+          markDirty();
+        } else {
+          // If it's a new entry, just remove it (but keep at least one empty entry)
+          const newEntries = container.querySelectorAll('.new-entry:not(.is-deleted)');
+          if (newEntries.length > 1) {
+            entry.remove();
+            markDirty();
+          } else {
+            // Clear the fields instead of removing
+            const fields = entry.querySelectorAll('input[type="text"], textarea');
+            fields.forEach(field => field.value = '');
+          }
+        }
+      });
+    });
+  }
+
+  // Cancel button
+  cancelBtn.addEventListener('click', () => {
+    if (isDirty) {
+      if (confirm('¿Descartar los cambios?')) {
+        window.location.reload();
+      }
+    } else {
+      // TODO: Navigate to profile view once implemented
+      window.location.href = '/';
+    }
+  });
+
+  // Form submission - Django will handle validation and ignore empty forms
+
+  // Ensure there's always at least one empty entry
+  function ensureEmptyEntry() {
+    const emptyEntries = container.querySelectorAll('.new-entry');
+    const hasEmptyEntry = Array.from(emptyEntries).some(entry => {
+      const entryInputs = entry.querySelectorAll('input[type="text"], textarea');
+      return Array.from(entryInputs).every(inp => inp.value.trim() === '');
+    });
+
+    if (!hasEmptyEntry) {
+      addNewEntry();
+    }
+  }
+
+  // Initialize
+  setupAutoAddEntry();
+  setupDeleteButtons();
+  ensureEmptyEntry();
+
+  // Setup change listeners for all existing entries
+  container.querySelectorAll('.book-entry').forEach(entry => {
+    setupChangeListeners(entry);
+  });
+});
+</script>
+{% endblock %}

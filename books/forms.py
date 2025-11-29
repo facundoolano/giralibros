@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 
-from books.models import LocationArea, UserProfile
+from books.models import LocationArea, OfferedBook, UserProfile
 
 
 class EmailOrUsernameAuthenticationForm(AuthenticationForm):
@@ -109,3 +109,27 @@ class ProfileForm(forms.Form):
             'placeholder': 'Lo que quieras que se vea en tu perfil público.',
         })
     )
+
+
+class OfferedBookForm(forms.ModelForm):
+    """
+    Form for creating/editing an offered book.
+    """
+    class Meta:
+        model = OfferedBook
+        fields = ['title', 'author', 'notes']
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'input',
+                'placeholder': 'Título del libro',
+            }),
+            'author': forms.TextInput(attrs={
+                'class': 'input',
+                'placeholder': 'Autor',
+            }),
+            'notes': forms.Textarea(attrs={
+                'class': 'textarea',
+                'rows': 4,
+                'placeholder': 'Observaciones (opcional)',
+            }),
+        }

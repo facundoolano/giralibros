@@ -113,3 +113,11 @@ The project uses django-stubs for type checking. Configuration in pyproject.toml
 [mypy.plugins.django-stubs]
 django_settings_module = "cambiolibros.settings"
 ```
+
+## Frontend & Styling
+
+- **CSS Framework**: Bulma (https://bulma.io/documentation/)
+- **Icons**: FontAwesome
+- **JavaScript**: Vanilla JS (no frameworks)
+
+**Important**: Leverage Bulma as much as possible for layout and styling. Do not create custom CSS components or inline styles for things already handled by Bulma. Refer to the Bulma documentation when building UI components to use the appropriate classes and modifiers.
