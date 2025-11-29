@@ -90,10 +90,10 @@
       <div class="field is-grouped is-grouped-right mt-4">
         <div class="control">
           <button type="button" class="button" id="cancel-btn">
-            Cancelar
+            <span id="cancel-btn-text">Volver</span>
           </button>
         </div>
-        <div class="control">
+        <div class="control" id="save-btn-container" style="display: none;">
           <button type="submit" class="button is-primary">
             Guardar cambios
           </button>
@@ -107,7 +107,30 @@
 document.addEventListener('DOMContentLoaded', () => {
   const container = document.getElementById('books-container');
   const form = document.getElementById('books-form');
+  const cancelBtn = document.getElementById('cancel-btn');
+  const cancelBtnText = document.getElementById('cancel-btn-text');
+  const saveBtnContainer = document.getElementById('save-btn-container');
   let newEntryCounter = 1;
+  let isDirty = false;
+
+  // Track form changes
+  function markDirty() {
+    if (!isDirty) {
+      isDirty = true;
+      cancelBtnText.textContent = 'Cancelar';
+      saveBtnContainer.style.display = '';
+    }
+  }
+
+  // Setup change listeners to track form modifications
+  function setupChangeListeners(element) {
+    const inputs = element.querySelectorAll('input[type="text"], textarea');
+    inputs.forEach(input => {
+      input.addEventListener('input', () => {
+        markDirty();
+      });
+    });
+  }
 
   // Auto-add new entry when typing in the last entry
   function setupAutoAddEntry() {
@@ -160,6 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
     container.appendChild(newEntry);
     setupAutoAddEntry();
     setupDeleteButtons();
+    setupChangeListeners(newEntry);
   }
 
   // Handle delete buttons
@@ -183,11 +207,14 @@ document.addEventListener('DOMContentLoaded', () => {
           deleteInput.name = `DELETE_${entry.dataset.bookId}`;
           deleteInput.value = '1';
           entry.appendChild(deleteInput);
+
+          markDirty();
         } else {
           // If it's a new entry, just remove it (but keep at least one empty entry)
           const newEntries = container.querySelectorAll('.new-entry:not(.is-deleted)');
           if (newEntries.length > 1) {
             entry.remove();
+            markDirty();
           } else {
             // Clear the fields instead of removing
             const fields = entry.querySelectorAll('input, textarea');
@@ -199,9 +226,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Cancel button
-  document.getElementById('cancel-btn').addEventListener('click', () => {
-    if (confirm('¿Descartar los cambios?')) {
-      window.location.reload();
+  cancelBtn.addEventListener('click', () => {
+    if (isDirty) {
+      if (confirm('¿Descartar los cambios?')) {
+        window.location.reload();
+      }
+    } else {
+      // TODO: Navigate to profile view once implemented
+      window.location.href = '/';
     }
   });
 
@@ -229,6 +261,11 @@ document.addEventListener('DOMContentLoaded', () => {
   setupAutoAddEntry();
   setupDeleteButtons();
   ensureEmptyEntry();
+
+  // Setup change listeners for all existing entries
+  container.querySelectorAll('.book-entry').forEach(entry => {
+    setupChangeListeners(entry);
+  });
 });
 </script>
 {% endblock %}
