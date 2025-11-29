@@ -211,9 +211,47 @@ def profile(request, username):
     """
     View user profile.
     """
-    # Placeholder - will implement data fetching later
+    from django.db.models import Exists, OuterRef
+    from django.shortcuts import get_object_or_404
+
+    # Get the profile user
+    profile_user = get_object_or_404(User, username=username)
+
+    # Check if viewing own profile
+    is_own_profile = request.user == profile_user
+
+    # Get offered books
+    if is_own_profile:
+        # Own profile: just get all books, no annotation needed
+        offered_books = profile_user.offered.all()
+    else:
+        # Other user's profile: annotate with already_requested
+        offered_books = profile_user.offered.annotate(
+            already_requested=Exists(
+                ExchangeRequest.objects.filter(
+                    from_user=request.user,
+                    offered_book=OuterRef('pk'),
+                )
+            )
+        ).all()
+
+    # Get wanted books
+    wanted_books = profile_user.wanted.all()
+
+    # Get requests (only for own profile)
+    sent_requests = None
+    received_requests = None
+    if is_own_profile:
+        sent_requests = profile_user.sent_requests.select_related('to_user').order_by('-created_at')[:10]
+        received_requests = profile_user.received_requests.select_related('from_user').order_by('-created_at')[:10]
+
     return render(request, 'profile.html', {
-        'profile_username': username,
+        'profile_user': profile_user,
+        'is_own_profile': is_own_profile,
+        'offered_books': offered_books,
+        'wanted_books': wanted_books,
+        'sent_requests': sent_requests,
+        'received_requests': received_requests,
     })
 
 

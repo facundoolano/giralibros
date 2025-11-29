@@ -37,56 +37,53 @@
         <div class="level-left">
           <div class="level-item">
             <div>
-              <h1 class="title is-4 is-inline mb-0">{{ profile_username }}</h1>
+              <h1 class="title is-4 is-inline mb-0">{{ profile_user.username }}</h1>
               <div class="tags is-inline ml-2">
-                {# Location tags - placeholder #}
-                <span class="tag is-light">CABA</span>
-                <span class="tag is-light">GBA Norte</span>
+                {% for location in profile_user.locations.all %}
+                <span class="tag is-light">{{ location.get_area_display }}</span>
+                {% endfor %}
               </div>
             </div>
           </div>
         </div>
         <div class="level-right">
           <div class="level-item">
-            {# Only show edit link if viewing own profile #}
-            {# TODO: Add conditional {% if request.user.username == profile_username %} #}
+            {% if is_own_profile %}
             <a href="{% url 'profile_edit' %}" class="button is-small is-link is-light button-fixed-width">
               <span class="icon is-small">
                 <i class="fas fa-edit"></i>
               </span>
               <span>Editar</span>
             </a>
+            {% endif %}
           </div>
         </div>
       </div>
 
-      {# About section - only show if exists #}
-      {# TODO: Conditionally show only if about is not blank #}
+      {% if profile_user.profile.about %}
       <div class="content mb-3">
-        <p class="has-text-grey-dark">
-          {# About text placeholder - will be populated from backend #}
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-        </p>
+        <p class="has-text-grey-dark">{{ profile_user.profile.about }}</p>
       </div>
+      {% endif %}
 
       <div class="is-size-7 has-text-grey mb-5">
         <span class="mr-4">
           <span class="icon is-small">
             <i class="fas fa-calendar-alt"></i>
           </span>
-          Miembro desde enero 2025
+          Miembro desde {{ profile_user.date_joined|date:"F Y" }}
         </span>
         <span class="mr-4">
           <span class="icon is-small">
             <i class="fas fa-inbox"></i>
           </span>
-          0 solicitudes recibidas
+          {{ profile_user.received_requests.count }} solicitudes recibidas
         </span>
         <span>
           <span class="icon is-small">
             <i class="fas fa-paper-plane"></i>
           </span>
-          0 solicitudes enviadas
+          {{ profile_user.sent_requests.count }} solicitudes enviadas
         </span>
       </div>
 
@@ -106,63 +103,52 @@
         </div>
         <div class="level-right">
           <div class="level-item">
-            {# Only show edit link if viewing own profile #}
-            {# TODO: Add conditional {% if request.user.username == profile_username %} #}
+            {% if is_own_profile %}
             <a href="{% url 'my_books' %}" class="button is-small is-link is-light button-fixed-width">
               <span class="icon is-small">
                 <i class="fas fa-edit"></i>
               </span>
               <span>Editar</span>
             </a>
+            {% endif %}
           </div>
         </div>
       </div>
 
-      {# List placeholder - will be populated later #}
+      {% if offered_books %}
       <ul class="mb-5 nested-content">
+        {% for book in offered_books %}
         <li class="mb-2">
           <div class="is-flex is-justify-content-space-between is-align-items-center book-item-mobile">
             <div>
-              <strong>Cien años de soledad</strong>, Gabriel García Márquez · <span class="has-text-grey is-size-7">Buen estado, tapa blanda</span>
+              <strong>{{ book.title }}</strong>, {{ book.author }}{% if book.notes %} · <span class="has-text-grey is-size-7">{{ book.notes }}</span>{% endif %}
             </div>
-            {# TODO: Only show if not current user's profile #}
-            <button class="button is-primary is-small button-fixed-width">
-              <span class="icon is-small">
-                <i class="fas fa-rotate"></i>
-              </span>
-              <span>Cambio</span>
-            </button>
+            {% if not is_own_profile %}
+              {% if book.already_requested %}
+              <button class="button is-light is-small button-fixed-width" disabled>
+                <span class="icon is-small">
+                  <i class="fas fa-check"></i>
+                </span>
+                <span>Ya solicitado</span>
+              </button>
+              {% else %}
+              <button class="button is-primary is-small button-fixed-width">
+                <span class="icon is-small">
+                  <i class="fas fa-rotate"></i>
+                </span>
+                <span>Cambio</span>
+              </button>
+              {% endif %}
+            {% endif %}
           </div>
         </li>
-        <li class="mb-2">
-          <div class="is-flex is-justify-content-space-between is-align-items-center book-item-mobile">
-            <div>
-              <strong>El túnel</strong>, Ernesto Sábato
-            </div>
-            {# TODO: Only show if not current user's profile #}
-            <button class="button is-light is-small button-fixed-width" disabled>
-              <span class="icon is-small">
-                <i class="fas fa-check"></i>
-              </span>
-              <span>Ya solicitado</span>
-            </button>
-          </div>
-        </li>
-        <li class="mb-2">
-          <div class="is-flex is-justify-content-space-between is-align-items-center book-item-mobile">
-            <div>
-              <strong>Rayuela</strong>, Julio Cortázar · <span class="has-text-grey is-size-7">Edición Sudamericana</span>
-            </div>
-            {# TODO: Only show if not current user's profile #}
-            <button class="button is-primary is-small button-fixed-width">
-              <span class="icon is-small">
-                <i class="fas fa-rotate"></i>
-              </span>
-              <span>Cambio</span>
-            </button>
-          </div>
-        </li>
+        {% endfor %}
       </ul>
+      {% else %}
+      <div class="mb-5 nested-content">
+        <p class="has-text-grey-light has-text-centered">Sin libros para mostrar</p>
+      </div>
+      {% endif %}
 
       <hr>
 
@@ -180,25 +166,33 @@
         </div>
         <div class="level-right">
           <div class="level-item">
-            {# Only show edit link if viewing own profile #}
-            {# TODO: Add conditional {% if request.user.username == profile_username %} #}
+            {% if is_own_profile %}
             <a href="#" class="button is-small is-link is-light button-fixed-width">
               <span class="icon is-small">
                 <i class="fas fa-edit"></i>
               </span>
               <span>Editar</span>
             </a>
+            {% endif %}
           </div>
         </div>
       </div>
 
-      {# List placeholder - will be populated later #}
+      {% if wanted_books %}
+      <ul class="mb-5 nested-content">
+        {% for book in wanted_books %}
+        <li class="mb-2">
+          <strong>{{ book.title }}</strong>, {{ book.author }}
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
       <div class="mb-5 nested-content">
         <p class="has-text-grey-light has-text-centered">Sin libros para mostrar</p>
       </div>
+      {% endif %}
 
-      {# Solicitudes enviadas section - only for current user #}
-      {# TODO: Add conditional {% if request.user.username == profile_username %} #}
+      {% if is_own_profile %}
       <hr>
 
       <h2 class="title is-5 mb-4">
@@ -208,18 +202,20 @@
         <span>Solicitudes enviadas</span>
       </h2>
 
-      {# List placeholder - will be populated later #}
+      {% if sent_requests %}
       <ul class="mb-5 nested-content">
+        {% for req in sent_requests %}
         <li class="mb-2">
-          <strong>1984</strong>, George Orwell · <a href="{% url 'profile' username='juan_perez' %}" class="is-size-7">juan_perez</a> · <span class="has-text-grey is-size-7 timeago-tooltip" data-timestamp="2025-01-15T10:00:00">hace 2 semanas</span>
+          <strong>{{ req.book_title }}</strong>, {{ req.book_author }} · {% if req.to_user %}<a href="{% url 'profile' username=req.to_user.username %}" class="is-size-7">{{ req.to_user.username }}</a>{% else %}<span class="is-size-7">usuario desactivado</span>{% endif %} · <span class="has-text-grey is-size-7 timeago-tooltip" data-timestamp="{{ req.created_at|date:'c' }}">{{ req.created_at|timeago }}</span>
         </li>
-        <li class="mb-2">
-          <strong>El principito</strong>, Antoine de Saint-Exupéry · <a href="{% url 'profile' username='maria_gomez' %}" class="is-size-7">maria_gomez</a> · <span class="has-text-grey is-size-7 timeago-tooltip" data-timestamp="2025-01-10T10:00:00">hace 3 semanas</span>
-        </li>
+        {% endfor %}
       </ul>
+      {% else %}
+      <div class="mb-5 nested-content">
+        <p class="has-text-grey-light has-text-centered">Sin solicitudes para mostrar</p>
+      </div>
+      {% endif %}
 
-      {# Solicitudes recibidas section - only for current user #}
-      {# TODO: Add conditional {% if request.user.username == profile_username %} #}
       <hr>
 
       <h2 class="title is-5 mb-4">
@@ -229,10 +225,20 @@
         <span>Solicitudes recibidas</span>
       </h2>
 
-      {# List placeholder - will be populated later #}
+      {% if received_requests %}
+      <ul class="mb-5 nested-content">
+        {% for req in received_requests %}
+        <li class="mb-2">
+          <strong>{{ req.book_title }}</strong>, {{ req.book_author }} · <a href="{% url 'profile' username=req.from_user.username %}" class="is-size-7">{{ req.from_user.username }}</a> · <span class="has-text-grey is-size-7 timeago-tooltip" data-timestamp="{{ req.created_at|date:'c' }}">{{ req.created_at|timeago }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
       <div class="mb-5 nested-content">
         <p class="has-text-grey-light has-text-centered">Sin solicitudes para mostrar</p>
       </div>
+      {% endif %}
+      {% endif %}
 
     </div>
 
