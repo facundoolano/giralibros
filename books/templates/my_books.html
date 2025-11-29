@@ -3,13 +3,20 @@
 
 {% block extra_css %}
 <style>
-  /* Deleted entry styling */
-  .book-entry.is-deleted {
-    opacity: 0.5;
+  /* Position delete button in top-right corner */
+  .book-entry {
+    position: relative;
+    padding-right: 3rem; /* Make room for delete button */
   }
-  .book-entry.is-deleted input,
-  .book-entry.is-deleted textarea {
-    text-decoration: line-through;
+  .book-entry .delete {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+
+  /* Hide deleted entries but keep in DOM for form submission */
+  .book-entry.is-deleted {
+    display: none;
   }
 </style>
 {% endblock %}
@@ -28,7 +35,8 @@
       <div id="books-container">
         <!-- Example existing books (will be replaced with actual data later) -->
         <div class="box book-entry" data-book-id="1">
-          <div class="columns is-mobile">
+          <button type="button" class="delete delete-btn" aria-label="Eliminar" title="Borrar libro"></button>
+          <div class="columns">
             <div class="column">
               <div class="field">
                 <input class="input" type="text" name="title_1" value="El túnel" placeholder="Título del libro" required>
@@ -40,18 +48,12 @@
             <div class="column">
               <textarea class="textarea" name="notes_1" rows="4" placeholder="Observaciones (opcional)">Buen estado</textarea>
             </div>
-            <div class="column is-narrow">
-              <button type="button" class="button is-danger is-light delete-btn" title="Eliminar">
-                <span class="icon">
-                  <i class="fas fa-trash"></i>
-                </span>
-              </button>
-            </div>
           </div>
         </div>
 
         <div class="box book-entry" data-book-id="2">
-          <div class="columns is-mobile">
+          <button type="button" class="delete delete-btn" aria-label="Eliminar" title="Borrar libro"></button>
+          <div class="columns">
             <div class="column">
               <div class="field">
                 <input class="input" type="text" name="title_2" value="Rayuela" placeholder="Título del libro" required>
@@ -63,19 +65,13 @@
             <div class="column">
               <textarea class="textarea" name="notes_2" rows="4" placeholder="Observaciones (opcional)"></textarea>
             </div>
-            <div class="column is-narrow">
-              <button type="button" class="button is-danger is-light delete-btn" title="Eliminar">
-                <span class="icon">
-                  <i class="fas fa-trash"></i>
-                </span>
-              </button>
-            </div>
           </div>
         </div>
 
         <!-- Empty entry for new book -->
         <div class="box book-entry new-entry">
-          <div class="columns is-mobile">
+          <button type="button" class="delete delete-btn" aria-label="Eliminar" title="Borrar libro"></button>
+          <div class="columns">
             <div class="column">
               <div class="field">
                 <input class="input" type="text" name="title_new_1" placeholder="Título del libro" required>
@@ -86,13 +82,6 @@
             </div>
             <div class="column">
               <textarea class="textarea" name="notes_new_1" rows="4" placeholder="Observaciones (opcional)"></textarea>
-            </div>
-            <div class="column is-narrow">
-              <button type="button" class="button is-danger is-light delete-btn" title="Eliminar">
-                <span class="icon">
-                  <i class="fas fa-trash"></i>
-                </span>
-              </button>
             </div>
           </div>
         </div>
@@ -153,7 +142,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const newEntry = document.createElement('div');
     newEntry.className = 'box book-entry new-entry';
     newEntry.innerHTML = `
-      <div class="columns is-mobile">
+      <button type="button" class="delete delete-btn" aria-label="Eliminar" title="Borrar libro"></button>
+      <div class="columns">
         <div class="column">
           <div class="field">
             <input class="input" type="text" name="title_new_${newEntryCounter}" placeholder="Título del libro" required>
@@ -164,13 +154,6 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="column">
           <textarea class="textarea" name="notes_new_${newEntryCounter}" rows="4" placeholder="Observaciones (opcional)"></textarea>
-        </div>
-        <div class="column is-narrow">
-          <button type="button" class="button is-danger is-light delete-btn" title="Eliminar">
-            <span class="icon">
-              <i class="fas fa-trash"></i>
-            </span>
-          </button>
         </div>
       </div>
     `;
@@ -193,9 +176,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // If it's an existing book (has data-book-id), mark for deletion
         if (entry.dataset.bookId) {
           entry.classList.add('is-deleted');
-          // TODO: Add hidden input to mark for deletion
-          const fields = entry.querySelectorAll('input, textarea');
-          fields.forEach(field => field.disabled = true);
+
+          // Add hidden input to mark for deletion (Django formset pattern)
+          const deleteInput = document.createElement('input');
+          deleteInput.type = 'hidden';
+          deleteInput.name = `DELETE_${entry.dataset.bookId}`;
+          deleteInput.value = '1';
+          entry.appendChild(deleteInput);
         } else {
           // If it's a new entry, just remove it (but keep at least one empty entry)
           const newEntries = container.querySelectorAll('.new-entry:not(.is-deleted)');
