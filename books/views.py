@@ -207,6 +207,17 @@ def profile_edit(request):
 
 
 @login_required
+def profile(request, username):
+    """
+    View user profile.
+    """
+    # Placeholder - will implement data fetching later
+    return render(request, 'profile.html', {
+        'profile_username': username,
+    })
+
+
+@login_required
 def my_books(request):
     """
     Manage user's offered books (bulk add/edit/delete).
@@ -237,8 +248,7 @@ def my_books(request):
             for obj in formset.deleted_objects:
                 obj.delete()
 
-            # FIXME: Redirect to view profile page once implemented
-            return redirect('my_books')
+            return redirect('profile', username=request.user.username)
     else:
         formset = OfferedBookFormSet(queryset=queryset)
 

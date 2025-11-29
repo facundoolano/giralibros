@@ -1,0 +1,191 @@
+{% extends "base_logged.html" %}
+
+{% block logged_content %}
+<div class="columns is-centered">
+  <div class="column is-full-mobile is-10-tablet is-8-desktop">
+
+    {# Header with username and stats #}
+    <div class="box">
+      <div class="level is-mobile">
+        <div class="level-left">
+          <div class="level-item">
+            <div>
+              <h1 class="title is-4 mb-2">{{ profile_username }}</h1>
+              <div class="tags">
+                {# Location tags - placeholder #}
+                <span class="tag is-info">CABA</span>
+                <span class="tag is-info">GBA Norte</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="level-right">
+          <div class="level-item has-text-centered mr-4">
+            <div>
+              <p class="heading">Solicitudes recibidas</p>
+              <p class="title is-5">0</p>
+            </div>
+          </div>
+          <div class="level-item has-text-centered">
+            <div>
+              <p class="heading">Solicitudes enviadas</p>
+              <p class="title is-5">0</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# About section - only show if exists #}
+      {# TODO: Conditionally show only if about is not blank #}
+      <div class="content mt-4">
+        <p class="has-text-grey-dark">
+          {# About text placeholder - will be populated from backend #}
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        </p>
+      </div>
+    </div>
+
+    {# Libros ofrecidos section #}
+    <div class="box mt-5">
+      <div class="level is-mobile mb-4">
+        <div class="level-left">
+          <div class="level-item">
+            <h2 class="title is-5 mb-0">Libros ofrecidos</h2>
+          </div>
+        </div>
+        <div class="level-right">
+          <div class="level-item">
+            {# Only show edit link if viewing own profile #}
+            {# TODO: Add conditional {% if request.user.username == profile_username %} #}
+            <a href="{% url 'my_books' %}" class="button is-small is-link is-light">
+              <span class="icon is-small">
+                <i class="fas fa-edit"></i>
+              </span>
+              <span>Editar</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {# Table placeholder - will be populated later #}
+      <div class="table-container">
+        <table class="table is-fullwidth is-striped">
+          <thead>
+            <tr>
+              <th>Título</th>
+              <th>Autor</th>
+              <th>Observaciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="3" class="has-text-centered has-text-grey-light">
+                Sin libros para mostrar
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {# Libros deseados section #}
+    <div class="box mt-5">
+      <div class="level is-mobile mb-4">
+        <div class="level-left">
+          <div class="level-item">
+            <h2 class="title is-5 mb-0">Libros deseados</h2>
+          </div>
+        </div>
+        <div class="level-right">
+          <div class="level-item">
+            {# Only show edit link if viewing own profile #}
+            {# TODO: Add conditional {% if request.user.username == profile_username %} #}
+            <a href="#" class="button is-small is-link is-light">
+              <span class="icon is-small">
+                <i class="fas fa-edit"></i>
+              </span>
+              <span>Editar</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {# Table placeholder - will be populated later #}
+      <div class="table-container">
+        <table class="table is-fullwidth is-striped">
+          <thead>
+            <tr>
+              <th>Título</th>
+              <th>Autor</th>
+              <th>Observaciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="3" class="has-text-centered has-text-grey-light">
+                Sin libros para mostrar
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {# Solicitudes enviadas section - only for current user #}
+    {# TODO: Add conditional {% if request.user.username == profile_username %} #}
+    <div class="box mt-5">
+      <h2 class="title is-5 mb-4">Solicitudes enviadas</h2>
+
+      {# Table placeholder - will be populated later #}
+      <div class="table-container">
+        <table class="table is-fullwidth is-striped">
+          <thead>
+            <tr>
+              <th>Libro solicitado</th>
+              <th>Usuario</th>
+              <th>Estado</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="4" class="has-text-centered has-text-grey-light">
+                Sin solicitudes para mostrar
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {# Solicitudes recibidas section - only for current user #}
+    {# TODO: Add conditional {% if request.user.username == profile_username %} #}
+    <div class="box mt-5">
+      <h2 class="title is-5 mb-4">Solicitudes recibidas</h2>
+
+      {# Table placeholder - will be populated later #}
+      <div class="table-container">
+        <table class="table is-fullwidth is-striped">
+          <thead>
+            <tr>
+              <th>Libro ofrecido</th>
+              <th>Usuario</th>
+              <th>Estado</th>
+              <th>Fecha</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="5" class="has-text-centered has-text-grey-light">
+                Sin solicitudes para mostrar
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

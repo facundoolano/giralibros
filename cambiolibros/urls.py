@@ -26,6 +26,7 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('verify/<str:uidb64>/<str:token>/', views.verify_email, name='verify_email'),
     path('profile/edit/', views.profile_edit, name='profile_edit'),
+    path('profile/<str:username>/', views.profile, name='profile'),
     path('logout/', views.logout, name='logout'),
     path('admin/', admin.site.urls),
 ]
