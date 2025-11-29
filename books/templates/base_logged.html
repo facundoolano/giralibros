@@ -26,14 +26,11 @@
                             </span>
                         </div>
                     </div>
+                    <a class="navbar-item is-hidden-desktop" href="{% url 'profile_edit' %}">
+                        Mi perfil
+                    </a>
                     <a class="navbar-item is-hidden-desktop" href="{% url 'my_books' %}">
                         Mis libros
-                    </a>
-                    <a class="navbar-item is-hidden-desktop" href="#">
-                        Mis solicitudes
-                    </a>
-                    <a class="navbar-item is-hidden-desktop" href="{% url 'profile_edit' %}">
-                        Editar perfil
                     </a>
                     <a class="navbar-item is-hidden-desktop" href="{% url 'logout' %}">
                         Cerrar sesión
@@ -48,14 +45,11 @@
                             <span>{{ request.user.username }}</span>
                         </a>
                         <div class="navbar-dropdown">
+                            <a class="navbar-item" href="{% url 'profile_edit' %}">
+                                Mi perfil
+                            </a>
                             <a class="navbar-item" href="{% url 'my_books' %}">
                                 Mis libros
-                            </a>
-                            <a class="navbar-item" href="#">
-                                Mis solicitudes
-                            </a>
-                            <a class="navbar-item" href="{% url 'profile_edit' %}">
-                                Editar perfil
                             </a>
                             <hr class="navbar-divider">
                             <a class="navbar-item" href="{% url 'logout' %}">
