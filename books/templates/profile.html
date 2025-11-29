@@ -1,6 +1,14 @@
 {% extends "base_logged.html" %}
 {% load book_filters %}
 
+{% block extra_css %}
+<style>
+  .button-fixed-width {
+    min-width: 110px;
+  }
+</style>
+{% endblock %}
+
 {% block logged_content %}
 <div class="columns is-centered">
   <div class="column is-full-mobile is-10-tablet is-8-desktop">
@@ -24,7 +32,7 @@
           <div class="level-item">
             {# Only show edit link if viewing own profile #}
             {# TODO: Add conditional {% if request.user.username == profile_username %} #}
-            <a href="{% url 'profile_edit' %}" class="button is-small is-link is-light">
+            <a href="{% url 'profile_edit' %}" class="button is-small is-link is-light button-fixed-width">
               <span class="icon is-small">
                 <i class="fas fa-edit"></i>
               </span>
@@ -82,7 +90,7 @@
           <div class="level-item">
             {# Only show edit link if viewing own profile #}
             {# TODO: Add conditional {% if request.user.username == profile_username %} #}
-            <a href="{% url 'my_books' %}" class="button is-small is-link is-light">
+            <a href="{% url 'my_books' %}" class="button is-small is-link is-light button-fixed-width">
               <span class="icon is-small">
                 <i class="fas fa-edit"></i>
               </span>
@@ -95,13 +103,46 @@
       {# List placeholder - will be populated later #}
       <ul class="mb-5">
         <li class="mb-2">
-          <strong>Cien años de soledad</strong>, Gabriel García Márquez · <span class="has-text-grey is-size-7">Buen estado, tapa blanda</span>
+          <div class="is-flex is-justify-content-space-between is-align-items-center">
+            <div>
+              <strong>Cien años de soledad</strong>, Gabriel García Márquez · <span class="has-text-grey is-size-7">Buen estado, tapa blanda</span>
+            </div>
+            {# TODO: Only show if not current user's profile #}
+            <button class="button is-primary is-small button-fixed-width">
+              <span class="icon is-small">
+                <i class="fas fa-rotate"></i>
+              </span>
+              <span>Cambio</span>
+            </button>
+          </div>
         </li>
         <li class="mb-2">
-          <strong>El túnel</strong>, Ernesto Sábato
+          <div class="is-flex is-justify-content-space-between is-align-items-center">
+            <div>
+              <strong>El túnel</strong>, Ernesto Sábato
+            </div>
+            {# TODO: Only show if not current user's profile #}
+            <button class="button is-light is-small button-fixed-width" disabled>
+              <span class="icon is-small">
+                <i class="fas fa-check"></i>
+              </span>
+              <span>Ya solicitado</span>
+            </button>
+          </div>
         </li>
         <li class="mb-2">
-          <strong>Rayuela</strong>, Julio Cortázar · <span class="has-text-grey is-size-7">Edición Sudamericana</span>
+          <div class="is-flex is-justify-content-space-between is-align-items-center">
+            <div>
+              <strong>Rayuela</strong>, Julio Cortázar · <span class="has-text-grey is-size-7">Edición Sudamericana</span>
+            </div>
+            {# TODO: Only show if not current user's profile #}
+            <button class="button is-primary is-small button-fixed-width">
+              <span class="icon is-small">
+                <i class="fas fa-rotate"></i>
+              </span>
+              <span>Cambio</span>
+            </button>
+          </div>
         </li>
       </ul>
 
@@ -123,7 +164,7 @@
           <div class="level-item">
             {# Only show edit link if viewing own profile #}
             {# TODO: Add conditional {% if request.user.username == profile_username %} #}
-            <a href="#" class="button is-small is-link is-light">
+            <a href="#" class="button is-small is-link is-light button-fixed-width">
               <span class="icon is-small">
                 <i class="fas fa-edit"></i>
               </span>
