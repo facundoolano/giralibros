@@ -35,42 +35,14 @@
 
       <div id="books-container">
         {% for form in formset %}
-        <div class="box book-entry {% if forloop.last %}new-entry{% endif %}" {% if form.instance.pk %}data-book-id="{{ form.instance.pk }}"{% endif %}>
-          <button type="button" class="delete delete-btn" aria-label="Eliminar" title="Borrar libro" tabindex="-1"></button>
-
-          {# Hidden fields for formset #}
-          {{ form.id }}
-
-          <div class="columns">
-            <div class="column">
-              <div class="field">
-                <input class="input" type="text" name="{{ form.title.html_name }}" id="{{ form.title.id_for_label }}" value="{{ form.title.value|default:'' }}" placeholder="Título del libro">
-                {% if form.title.errors %}
-                  <p class="help is-danger">{{ form.title.errors.0 }}</p>
-                {% endif %}
-              </div>
-              <div class="field">
-                <input class="input" type="text" name="{{ form.author.html_name }}" id="{{ form.author.id_for_label }}" value="{{ form.author.value|default:'' }}" placeholder="Autor">
-                {% if form.author.errors %}
-                  <p class="help is-danger">{{ form.author.errors.0 }}</p>
-                {% endif %}
-              </div>
-            </div>
-            <div class="column">
-              {{ form.notes }}
-              {% if form.notes.errors %}
-                <p class="help is-danger">{{ form.notes.errors.0 }}</p>
-              {% endif %}
-            </div>
-          </div>
-
-          {# Hidden DELETE checkbox (we'll handle this with JavaScript) #}
-          <div style="display: none;">
-            {{ form.DELETE }}
-          </div>
-        </div>
+          {% include "_book_form_entry.html" with form=form entry_class=forloop.last|yesno:"new-entry," book_id=form.instance.pk %}
         {% endfor %}
       </div>
+
+      {# Template for new entries - using Django's empty_form #}
+      <template id="empty-form-template">
+        {% include "_book_form_entry.html" with form=formset.empty_form entry_class="new-entry" %}
+      </template>
 
       <div class="field is-grouped is-grouped-right mt-4">
         <div class="control">
@@ -154,28 +126,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update total forms
     totalFormsInput.value = currentTotal + 1;
 
-    const newEntry = document.createElement('div');
-    newEntry.className = 'box book-entry new-entry';
-    newEntry.innerHTML = `
-      <button type="button" class="delete delete-btn" aria-label="Eliminar" title="Borrar libro" tabindex="-1"></button>
-      <div class="columns">
-        <div class="column">
-          <div class="field">
-            <input class="input" type="text" name="form-${newIndex}-title" id="id_form-${newIndex}-title" placeholder="Título del libro">
-          </div>
-          <div class="field">
-            <input class="input" type="text" name="form-${newIndex}-author" id="id_form-${newIndex}-author" placeholder="Autor">
-          </div>
-        </div>
-        <div class="column">
-          <textarea class="textarea" name="form-${newIndex}-notes" id="id_form-${newIndex}-notes" rows="4" placeholder="Observaciones (opcional)"></textarea>
-        </div>
-      </div>
-      <input type="hidden" name="form-${newIndex}-id" id="id_form-${newIndex}-id">
-      <div style="display: none;">
-        <input type="checkbox" name="form-${newIndex}-DELETE" id="id_form-${newIndex}-DELETE">
-      </div>
-    `;
+    // Clone the template
+    const template = document.getElementById('empty-form-template');
+    const newEntry = template.content.cloneNode(true).querySelector('.book-entry');
+
+    // Replace __prefix__ with the actual index
+    newEntry.innerHTML = newEntry.innerHTML.replace(/__prefix__/g, newIndex);
+
     container.appendChild(newEntry);
     setupAutoAddEntry();
     setupDeleteButtons();
