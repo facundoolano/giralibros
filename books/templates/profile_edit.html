@@ -119,15 +119,15 @@
 
 <style>
   .location-tag {
-    transition: all 0.2s;
+    transition: all 0.15s;
   }
-  .location-tag:hover {
+  .location-tag.is-light:hover:not(.is-info) {
     background-color: hsl(0, 0%, 90%) !important;
   }
 </style>
 
 <script>
-  // Make the entire tag clickable and show visual feedback
+  // Update tag styling based on checkbox state
   document.querySelectorAll(".location-tag").forEach((tag) => {
     const checkbox = tag.querySelector('input[type="checkbox"]');
 
@@ -142,18 +142,12 @@
       }
     }
 
-    // Initialize
+    // Initialize style on page load
     updateTagStyle();
 
-    // Toggle on click
-    tag.addEventListener("click", (e) => {
-      if (e.target !== checkbox) {
-        checkbox.checked = !checkbox.checked;
-        updateTagStyle();
-      } else {
-        updateTagStyle();
-      }
-    });
+    // Update style whenever checkbox changes
+    // The label already handles toggling the checkbox, we just update the visual style
+    checkbox.addEventListener("change", updateTagStyle);
   });
 </script>
 {% endblock %}
