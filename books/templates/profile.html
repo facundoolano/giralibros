@@ -1,11 +1,12 @@
 {% extends "base_logged.html" %}
+{% load book_filters %}
 
 {% block logged_content %}
 <div class="columns is-centered">
   <div class="column is-full-mobile is-10-tablet is-8-desktop">
 
-    {# Header with username and info #}
     <div class="box">
+      {# Header with username and info #}
       <div class="level is-mobile mb-3">
         <div class="level-left">
           <div class="level-item">
@@ -42,7 +43,7 @@
         </p>
       </div>
 
-      <div class="is-size-7 has-text-grey">
+      <div class="is-size-7 has-text-grey mb-5">
         <span class="mr-4">
           <span class="icon is-small">
             <i class="fas fa-calendar-alt"></i>
@@ -62,14 +63,19 @@
           0 solicitudes enviadas
         </span>
       </div>
-    </div>
 
-    {# Libros ofrecidos section #}
-    <div class="box mt-5">
+      <hr>
+
+      {# Libros ofrecidos section #}
       <div class="level is-mobile mb-4">
         <div class="level-left">
           <div class="level-item">
-            <h2 class="title is-5 mb-0">Libros ofrecidos</h2>
+            <h2 class="title is-5 mb-0">
+              <span class="icon">
+                <i class="fas fa-book"></i>
+              </span>
+              <span>Libros ofrecidos</span>
+            </h2>
           </div>
         </div>
         <div class="level-right">
@@ -86,33 +92,31 @@
         </div>
       </div>
 
-      {# Table placeholder - will be populated later #}
-      <div class="table-container">
-        <table class="table is-fullwidth is-striped">
-          <thead>
-            <tr>
-              <th>Título</th>
-              <th>Autor</th>
-              <th>Observaciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td colspan="3" class="has-text-centered has-text-grey-light">
-                Sin libros para mostrar
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+      {# List placeholder - will be populated later #}
+      <ul class="mb-5">
+        <li class="mb-2">
+          <strong>Cien años de soledad</strong>, Gabriel García Márquez · <span class="has-text-grey is-size-7">Buen estado, tapa blanda</span>
+        </li>
+        <li class="mb-2">
+          <strong>El túnel</strong>, Ernesto Sábato
+        </li>
+        <li class="mb-2">
+          <strong>Rayuela</strong>, Julio Cortázar · <span class="has-text-grey is-size-7">Edición Sudamericana</span>
+        </li>
+      </ul>
 
-    {# Libros deseados section #}
-    <div class="box mt-5">
+      <hr>
+
+      {# Libros deseados section #}
       <div class="level is-mobile mb-4">
         <div class="level-left">
           <div class="level-item">
-            <h2 class="title is-5 mb-0">Libros deseados</h2>
+            <h2 class="title is-5 mb-0">
+              <span class="icon">
+                <i class="fas fa-search"></i>
+              </span>
+              <span>Libros deseados</span>
+            </h2>
           </div>
         </div>
         <div class="level-right">
@@ -130,81 +134,68 @@
       </div>
 
       {# Table placeholder - will be populated later #}
-      <div class="table-container">
-        <table class="table is-fullwidth is-striped">
-          <thead>
-            <tr>
-              <th>Título</th>
-              <th>Autor</th>
-              <th>Observaciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td colspan="3" class="has-text-centered has-text-grey-light">
-                Sin libros para mostrar
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="mb-5">
+        <p class="has-text-grey-light has-text-centered">Sin libros para mostrar</p>
       </div>
-    </div>
 
-    {# Solicitudes enviadas section - only for current user #}
-    {# TODO: Add conditional {% if request.user.username == profile_username %} #}
-    <div class="box mt-5">
-      <h2 class="title is-5 mb-4">Solicitudes enviadas</h2>
+      {# Solicitudes enviadas section - only for current user #}
+      {# TODO: Add conditional {% if request.user.username == profile_username %} #}
+      <hr>
+
+      <h2 class="title is-5 mb-4">
+        <span class="icon">
+          <i class="fas fa-paper-plane"></i>
+        </span>
+        <span>Solicitudes enviadas</span>
+      </h2>
+
+      {# List placeholder - will be populated later #}
+      <ul class="mb-5">
+        <li class="mb-2">
+          <strong>1984</strong>, George Orwell · <a href="{% url 'profile' username='juan_perez' %}" class="is-size-7">juan_perez</a> · <span class="has-text-grey is-size-7 timeago-tooltip" data-timestamp="2025-01-15T10:00:00">hace 2 semanas</span>
+        </li>
+        <li class="mb-2">
+          <strong>El principito</strong>, Antoine de Saint-Exupéry · <a href="{% url 'profile' username='maria_gomez' %}" class="is-size-7">maria_gomez</a> · <span class="has-text-grey is-size-7 timeago-tooltip" data-timestamp="2025-01-10T10:00:00">hace 3 semanas</span>
+        </li>
+      </ul>
+
+      {# Solicitudes recibidas section - only for current user #}
+      {# TODO: Add conditional {% if request.user.username == profile_username %} #}
+      <hr>
+
+      <h2 class="title is-5 mb-4">
+        <span class="icon">
+          <i class="fas fa-inbox"></i>
+        </span>
+        <span>Solicitudes recibidas</span>
+      </h2>
 
       {# Table placeholder - will be populated later #}
-      <div class="table-container">
-        <table class="table is-fullwidth is-striped">
-          <thead>
-            <tr>
-              <th>Libro solicitado</th>
-              <th>Usuario</th>
-              <th>Estado</th>
-              <th>Fecha</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td colspan="4" class="has-text-centered has-text-grey-light">
-                Sin solicitudes para mostrar
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="mb-5">
+        <p class="has-text-grey-light has-text-centered">Sin solicitudes para mostrar</p>
       </div>
-    </div>
 
-    {# Solicitudes recibidas section - only for current user #}
-    {# TODO: Add conditional {% if request.user.username == profile_username %} #}
-    <div class="box mt-5">
-      <h2 class="title is-5 mb-4">Solicitudes recibidas</h2>
-
-      {# Table placeholder - will be populated later #}
-      <div class="table-container">
-        <table class="table is-fullwidth is-striped">
-          <thead>
-            <tr>
-              <th>Libro ofrecido</th>
-              <th>Usuario</th>
-              <th>Estado</th>
-              <th>Fecha</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td colspan="5" class="has-text-centered has-text-grey-light">
-                Sin solicitudes para mostrar
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
     </div>
 
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.timeago-tooltip').forEach(element => {
+    const timestamp = element.dataset.timestamp;
+    if (timestamp) {
+      const date = new Date(timestamp);
+      element.title = date.toLocaleString('es-AR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    }
+  });
+});
+</script>
 {% endblock %}
