@@ -3,11 +3,12 @@
 
 {% block extra_css %}
 <style>
-  /* Deleted row styling */
-  tr.is-deleted {
+  /* Deleted entry styling */
+  .book-entry.is-deleted {
     opacity: 0.5;
   }
-  tr.is-deleted input {
+  .book-entry.is-deleted input,
+  .book-entry.is-deleted textarea {
     text-decoration: line-through;
   }
 </style>
@@ -24,75 +25,77 @@
     <form method="post" id="books-form">
       {% csrf_token %}
 
-      <div class="table-container">
-        <table class="table is-fullwidth is-hoverable is-striped" id="books-table">
-          <thead>
-            <tr>
-              <th>Título</th>
-              <th>Autor</th>
-              <th>Observaciones</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="books-tbody">
-            <!-- Example existing books (will be replaced with actual data later) -->
-            <tr class="book-row" data-book-id="1">
-              <td>
-                <input class="input" type="text" name="title_1" value="El túnel" required>
-              </td>
-              <td>
-                <input class="input" type="text" name="author_1" value="Ernesto Sábato" required>
-              </td>
-              <td>
-                <input class="input" type="text" name="notes_1" value="Buen estado">
-              </td>
-              <td>
-                <button type="button" class="button is-small is-danger is-light delete-btn" title="Eliminar">
-                  <span class="icon is-small">
-                    <i class="fas fa-trash"></i>
-                  </span>
-                </button>
-              </td>
-            </tr>
-            <tr class="book-row" data-book-id="2">
-              <td>
-                <input class="input" type="text" name="title_2" value="Rayuela" required>
-              </td>
-              <td>
-                <input class="input" type="text" name="author_2" value="Julio Cortázar" required>
-              </td>
-              <td>
-                <input class="input" type="text" name="notes_2" value="">
-              </td>
-              <td>
-                <button type="button" class="button is-small is-danger is-light delete-btn" title="Eliminar">
-                  <span class="icon is-small">
-                    <i class="fas fa-trash"></i>
-                  </span>
-                </button>
-              </td>
-            </tr>
-            <!-- Empty row for new book -->
-            <tr class="book-row new-row">
-              <td>
+      <div id="books-container">
+        <!-- Example existing books (will be replaced with actual data later) -->
+        <div class="box book-entry" data-book-id="1">
+          <div class="columns is-mobile">
+            <div class="column">
+              <div class="field">
+                <input class="input" type="text" name="title_1" value="El túnel" placeholder="Título del libro" required>
+              </div>
+              <div class="field">
+                <input class="input" type="text" name="author_1" value="Ernesto Sábato" placeholder="Autor" required>
+              </div>
+            </div>
+            <div class="column">
+              <textarea class="textarea" name="notes_1" rows="4" placeholder="Observaciones (opcional)">Buen estado</textarea>
+            </div>
+            <div class="column is-narrow">
+              <button type="button" class="button is-danger is-light delete-btn" title="Eliminar">
+                <span class="icon">
+                  <i class="fas fa-trash"></i>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="box book-entry" data-book-id="2">
+          <div class="columns is-mobile">
+            <div class="column">
+              <div class="field">
+                <input class="input" type="text" name="title_2" value="Rayuela" placeholder="Título del libro" required>
+              </div>
+              <div class="field">
+                <input class="input" type="text" name="author_2" value="Julio Cortázar" placeholder="Autor" required>
+              </div>
+            </div>
+            <div class="column">
+              <textarea class="textarea" name="notes_2" rows="4" placeholder="Observaciones (opcional)"></textarea>
+            </div>
+            <div class="column is-narrow">
+              <button type="button" class="button is-danger is-light delete-btn" title="Eliminar">
+                <span class="icon">
+                  <i class="fas fa-trash"></i>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty entry for new book -->
+        <div class="box book-entry new-entry">
+          <div class="columns is-mobile">
+            <div class="column">
+              <div class="field">
                 <input class="input" type="text" name="title_new_1" placeholder="Título del libro" required>
-              </td>
-              <td>
+              </div>
+              <div class="field">
                 <input class="input" type="text" name="author_new_1" placeholder="Autor" required>
-              </td>
-              <td>
-                <input class="input" type="text" name="notes_new_1" placeholder="Observaciones (opcional)">
-              </td>
-              <td>
-                <button type="button" class="button is-small is-danger is-light delete-btn" title="Eliminar">
-                  <span class="icon is-small">
-                    <i class="fas fa-trash"></i>
-                  </span>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </div>
+            </div>
+            <div class="column">
+              <textarea class="textarea" name="notes_new_1" rows="4" placeholder="Observaciones (opcional)"></textarea>
+            </div>
+            <div class="column is-narrow">
+              <button type="button" class="button is-danger is-light delete-btn" title="Eliminar">
+                <span class="icon">
+                  <i class="fas fa-trash"></i>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="field is-grouped is-grouped-right mt-4">
@@ -113,91 +116,95 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  const tbody = document.getElementById('books-tbody');
+  const container = document.getElementById('books-container');
   const form = document.getElementById('books-form');
-  let newRowCounter = 1;
+  let newEntryCounter = 1;
 
-  // Auto-add new row when typing in the last row
-  function setupAutoAddRow() {
-    const lastRow = tbody.querySelector('tr.new-row:last-of-type');
-    if (!lastRow) return;
+  // Auto-add new entry when typing in the last entry
+  function setupAutoAddEntry() {
+    const lastEntry = container.querySelector('.new-entry:last-of-type');
+    if (!lastEntry) return;
 
-    const inputs = lastRow.querySelectorAll('input[type="text"]');
+    const inputs = lastEntry.querySelectorAll('input[type="text"], textarea');
     inputs.forEach(input => {
       input.addEventListener('input', (e) => {
-        // Check if any field in the last row has content
+        // Check if any field in the last entry has content
         const hasContent = Array.from(inputs).some(inp => inp.value.trim() !== '');
 
         if (hasContent) {
-          // Check if there's already another empty row
-          const emptyRows = tbody.querySelectorAll('tr.new-row');
-          const hasEmptyRow = Array.from(emptyRows).some(row => {
-            const rowInputs = row.querySelectorAll('input[type="text"]');
-            return Array.from(rowInputs).every(inp => inp.value.trim() === '');
+          // Check if there's already another empty entry
+          const emptyEntries = container.querySelectorAll('.new-entry');
+          const hasEmptyEntry = Array.from(emptyEntries).some(entry => {
+            const entryInputs = entry.querySelectorAll('input[type="text"], textarea');
+            return Array.from(entryInputs).every(inp => inp.value.trim() === '');
           });
 
-          if (!hasEmptyRow) {
-            addNewRow();
+          if (!hasEmptyEntry) {
+            addNewEntry();
           }
         }
       });
     });
   }
 
-  // Add a new empty row
-  function addNewRow() {
-    newRowCounter++;
-    const newRow = document.createElement('tr');
-    newRow.className = 'book-row new-row';
-    newRow.innerHTML = `
-      <td>
-        <input class="input" type="text" name="title_new_${newRowCounter}" placeholder="Título del libro" required>
-      </td>
-      <td>
-        <input class="input" type="text" name="author_new_${newRowCounter}" placeholder="Autor" required>
-      </td>
-      <td>
-        <input class="input" type="text" name="notes_new_${newRowCounter}" placeholder="Observaciones (opcional)">
-      </td>
-      <td>
-        <button type="button" class="button is-small is-danger is-light delete-btn" title="Eliminar">
-          <span class="icon is-small">
-            <i class="fas fa-trash"></i>
-          </span>
-        </button>
-      </td>
+  // Add a new empty entry
+  function addNewEntry() {
+    newEntryCounter++;
+    const newEntry = document.createElement('div');
+    newEntry.className = 'box book-entry new-entry';
+    newEntry.innerHTML = `
+      <div class="columns is-mobile">
+        <div class="column">
+          <div class="field">
+            <input class="input" type="text" name="title_new_${newEntryCounter}" placeholder="Título del libro" required>
+          </div>
+          <div class="field">
+            <input class="input" type="text" name="author_new_${newEntryCounter}" placeholder="Autor" required>
+          </div>
+        </div>
+        <div class="column">
+          <textarea class="textarea" name="notes_new_${newEntryCounter}" rows="4" placeholder="Observaciones (opcional)"></textarea>
+        </div>
+        <div class="column is-narrow">
+          <button type="button" class="button is-danger is-light delete-btn" title="Eliminar">
+            <span class="icon">
+              <i class="fas fa-trash"></i>
+            </span>
+          </button>
+        </div>
+      </div>
     `;
-    tbody.appendChild(newRow);
-    setupAutoAddRow();
+    container.appendChild(newEntry);
+    setupAutoAddEntry();
     setupDeleteButtons();
   }
 
   // Handle delete buttons
   function setupDeleteButtons() {
-    const deleteButtons = tbody.querySelectorAll('.delete-btn');
+    const deleteButtons = container.querySelectorAll('.delete-btn');
     deleteButtons.forEach(btn => {
       // Remove old listeners by cloning
       const newBtn = btn.cloneNode(true);
       btn.parentNode.replaceChild(newBtn, btn);
 
       newBtn.addEventListener('click', (e) => {
-        const row = e.currentTarget.closest('tr');
+        const entry = e.currentTarget.closest('.book-entry');
 
         // If it's an existing book (has data-book-id), mark for deletion
-        if (row.dataset.bookId) {
-          row.classList.add('is-deleted');
+        if (entry.dataset.bookId) {
+          entry.classList.add('is-deleted');
           // TODO: Add hidden input to mark for deletion
-          const inputs = row.querySelectorAll('input');
-          inputs.forEach(input => input.disabled = true);
+          const fields = entry.querySelectorAll('input, textarea');
+          fields.forEach(field => field.disabled = true);
         } else {
-          // If it's a new row, just remove it (but keep at least one empty row)
-          const newRows = tbody.querySelectorAll('tr.new-row:not(.is-deleted)');
-          if (newRows.length > 1) {
-            row.remove();
+          // If it's a new entry, just remove it (but keep at least one empty entry)
+          const newEntries = container.querySelectorAll('.new-entry:not(.is-deleted)');
+          if (newEntries.length > 1) {
+            entry.remove();
           } else {
-            // Clear the inputs instead of removing
-            const inputs = row.querySelectorAll('input');
-            inputs.forEach(input => input.value = '');
+            // Clear the fields instead of removing
+            const fields = entry.querySelectorAll('input, textarea');
+            fields.forEach(field => field.value = '');
           }
         }
       });
@@ -218,9 +225,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // TODO: Submit formset
   });
 
+  // Ensure there's always at least one empty entry
+  function ensureEmptyEntry() {
+    const emptyEntries = container.querySelectorAll('.new-entry');
+    const hasEmptyEntry = Array.from(emptyEntries).some(entry => {
+      const entryInputs = entry.querySelectorAll('input[type="text"], textarea');
+      return Array.from(entryInputs).every(inp => inp.value.trim() === '');
+    });
+
+    if (!hasEmptyEntry) {
+      addNewEntry();
+    }
+  }
+
   // Initialize
-  setupAutoAddRow();
+  setupAutoAddEntry();
   setupDeleteButtons();
+  ensureEmptyEntry();
 });
 </script>
 {% endblock %}
