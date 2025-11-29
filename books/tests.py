@@ -12,7 +12,23 @@ class BaseTestCase(DjangoTestCase):
         # Every test needs a client.
         self.client = Client()
 
-    # TODO add register user helper
+    def register_and_verify_user(self, username="testuser", email="test@example.com", password="testpass123"):
+        """
+        Register a new user and verify their email.
+        Returns after verification (user will be logged in).
+        Use this helper in tests that need a user to exist but aren't testing registration itself.
+        """
+        response = self.client.post(
+            reverse("register"),
+            {
+                "username": username,
+                "email": email,
+                "password": password,
+            },
+        )
+        verify_url = self.get_verification_url_from_email(email)
+        self.client.get(verify_url)
+        return response
 
     def get_verification_url_from_email(self, email):
         """
@@ -258,12 +274,27 @@ class UserTest(BaseTestCase):
 
     def test_home_redirects_on_no_profile(self):
         """Test that users without profile data are redirected to profile setup before accessing home."""
-        # register + verify user
-        # login, redirects to edit profile
-        # navigate to home, redirects to edit profile
-        # save minimum profile data, redirects to my books
-        # navigate to home, stays in home
-        pass
+        # Register and verify user
+        self.register_and_verify_user()
+
+        # Navigate to home, should redirect to edit profile (no profile exists yet)
+        response = self.client.get(reverse("home"))
+        self.assertRedirects(response, reverse("profile_edit"))
+
+        # Save minimum profile data
+        response = self.client.post(
+            reverse("profile_edit"),
+            {
+                "first_name": "Test",
+                "email": "test@example.com",
+                "locations": ["CABA"],
+            },
+        )
+        self.assertRedirects(response, reverse("my_books"))  # First-time setup redirects to my_books
+
+        # Navigate to home, should now stay on home
+        response = self.client.get(reverse("home"))
+        self.assertEqual(response.status_code, 200)  # Successfully loads home page
 
     def test_profile_view_profile_afer_edit(self):
         """Test profile viewing behavior after editing."""
