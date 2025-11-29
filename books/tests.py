@@ -12,7 +12,9 @@ class BaseTestCase(DjangoTestCase):
         # Every test needs a client.
         self.client = Client()
 
-    def register_and_verify_user(self, username="testuser", email="test@example.com", password="testpass123"):
+    def register_and_verify_user(
+        self, username="testuser", email="test@example.com", password="testpass123"
+    ):
         """
         Register a new user and verify their email.
         Returns after verification (user will be logged in).
@@ -134,10 +136,7 @@ class UserTest(BaseTestCase):
 
     def test_login_wrong_password(self):
         """Test that login fails with appropriate error message for wrong password."""
-        # Register and verify user
         self.register_and_verify_user()
-
-        # Clear session (verification auto-logs user in)
         self.client.logout()
 
         # Try login with wrong password
@@ -155,7 +154,6 @@ class UserTest(BaseTestCase):
 
     def test_logout_redirects(self):
         """Test that logout redirects to login and clears authentication."""
-        # Register and verify user
         self.register_and_verify_user()
 
         # Logout should redirect to login
@@ -170,10 +168,7 @@ class UserTest(BaseTestCase):
 
     def test_login_username(self):
         """Test that users can log in with either username or email."""
-        # Register and verify user
         self.register_and_verify_user()
-
-        # Logout
         self.client.logout()
 
         # Login with username should succeed
@@ -222,7 +217,9 @@ class UserTest(BaseTestCase):
             },
         )
         self.assertEqual(response.status_code, 200)  # Stays on form
-        self.assertContains(response, "Este usuario ya está registrado")  # Error message
+        self.assertContains(
+            response, "Este usuario ya está registrado"
+        )  # Error message
 
         # Try to register again with same email, should fail
         response = self.client.post(
@@ -238,7 +235,6 @@ class UserTest(BaseTestCase):
 
     def test_home_redirects_on_no_profile(self):
         """Test that users without profile data are redirected to profile setup before accessing home."""
-        # Register and verify user
         self.register_and_verify_user()
 
         # Navigate to home, should redirect to edit profile (no profile exists yet)
@@ -254,7 +250,9 @@ class UserTest(BaseTestCase):
                 "locations": ["CABA"],
             },
         )
-        self.assertRedirects(response, reverse("my_books"))  # First-time setup redirects to my_books
+        self.assertRedirects(
+            response, reverse("my_books")
+        )  # First-time setup redirects to my_books
 
         # Navigate to home, should now stay on home
         response = self.client.get(reverse("home"))
@@ -262,12 +260,32 @@ class UserTest(BaseTestCase):
 
     def test_profile_view_profile_afer_edit(self):
         """Test profile viewing behavior after editing."""
-        # register + verify user
-        # login, redirects to edit profile
-        # save minimum profile data
-        # navigate to edit profile explicitly, edit again
-        # redirects or responds with view profile
-        pass
+        self.register_and_verify_user()
+
+        # Save minimum profile data
+        response = self.client.post(
+            reverse("profile_edit"),
+            {
+                "first_name": "Test",
+                "email": "test@example.com",
+                "locations": ["CABA"],
+            },
+        )
+        self.assertRedirects(
+            response, reverse("my_books")
+        )  # First-time setup redirects to my_books
+
+        # Navigate to edit profile explicitly, edit again
+        response = self.client.post(
+            reverse("profile_edit"),
+            {
+                "first_name": "Updated Name",
+                "email": "test@example.com",
+                "locations": ["CABA", "GBA_NORTE"],
+            },
+        )
+        # Subsequent edits should redirect to profile view
+        self.assertRedirects(response, reverse("profile", kwargs={"username": "testuser"}))
 
     def test_profile_edit_validations(self):
         """Test that profile form validates required fields and data format."""
