@@ -151,26 +151,110 @@ class UserTest(BaseTestCase):
 
     def test_logout_redirects(self):
         """Test that logout redirects to login and clears authentication."""
-        # register + verify user
-        # login, redirects to profile setup
-        # logout, redirects to login
-        # try navigate to home, redirects to login
-        pass
+        # Register and verify user
+        response = self.client.post(
+            reverse("register"),
+            {
+                "username": "testuser",
+                "email": "test@example.com",
+                "password": "testpass123",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+
+        verify_url = self.get_verification_url_from_email("test@example.com")
+        response = self.client.get(verify_url)
+        self.assertEqual(response.status_code, 302)  # Redirects and logs user in
+
+        # Logout should redirect to login
+        response = self.client.post(reverse("logout"))
+        self.assertRedirects(response, reverse("login"))
+
+        # Try to navigate to home, should redirect to login
+        response = self.client.get(reverse("home"))
+        self.assertRedirects(
+            response, reverse("login") + "?next=/"
+        )  # Login with next parameter
 
     def test_login_username(self):
         """Test that users can log in with either username or email."""
-        # register + verify user
-        # login with username, succeeds
-        # logout
-        # login with email, succeeds
-        pass
+        # Register and verify user
+        response = self.client.post(
+            reverse("register"),
+            {
+                "username": "testuser",
+                "email": "test@example.com",
+                "password": "testpass123",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+
+        verify_url = self.get_verification_url_from_email("test@example.com")
+        response = self.client.get(verify_url)
+        self.assertEqual(response.status_code, 302)
+
+        # Logout
+        self.client.logout()
+
+        # Login with username should succeed
+        response = self.client.post(
+            reverse("login"),
+            {
+                "username": "testuser",
+                "password": "testpass123",
+            },
+        )
+        self.assertEqual(response.status_code, 302)  # Redirects after successful login
+
+        # Logout
+        self.client.logout()
+
+        # Login with email should also succeed
+        response = self.client.post(
+            reverse("login"),
+            {
+                "username": "test@example.com",
+                "password": "testpass123",
+            },
+        )
+        self.assertEqual(response.status_code, 302)  # Redirects after successful login
 
     def test_register_fails_repeated_user(self):
         """Test that registration fails when username or email already exists."""
-        # register user without verifying
-        # try to register again same username, fails
-        # try to register again same email, fails
-        pass
+        # Register user without verifying
+        response = self.client.post(
+            reverse("register"),
+            {
+                "username": "testuser",
+                "email": "test@example.com",
+                "password": "testpass123",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # Try to register again with same username, should fail
+        response = self.client.post(
+            reverse("register"),
+            {
+                "username": "testuser",
+                "email": "different@example.com",
+                "password": "testpass123",
+            },
+        )
+        self.assertEqual(response.status_code, 200)  # Stays on form
+        self.assertContains(response, "Este usuario ya está registrado")  # Error message
+
+        # Try to register again with same email, should fail
+        response = self.client.post(
+            reverse("register"),
+            {
+                "username": "differentuser",
+                "email": "test@example.com",
+                "password": "testpass123",
+            },
+        )
+        self.assertEqual(response.status_code, 200)  # Stays on form
+        self.assertContains(response, "Este email ya está registrado")  # Error message
 
     def test_home_redirects_on_no_profile(self):
         """Test that users without profile data are redirected to profile setup before accessing home."""
