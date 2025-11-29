@@ -205,3 +205,13 @@ def profile_edit(request):
         form = ProfileForm(initial=initial)
 
     return render(request, 'profile_edit.html', {'form': form})
+
+
+@login_required
+def my_books(request):
+    """
+    Manage user's offered books (bulk add/edit/delete).
+    """
+    # TODO: Implement formset logic
+    # For now, just render the template for UI iteration
+    return render(request, 'my_books.html', {})
