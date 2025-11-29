@@ -91,25 +91,57 @@ class OfferedBookManager(models.Manager):
         - Annotates with 'already_requested' flag via Exists subquery
         - Optimizes with select_related and prefetch_related to avoid N+1 queries
         """
-        from django.db.models import Exists, OuterRef
-
         user_areas = user.locations.values_list("area", flat=True)
 
-        return (
+        queryset = (
             self.filter(user__locations__area__in=user_areas)
             .exclude(user=user)
-            .annotate(
-                already_requested=Exists(
-                    ExchangeRequest.objects.filter(
-                        from_user=user,
-                        offered_book=OuterRef("pk"),
-                    )
-                )
-            )
             .select_related("user")
             .prefetch_related("user__locations")
             .distinct()
             .order_by("-created_at")
+        )
+
+        return self._annotate_already_requested(queryset, user)
+
+    def for_profile(self, profile_user, viewing_user):
+        """
+        Return books for a profile page.
+
+        - If viewing own profile: returns all books without annotation
+        - If viewing another user's profile: annotates with 'already_requested' flag
+        """
+        queryset = self.filter(user=profile_user)
+
+        if viewing_user != profile_user:
+            queryset = self._annotate_already_requested(queryset, viewing_user)
+
+        return queryset
+
+    def _annotate_already_requested(self, queryset, requesting_user):
+        """
+        Helper to add already_requested annotation to a queryset.
+
+        Checks if the user has a recent exchange request (within EXCHANGE_REQUEST_EXPIRY_DAYS)
+        for each book. After the expiry period, requests can be retried.
+        """
+        from datetime import timedelta
+
+        from django.conf import settings
+        from django.db.models import Exists, OuterRef
+        from django.utils import timezone
+
+        expiry_days = getattr(settings, "EXCHANGE_REQUEST_EXPIRY_DAYS", 15)
+        cutoff_date = timezone.now() - timedelta(days=expiry_days)
+
+        return queryset.annotate(
+            already_requested=Exists(
+                ExchangeRequest.objects.filter(
+                    from_user=requesting_user,
+                    offered_book=OuterRef("pk"),
+                    created_at__gte=cutoff_date,
+                )
+            )
         )
 
 
@@ -143,6 +175,30 @@ class WantedBook(BaseBook):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="wanted")
 
 
+class ExchangeRequestManager(models.Manager):
+    def recent_sent_by(self, user, limit=10):
+        """
+        Return recent exchange requests sent by a user.
+        Ordered by most recent first, limited to specified count.
+        """
+        return (
+            self.filter(from_user=user)
+            .select_related("to_user")
+            .order_by("-created_at")[:limit]
+        )
+
+    def recent_received_by(self, user, limit=10):
+        """
+        Return recent exchange requests received by a user.
+        Ordered by most recent first, limited to specified count.
+        """
+        return (
+            self.filter(to_user=user)
+            .select_related("from_user")
+            .order_by("-created_at")[:limit]
+        )
+
+
 class ExchangeRequest(models.Model):
     from_user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="sent_requests"
@@ -159,3 +215,5 @@ class ExchangeRequest(models.Model):
     book_author = models.CharField(max_length=200)
 
     created_at = models.DateTimeField(auto_now_add=True)
+
+    objects = ExchangeRequestManager()

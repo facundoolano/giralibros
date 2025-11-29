@@ -184,8 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.reload();
       }
     } else {
-      // TODO: Navigate to profile view once implemented
-      window.location.href = '/';
+      window.location.href = "{% url 'profile' username=request.user.username %}";
     }
   });
 

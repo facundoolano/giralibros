@@ -1,0 +1,266 @@
+{% extends "base_logged.html" %}
+{% load book_filters %}
+
+{% block extra_css %}
+<style>
+  .button-fixed-width {
+    min-width: 110px;
+  }
+  @media screen and (min-width: 769px) {
+    .nested-content {
+      padding-left: 2rem;
+    }
+  }
+  @media screen and (max-width: 768px) {
+    .box {
+      box-shadow: none;
+      border: none;
+      border-radius: 0;
+      padding: 1rem 0;
+    }
+    .book-item-mobile {
+      flex-direction: column;
+      align-items: flex-start !important;
+      gap: 0.5rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block logged_content %}
+<div class="columns is-centered">
+  <div class="column is-full-mobile is-10-tablet is-8-desktop">
+
+    <div class="box">
+      {# Header with username and info #}
+      <div class="level is-mobile mb-3">
+        <div class="level-left">
+          <div class="level-item">
+            <div>
+              <h1 class="title is-4 is-inline mb-0">{{ profile_user.username }}</h1>
+              <div class="tags is-inline ml-2">
+                {% for location in profile_user.locations.all %}
+                <span class="tag is-light">{{ location.get_area_display }}</span>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="level-right">
+          <div class="level-item">
+            {% if is_own_profile %}
+            <a href="{% url 'profile_edit' %}" class="button is-small is-link is-light button-fixed-width">
+              <span class="icon is-small">
+                <i class="fas fa-edit"></i>
+              </span>
+              <span>Editar</span>
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      {% if profile_user.profile.about %}
+      <div class="content mb-3">
+        <p class="has-text-grey-dark">{{ profile_user.profile.about }}</p>
+      </div>
+      {% endif %}
+
+      <div class="is-size-7 has-text-grey mb-5">
+        <span class="mr-4">
+          <span class="icon is-small">
+            <i class="fas fa-calendar-alt"></i>
+          </span>
+          Miembro desde {{ profile_user.date_joined|date:"F Y" }}
+        </span>
+        <span class="mr-4">
+          <span class="icon is-small">
+            <i class="fas fa-inbox"></i>
+          </span>
+          {{ profile_user.received_requests.count }} solicitudes recibidas
+        </span>
+        <span>
+          <span class="icon is-small">
+            <i class="fas fa-paper-plane"></i>
+          </span>
+          {{ profile_user.sent_requests.count }} solicitudes enviadas
+        </span>
+      </div>
+
+      <hr>
+
+      {# Libros ofrecidos section #}
+      <div class="level is-mobile mb-4">
+        <div class="level-left">
+          <div class="level-item">
+            <h2 class="title is-5 mb-0">
+              <span class="icon">
+                <i class="fas fa-book"></i>
+              </span>
+              <span>Libros ofrecidos</span>
+            </h2>
+          </div>
+        </div>
+        <div class="level-right">
+          <div class="level-item">
+            {% if is_own_profile %}
+            <a href="{% url 'my_books' %}" class="button is-small is-link is-light button-fixed-width">
+              <span class="icon is-small">
+                <i class="fas fa-edit"></i>
+              </span>
+              <span>Editar</span>
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      {% if offered_books %}
+      <ul class="mb-5 nested-content">
+        {% for book in offered_books %}
+        <li class="mb-2">
+          <div class="is-flex is-justify-content-space-between is-align-items-center book-item-mobile">
+            <div>
+              <strong>{{ book.title }}</strong>, {{ book.author }}{% if book.notes %} · <span class="has-text-grey is-size-7">{{ book.notes }}</span>{% endif %}
+            </div>
+            {% if not is_own_profile %}
+              {% if book.already_requested %}
+              <button class="button is-light is-small button-fixed-width" disabled>
+                <span class="icon is-small">
+                  <i class="fas fa-check"></i>
+                </span>
+                <span>Ya solicitado</span>
+              </button>
+              {% else %}
+              <button class="button is-primary is-small button-fixed-width">
+                <span class="icon is-small">
+                  <i class="fas fa-rotate"></i>
+                </span>
+                <span>Cambio</span>
+              </button>
+              {% endif %}
+            {% endif %}
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="mb-5 nested-content">
+        <p class="has-text-grey-light has-text-centered">Sin libros para mostrar</p>
+      </div>
+      {% endif %}
+
+      <hr>
+
+      {# Libros deseados section #}
+      <div class="level is-mobile mb-4">
+        <div class="level-left">
+          <div class="level-item">
+            <h2 class="title is-5 mb-0">
+              <span class="icon">
+                <i class="fas fa-search"></i>
+              </span>
+              <span>Libros deseados</span>
+            </h2>
+          </div>
+        </div>
+        <div class="level-right">
+          <div class="level-item">
+            {% if is_own_profile %}
+            <a href="#" class="button is-small is-link is-light button-fixed-width">
+              <span class="icon is-small">
+                <i class="fas fa-edit"></i>
+              </span>
+              <span>Editar</span>
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      {% if wanted_books %}
+      <ul class="mb-5 nested-content">
+        {% for book in wanted_books %}
+        <li class="mb-2">
+          <strong>{{ book.title }}</strong>, {{ book.author }}
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="mb-5 nested-content">
+        <p class="has-text-grey-light has-text-centered">Sin libros para mostrar</p>
+      </div>
+      {% endif %}
+
+      {% if is_own_profile %}
+      <hr>
+
+      <h2 class="title is-5 mb-4">
+        <span class="icon">
+          <i class="fas fa-paper-plane"></i>
+        </span>
+        <span>Solicitudes enviadas</span>
+      </h2>
+
+      {% if sent_requests %}
+      <ul class="mb-5 nested-content">
+        {% for req in sent_requests %}
+        <li class="mb-2">
+          <strong>{{ req.book_title }}</strong>, {{ req.book_author }} · {% if req.to_user %}<a href="{% url 'profile' username=req.to_user.username %}" class="is-size-7">{{ req.to_user.username }}</a>{% else %}<span class="is-size-7">usuario desactivado</span>{% endif %} · <span class="has-text-grey is-size-7 timeago-tooltip" data-timestamp="{{ req.created_at|date:'c' }}">{{ req.created_at|timeago }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="mb-5 nested-content">
+        <p class="has-text-grey-light has-text-centered">Sin solicitudes para mostrar</p>
+      </div>
+      {% endif %}
+
+      <hr>
+
+      <h2 class="title is-5 mb-4">
+        <span class="icon">
+          <i class="fas fa-inbox"></i>
+        </span>
+        <span>Solicitudes recibidas</span>
+      </h2>
+
+      {% if received_requests %}
+      <ul class="mb-5 nested-content">
+        {% for req in received_requests %}
+        <li class="mb-2">
+          <strong>{{ req.book_title }}</strong>, {{ req.book_author }} · <a href="{% url 'profile' username=req.from_user.username %}" class="is-size-7">{{ req.from_user.username }}</a> · <span class="has-text-grey is-size-7 timeago-tooltip" data-timestamp="{{ req.created_at|date:'c' }}">{{ req.created_at|timeago }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="mb-5 nested-content">
+        <p class="has-text-grey-light has-text-centered">Sin solicitudes para mostrar</p>
+      </div>
+      {% endif %}
+      {% endif %}
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.timeago-tooltip').forEach(element => {
+    const timestamp = element.dataset.timestamp;
+    if (timestamp) {
+      const date = new Date(timestamp);
+      element.title = date.toLocaleString('es-AR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    }
+  });
+});
+</script>
+{% endblock %}

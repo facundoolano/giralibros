@@ -26,7 +26,7 @@
                             </span>
                         </div>
                     </div>
-                    <a class="navbar-item is-hidden-desktop" href="{% url 'profile_edit' %}">
+                    <a class="navbar-item is-hidden-desktop" href="{% url 'profile' username=request.user.username %}">
                         Mi perfil
                     </a>
                     <a class="navbar-item is-hidden-desktop" href="{% url 'my_books' %}">
@@ -45,7 +45,7 @@
                             <span>{{ request.user.username }}</span>
                         </a>
                         <div class="navbar-dropdown">
-                            <a class="navbar-item" href="{% url 'profile_edit' %}">
+                            <a class="navbar-item" href="{% url 'profile' username=request.user.username %}">
                                 Mi perfil
                             </a>
                             <a class="navbar-item" href="{% url 'my_books' %}">
