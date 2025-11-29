@@ -141,6 +141,16 @@ The goal of testing is to **catch bugs and prevent regressions**. Tests should f
 - Implementation details (internal method calls, private functions)
 - Every single code path (coverage is informative, not a target)
 
+### Test Implementation Rules (for AI assistants)
+
+When working with tests:
+- **Don't add new test cases** unless explicitly requested
+- **Skip incomplete test specifications**: If a test has placeholders like "FIXME human to provide spec", skip implementing it
+- **Don't skip tests**: Run the full test suite; don't use markers to skip failing tests
+- **Discuss before adjusting code for tests**: If a test requires changing production code, discuss the approach first rather than immediately modifying the code to make tests pass
+- **Use docstrings**: Every test method should have a one-sentence docstring explaining the use case or business rule being tested (e.g., "Test that a user is redirected to profile setup on first login")
+- **Propose tests for new business logic**: When adding new features with business rules, propose test cases (with FIXME placeholders for specs) for the human to review and fill in, but don't implement them without permission
+
 ## Frontend & Styling
 
 - **CSS Framework**: Bulma (https://bulma.io/documentation/)

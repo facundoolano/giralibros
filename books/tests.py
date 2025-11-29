@@ -51,7 +51,7 @@ class UserTest(BaseTestCase):
         # login with email, succeeds
         pass
 
-    def test_register_fails_repeated_credentials(self):
+    def test_register_fails_repeated_user(self):
         # register user without verifying
         # try to register again same username, fails
         # try to register again same email, fails
