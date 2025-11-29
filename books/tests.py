@@ -77,11 +77,44 @@ class UserTest(BaseTestCase):
 
     def test_login_no_verified_fails(self):
         """Test that unverified users cannot log in until they verify their email."""
-        # register user without verifying
-        # try login, fails
-        # verify
-        # try login, succeeds
-        pass
+        # Register user without verifying
+        response = self.client.post(
+            reverse("register"),
+            {
+                "username": "testuser",
+                "email": "test@example.com",
+                "password": "testpass123",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # Try login, should fail
+        response = self.client.post(
+            reverse("login"),
+            {
+                "username": "testuser",
+                "password": "testpass123",
+            },
+        )
+        self.assertEqual(response.status_code, 200)  # Stays on login page
+        self.assertContains(
+            response, "Por favor introduzca un nombre de usuario"
+        )  # Login error message
+
+        # Verify email
+        verify_url = self.get_verification_url_from_email("test@example.com")
+        response = self.client.get(verify_url)
+        self.assertEqual(response.status_code, 302)  # Redirects after verification
+
+        # Try login again, should succeed
+        response = self.client.post(
+            reverse("login"),
+            {
+                "username": "testuser",
+                "password": "testpass123",
+            },
+        )
+        self.assertEqual(response.status_code, 302)  # Redirects after successful login
 
     def test_login_wrong_password(self):
         """Test that login fails with appropriate error message for wrong password."""
@@ -89,17 +122,10 @@ class UserTest(BaseTestCase):
         # wrong password fails with error message
         pass
 
-    def test_home_needs_login(self):
-        """Test that unauthenticated users are redirected to login when accessing home."""
-        # register + verify user
-        # try navigate to home, redirects to login
-        # login, redirects to edit profile
-        pass
-
     def test_logout_redirects(self):
         """Test that logout redirects to login and clears authentication."""
         # register + verify user
-        # login, redirects to home
+        # login, redirects to profile setup
         # logout, redirects to login
         # try navigate to home, redirects to login
         pass
@@ -130,7 +156,11 @@ class UserTest(BaseTestCase):
 
     def test_profile_view_profile_afer_edit(self):
         """Test profile viewing behavior after editing."""
-        # TODO human to specify
+        # register + verify user
+        # login, redirects to edit profile
+        # save minimum profile data
+        # navigate to edit profile explicitly, edit again
+        # redirects or responds with view profile
         pass
 
     def test_profile_edit_validations(self):
@@ -162,6 +192,7 @@ class BooklistTest(BaseTestCase):
 
     def test_request_book_exchange(self):
         """Test that exchange requests send email with contact details and requester's book list."""
+        # FIXME functionality not implemented yet
         # register two users
         # first user with 3 books
         # second user two books
@@ -171,8 +202,13 @@ class BooklistTest(BaseTestCase):
         # check email content lists user books
         pass
 
+    def test_request_book_reflected_in_profile(self):
+        # FIXME human to specify
+        pass
+
     def test_mark_as_already_requested(self):
         """Test that books already requested by a user are marked differently in the listing."""
+        # FIXME functionality not implemented yet
         # register two users
         # first user with 3 books
         # second user gets home, sees all three books and Cambio button
@@ -182,6 +218,7 @@ class BooklistTest(BaseTestCase):
 
     def test_fail_on_already_requested(self):
         """Test that users cannot request the same book twice."""
+        # FIXME functionality not implemented yet
         # register two users
         # first user with 3 books
         # send request for second book, succeeds
