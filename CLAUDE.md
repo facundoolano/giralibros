@@ -114,6 +114,33 @@ The project uses django-stubs for type checking. Configuration in pyproject.toml
 django_settings_module = "cambiolibros.settings"
 ```
 
+## Testing Philosophy
+
+### Core Principles
+
+The goal of testing is to **catch bugs and prevent regressions**. Tests should focus on observable behavior that matters to users, not implementation details.
+
+### Preferred Testing Approach
+
+1. **Favor integration tests over unit tests**: Test Django views with real HTTP requests and database interactions using Django's `TestCase` (which provides transaction isolation)
+2. **Test business logic through behavior**: Focus on meaningful user actions (creating exchange requests, filtering by location, reserving books) rather than testing individual model methods in isolation
+3. **Use the real database**: Never mock Django's ORM or database; use Django's test database
+4. **Minimize mocking**: Only mock external services (email, third-party APIs). Don't mock internal collaborators or model relationships
+5. **Keep tests simple**: Use helper functions to reduce duplication, but avoid complex test abstractions or frameworks
+
+### What to Test
+
+- **Critical business flows**: Exchange request creation, location-based filtering, book reservation logic
+- **Edge cases**: Handling deleted books in exchange requests, user deletion with SET_NULL, location overlap scenarios
+- **Simple models**: Test through views/integration tests rather than isolated unit tests
+
+### What NOT to Test
+
+- Django framework behavior (URL routing, ORM functionality)
+- Simple CRUD operations without business logic
+- Implementation details (internal method calls, private functions)
+- Every single code path (coverage is informative, not a target)
+
 ## Frontend & Styling
 
 - **CSS Framework**: Bulma (https://bulma.io/documentation/)
