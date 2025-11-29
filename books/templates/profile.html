@@ -6,6 +6,24 @@
   .button-fixed-width {
     min-width: 110px;
   }
+  @media screen and (min-width: 769px) {
+    .nested-content {
+      padding-left: 2rem;
+    }
+  }
+  @media screen and (max-width: 768px) {
+    .box {
+      box-shadow: none;
+      border: none;
+      border-radius: 0;
+      padding: 1rem 0;
+    }
+    .book-item-mobile {
+      flex-direction: column;
+      align-items: flex-start !important;
+      gap: 0.5rem;
+    }
+  }
 </style>
 {% endblock %}
 
@@ -101,9 +119,9 @@
       </div>
 
       {# List placeholder - will be populated later #}
-      <ul class="mb-5">
+      <ul class="mb-5 nested-content">
         <li class="mb-2">
-          <div class="is-flex is-justify-content-space-between is-align-items-center">
+          <div class="is-flex is-justify-content-space-between is-align-items-center book-item-mobile">
             <div>
               <strong>Cien años de soledad</strong>, Gabriel García Márquez · <span class="has-text-grey is-size-7">Buen estado, tapa blanda</span>
             </div>
@@ -117,7 +135,7 @@
           </div>
         </li>
         <li class="mb-2">
-          <div class="is-flex is-justify-content-space-between is-align-items-center">
+          <div class="is-flex is-justify-content-space-between is-align-items-center book-item-mobile">
             <div>
               <strong>El túnel</strong>, Ernesto Sábato
             </div>
@@ -131,7 +149,7 @@
           </div>
         </li>
         <li class="mb-2">
-          <div class="is-flex is-justify-content-space-between is-align-items-center">
+          <div class="is-flex is-justify-content-space-between is-align-items-center book-item-mobile">
             <div>
               <strong>Rayuela</strong>, Julio Cortázar · <span class="has-text-grey is-size-7">Edición Sudamericana</span>
             </div>
@@ -174,8 +192,8 @@
         </div>
       </div>
 
-      {# Table placeholder - will be populated later #}
-      <div class="mb-5">
+      {# List placeholder - will be populated later #}
+      <div class="mb-5 nested-content">
         <p class="has-text-grey-light has-text-centered">Sin libros para mostrar</p>
       </div>
 
@@ -191,7 +209,7 @@
       </h2>
 
       {# List placeholder - will be populated later #}
-      <ul class="mb-5">
+      <ul class="mb-5 nested-content">
         <li class="mb-2">
           <strong>1984</strong>, George Orwell · <a href="{% url 'profile' username='juan_perez' %}" class="is-size-7">juan_perez</a> · <span class="has-text-grey is-size-7 timeago-tooltip" data-timestamp="2025-01-15T10:00:00">hace 2 semanas</span>
         </li>
@@ -211,8 +229,8 @@
         <span>Solicitudes recibidas</span>
       </h2>
 
-      {# Table placeholder - will be populated later #}
-      <div class="mb-5">
+      {# List placeholder - will be populated later #}
+      <div class="mb-5 nested-content">
         <p class="has-text-grey-light has-text-centered">Sin solicitudes para mostrar</p>
       </div>
 
