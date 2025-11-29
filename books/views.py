@@ -3,12 +3,13 @@ from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
+from django.forms import modelformset_factory
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
-from books.forms import EmailOrUsernameAuthenticationForm, ProfileForm, RegistrationForm
+from books.forms import EmailOrUsernameAuthenticationForm, OfferedBookForm, ProfileForm, RegistrationForm
 from books.models import OfferedBook, UserLocation, UserProfile
 
 
@@ -181,9 +182,7 @@ def profile_edit(request):
 
             # Redirect based on whether this is first-time setup or edit
             if is_new_profile:
-                # TODO: Redirect to 'my_books' view once implemented
-                # return redirect('my_books')
-                return redirect('home')  # Temporary: redirect to home until my_books exists
+                return redirect('my_books')
             else:
                 return redirect('home')
     else:
@@ -212,6 +211,37 @@ def my_books(request):
     """
     Manage user's offered books (bulk add/edit/delete).
     """
-    # TODO: Implement formset logic
-    # For now, just render the template for UI iteration
-    return render(request, 'my_books.html', {})
+    # Create formset factory for user's offered books
+    OfferedBookFormSet = modelformset_factory(
+        OfferedBook,
+        form=OfferedBookForm,
+        extra=1,  # Always show 1 empty form for adding new books
+        can_delete=True
+    )
+
+    # Get queryset of user's books
+    queryset = OfferedBook.objects.filter(user=request.user).order_by('created_at')
+
+    if request.method == 'POST':
+        formset = OfferedBookFormSet(request.POST, queryset=queryset)
+        if formset.is_valid():
+            instances = formset.save(commit=False)
+
+            # Assign user to new books
+            for instance in instances:
+                if not instance.pk:  # New book
+                    instance.user = request.user
+                instance.save()
+
+            # Handle deletions
+            for obj in formset.deleted_objects:
+                obj.delete()
+
+            # FIXME: Redirect to view profile page once implemented
+            return redirect('my_books')
+    else:
+        formset = OfferedBookFormSet(queryset=queryset)
+
+    return render(request, 'my_books.html', {
+        'formset': formset,
+    })
