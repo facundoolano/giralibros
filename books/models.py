@@ -112,6 +112,29 @@ class OfferedBookManager(models.Manager):
             .order_by("-created_at")
         )
 
+    def for_profile(self, profile_user, viewing_user):
+        """
+        Return books for a profile page.
+
+        - If viewing own profile: returns all books without annotation
+        - If viewing another user's profile: annotates with 'already_requested' flag
+        """
+        from django.db.models import Exists, OuterRef
+
+        queryset = self.filter(user=profile_user)
+
+        if viewing_user != profile_user:
+            queryset = queryset.annotate(
+                already_requested=Exists(
+                    ExchangeRequest.objects.filter(
+                        from_user=viewing_user,
+                        offered_book=OuterRef("pk"),
+                    )
+                )
+            )
+
+        return queryset
+
 
 class OfferedBook(BaseBook):
     """A book a user offers for exchanging."""

@@ -211,7 +211,6 @@ def profile(request, username):
     """
     View user profile.
     """
-    from django.db.models import Exists, OuterRef
     from django.shortcuts import get_object_or_404
 
     # Get the profile user
@@ -220,20 +219,8 @@ def profile(request, username):
     # Check if viewing own profile
     is_own_profile = request.user == profile_user
 
-    # Get offered books
-    if is_own_profile:
-        # Own profile: just get all books, no annotation needed
-        offered_books = profile_user.offered.all()
-    else:
-        # Other user's profile: annotate with already_requested
-        offered_books = profile_user.offered.annotate(
-            already_requested=Exists(
-                ExchangeRequest.objects.filter(
-                    from_user=request.user,
-                    offered_book=OuterRef('pk'),
-                )
-            )
-        ).all()
+    # Get offered books (uses manager method to handle annotation conditionally)
+    offered_books = OfferedBook.objects.for_profile(profile_user, request.user)
 
     # Get wanted books
     wanted_books = profile_user.wanted.all()
