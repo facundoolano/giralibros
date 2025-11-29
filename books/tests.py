@@ -301,18 +301,105 @@ class UserTest(BaseTestCase):
 class BooklistTest(BaseTestCase):
     def test_own_books_excluded(self):
         """Test that users do not see their own books in the book listing."""
-        # register two users, both in CABA, two books each
-        # check that each sees only the other one's book not their owns
-        pass
+        # Register first user with profile and books
+        self.register_and_verify_user(username="user1", email="user1@example.com")
+        self.client.post(
+            reverse("profile_edit"),
+            {
+                "first_name": "User One",
+                "email": "user1@example.com",
+                "locations": ["CABA"],
+            },
+        )
+        self.add_books([("Book A", "Author A"), ("Book B", "Author B")])
+        self.client.logout()
+
+        # Register second user with profile and books
+        self.register_and_verify_user(username="user2", email="user2@example.com")
+        self.client.post(
+            reverse("profile_edit"),
+            {
+                "first_name": "User Two",
+                "email": "user2@example.com",
+                "locations": ["CABA"],
+            },
+        )
+        self.add_books([("Book C", "Author C"), ("Book D", "Author D")])
+
+        # User 2 should see only user 1's books (not their own)
+        response = self.client.get(reverse("home"))
+        self.assertContains(response, "Book A")
+        self.assertContains(response, "Book B")
+        self.assertNotContains(response, "Book C")
+        self.assertNotContains(response, "Book D")
+
+        self.client.logout()
+
+        # Log in as user 1 and check they see only user 2's books
+        self.client.post(
+            reverse("login"),
+            {
+                "username": "user1",
+                "password": "testpass123",
+            },
+        )
+        response = self.client.get(reverse("home"))
+        self.assertNotContains(response, "Book A")
+        self.assertNotContains(response, "Book B")
+        self.assertContains(response, "Book C")
+        self.assertContains(response, "Book D")
 
     def test_filter_by_location(self):
         """Test that book listings are filtered based on user's selected location areas."""
-        # register 5 users
-        # for the first 4 users, add 1 book, edit to each different location
+        # Register 4 users, each in a different location with one book
+        locations = ["CABA", "GBA_NORTE", "GBA_OESTE", "GBA_SUR"]
+        for i, location in enumerate(locations):
+            username = f"user{i+1}"
+            email = f"user{i+1}@example.com"
+            self.register_and_verify_user(username=username, email=email)
+            self.client.post(
+                reverse("profile_edit"),
+                {
+                    "first_name": f"User {i+1}",
+                    "email": email,
+                    "locations": [location],
+                },
+            )
+            self.add_books([(f"Book {location}", f"Author {i+1}")])
+            self.client.logout()
 
-        # user 5 set in all areas, sees all books
-        # edit to 2 areas, sees only those 2 areas books
-        pass
+        # Register user 5 with all areas - should see all books
+        self.register_and_verify_user(username="user5", email="user5@example.com")
+        self.client.post(
+            reverse("profile_edit"),
+            {
+                "first_name": "User Five",
+                "email": "user5@example.com",
+                "locations": ["CABA", "GBA_NORTE", "GBA_OESTE", "GBA_SUR"],
+            },
+        )
+
+        response = self.client.get(reverse("home"))
+        self.assertContains(response, "Book CABA")
+        self.assertContains(response, "Book GBA_NORTE")
+        self.assertContains(response, "Book GBA_OESTE")
+        self.assertContains(response, "Book GBA_SUR")
+
+        # Edit to only 2 areas - should see only those 2 books
+        self.client.post(
+            reverse("profile_edit"),
+            {
+                "first_name": "User Five",
+                "email": "user5@example.com",
+                "locations": ["CABA", "GBA_NORTE"],
+            },
+        )
+
+        response = self.client.get(reverse("home"))
+        self.assertContains(response, "Book CABA")
+        self.assertContains(response, "Book GBA_NORTE")
+        self.assertNotContains(response, "Book GBA_OESTE")
+        self.assertNotContains(response, "Book GBA_SUR")
 
     def test_request_book_exchange(self):
         """Test that exchange requests send email with contact details and requester's book list."""
@@ -353,3 +440,20 @@ class BooklistTest(BaseTestCase):
         """Test handling of email sending failures during exchange requests."""
         # TODO human to specify
         pass
+
+    def add_books(self, books):
+        """
+        Add books for the currently logged-in user.
+
+        Args:
+            books: List of (title, author) tuples
+        """
+        form_data = {
+            "form-TOTAL_FORMS": str(len(books)),
+            "form-INITIAL_FORMS": "0",
+        }
+        for i, (title, author) in enumerate(books):
+            form_data[f"form-{i}-title"] = title
+            form_data[f"form-{i}-author"] = author
+
+        self.client.post(reverse("my_books"), form_data)
