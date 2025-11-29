@@ -80,6 +80,31 @@ class BaseBook(models.Model):
 
 
 class OfferedBookManager(models.Manager):
+    def _annotate_already_requested(self, queryset, requesting_user):
+        """
+        Helper to add already_requested annotation to a queryset.
+
+        Checks if the user has a recent exchange request (within EXCHANGE_REQUEST_EXPIRY_DAYS)
+        for each book. After the expiry period, requests can be retried.
+        """
+        from django.conf import settings
+        from django.db.models import Exists, OuterRef
+        from django.utils import timezone
+        from datetime import timedelta
+
+        expiry_days = getattr(settings, 'EXCHANGE_REQUEST_EXPIRY_DAYS', 15)
+        cutoff_date = timezone.now() - timedelta(days=expiry_days)
+
+        return queryset.annotate(
+            already_requested=Exists(
+                ExchangeRequest.objects.filter(
+                    from_user=requesting_user,
+                    offered_book=OuterRef("pk"),
+                    created_at__gte=cutoff_date,
+                )
+            )
+        )
+
     def for_user(self, user):
         """
         Return books available in the user's locations, annotated with whether
@@ -91,26 +116,18 @@ class OfferedBookManager(models.Manager):
         - Annotates with 'already_requested' flag via Exists subquery
         - Optimizes with select_related and prefetch_related to avoid N+1 queries
         """
-        from django.db.models import Exists, OuterRef
-
         user_areas = user.locations.values_list("area", flat=True)
 
-        return (
+        queryset = (
             self.filter(user__locations__area__in=user_areas)
             .exclude(user=user)
-            .annotate(
-                already_requested=Exists(
-                    ExchangeRequest.objects.filter(
-                        from_user=user,
-                        offered_book=OuterRef("pk"),
-                    )
-                )
-            )
             .select_related("user")
             .prefetch_related("user__locations")
             .distinct()
             .order_by("-created_at")
         )
+
+        return self._annotate_already_requested(queryset, user)
 
     def for_profile(self, profile_user, viewing_user):
         """
@@ -119,19 +136,10 @@ class OfferedBookManager(models.Manager):
         - If viewing own profile: returns all books without annotation
         - If viewing another user's profile: annotates with 'already_requested' flag
         """
-        from django.db.models import Exists, OuterRef
-
         queryset = self.filter(user=profile_user)
 
         if viewing_user != profile_user:
-            queryset = queryset.annotate(
-                already_requested=Exists(
-                    ExchangeRequest.objects.filter(
-                        from_user=viewing_user,
-                        offered_book=OuterRef("pk"),
-                    )
-                )
-            )
+            queryset = self._annotate_already_requested(queryset, viewing_user)
 
         return queryset
 
