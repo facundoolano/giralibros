@@ -488,13 +488,34 @@ class BooksTest(BaseTestCase):
 
     def test_mark_as_already_requested(self):
         """Test that books already requested by a user are marked differently in the listing."""
-        # register two users
-        # one book each
-        # 2nd sends request for 1st book
+        # Register first user with one book
+        self.register_and_verify_user(username="user1", email="user1@example.com", fill_profile=True)
+        self.add_books([("Book A", "Author A")])
+        self.client.logout()
 
-        # second user gets home, sees the book with Cambio button
-        # send request, list shows ya pedido
-        pass
+        # Register second user with one book
+        self.register_and_verify_user(username="user2", email="user2@example.com", fill_profile=True)
+        self.add_books([("Book B", "Author B")])
+
+        # Check home page shows book with exchange button
+        response = self.client.get(reverse("home"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Book A")
+        self.assertContains(response, "Cambio")
+
+        # Get book ID and send exchange request
+        offered_books = response.context["offered_books"]
+        book = offered_books[0]
+        response = self.client.post(
+            reverse("request_exchange", kwargs={"book_id": book.id})
+        )
+        self.assertEqual(response.status_code, 201)
+
+        # Check home page now shows book as already requested
+        response = self.client.get(reverse("home"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Book A")
+        self.assertContains(response, "Ya solicitado")
 
     def test_fail_on_already_requested(self):
         """Test that users cannot request the same book twice."""
