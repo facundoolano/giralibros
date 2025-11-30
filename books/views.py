@@ -4,8 +4,10 @@ from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import EmailMultiAlternatives
 from django.forms import modelformset_factory
 from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
@@ -47,14 +49,8 @@ def register(request):
     """
     Handle user registration.
 
-    TODO: In production, this should send an email verification link instead of
-    immediately creating an active user. The flow should be:
-    1. User submits registration form
-    2. Inactive user is created (is_active=False)
-    3. Email with verification link is sent
-    4. User clicks verification link
-    5. User is activated and can log in
-    6. On first login, user is redirected to profile completion
+    Creates an inactive user and sends an email verification link.
+    The user must click the verification link to activate their account.
     """
     if request.user.is_authenticated:
         return redirect("home")
@@ -77,18 +73,16 @@ def register(request):
             )
             verification_url = request.build_absolute_uri(verification_path)
 
-            if settings.DEBUG:
-                # In development, print verification link to console
-                print("\n" + "=" * 80)
-                print("EMAIL VERIFICATION LINK (Debug Mode)")
-                print("=" * 80)
-                print(f"User: {user.username} ({user.email})")
-                print(f"Verification URL: {verification_url}")
-                print("=" * 80 + "\n")
-            else:
-                # FIXME: Implement send verification email
-                # send_verification_email(user, verification_url)
-                pass
+            # Send verification email
+            send_templated_email(
+                to_email=user.email,
+                subject="Verificá tu cuenta en CambioLibros",
+                template_name="emails/verification_email",
+                context={
+                    "username": user.username,
+                    "verification_url": verification_url,
+                },
+            )
 
             # Show confirmation page
             return render(
@@ -306,3 +300,30 @@ def my_books(request):
             "formset": formset,
         },
     )
+
+
+def send_templated_email(to_email, subject, template_name, context=None):
+    """
+    Send multipart email with HTML and plain text versions.
+
+    template_name should be the base path without extension (e.g., "emails/welcome").
+    Both .txt and .html versions will be rendered and sent.
+    """
+    if context is None:
+        context = {}
+
+    if isinstance(to_email, str):
+        to_email = [to_email]
+
+    text_message = render_to_string(f"{template_name}.txt", context)
+    html_message = render_to_string(f"{template_name}.html", context)
+
+    email = EmailMultiAlternatives(
+        subject=subject,
+        body=text_message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=to_email,
+    )
+    email.attach_alternative(html_message, "text/html")
+
+    return email.send(fail_silently=False)

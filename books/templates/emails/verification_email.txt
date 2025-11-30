@@ -1,0 +1,12 @@
+Hola {{ username }},
+
+Gracias por registrarte en CambioLibros.
+
+Para completar tu registro, por favor hacé click en el siguiente enlace:
+
+{{ verification_url }}
+
+Si no te registraste en CambioLibros, podés ignorar este mensaje.
+
+Saludos,
+El equipo de CambioLibros
