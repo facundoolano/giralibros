@@ -1,4 +1,3 @@
-from django.contrib.auth.models import User
 from django.core import mail
 from django.test import Client
 from django.test import TestCase as DjangoTestCase
@@ -412,21 +411,65 @@ class BooksTest(BaseTestCase):
 
     def test_request_book_exchange(self):
         """Test that exchange requests send email with contact details and requester's book list."""
-        # register two users
-        # first user with 3 books
-        # second user two books
-        # send request for second book
-        # check outgoing email
-        # check email content includes 2nd user contact details
-        # check email content lists user books
-        pass
+        # Register first user with one book
+        self.register_and_verify_user(username="user1", email="user1@example.com")
+        self.client.post(
+            reverse("profile_edit"),
+            {
+                "first_name": "User One",
+                "email": "user1@example.com",
+                "alternate_contact": "WhatsApp: 123456",
+                "locations": ["CABA"],
+            },
+        )
+        self.add_books([("Book A", "Author A")])
+        self.client.logout()
+
+        # Register second user with one book
+        self.register_and_verify_user(username="user2", email="user2@example.com")
+        self.client.post(
+            reverse("profile_edit"),
+            {
+                "first_name": "User Two",
+                "email": "user2@example.com",
+                "locations": ["CABA"],
+            },
+        )
+        self.add_books([("Book B", "Author B")])
+
+        # Get home page and extract book ID from data-book-id attribute
+        response = self.client.get(reverse("home"))
+        import re
+
+        match = re.search(r'data-book-id="(\d+)"', response.content.decode())
+        self.assertIsNotNone(match, "Could not find data-book-id in home page")
+        book_id = match.group(1)
+
+        # Clear email outbox and send exchange request
+        mail.outbox = []
+        response = self.client.post(
+            reverse("request_exchange", kwargs={"book_id": book_id})
+        )
+        self.assertEqual(response.status_code, 201)
+
+        # Check that exactly one email was sent to the book owner
+        self.assertEqual(len(mail.outbox), 1)
+        sent_email = mail.outbox[0]
+        self.assertIn("user1@example.com", sent_email.to)
+
+        # Check email contains requester's contact details
+        self.assertIn("user2@example.com", sent_email.body)
+        self.assertIn("User Two", sent_email.body)
+
+        # Check email lists requester's offered books
+        self.assertIn("Book B", sent_email.body)
+        self.assertIn("Author B", sent_email.body)
 
     def test_request_book_reflected_in_profile(self):
         "Test that when a successful exchange request is sent, it shows up in both user's profiles."
         # register two users
-        # first user with 3 books
-        # second user two books
-        # send request for second book
+        # one book each
+        # 2nd sends request for 1st book
 
         # check user 1 has incoming request in their profile
         # check user 2 has outgoing request in their profile
@@ -435,20 +478,19 @@ class BooksTest(BaseTestCase):
     def test_mark_as_already_requested(self):
         """Test that books already requested by a user are marked differently in the listing."""
         # register two users
-        # first user with 3 books
-        # second user two books
-        # second user gets home, sees all three books and Cambio button
-        # send request for second book
-        # request list shows 2 cambio, one ya pedido
+        # one book each
+        # 2nd sends request for 1st book
+
+        # second user gets home, sees the book with Cambio button
+        # send request, list shows ya pedido
         pass
 
     def test_fail_on_already_requested(self):
         """Test that users cannot request the same book twice."""
-        # register two users
-        # first user with 3 books
-        # second user two books
-        # send request for second book, succeeds
-        # send request for second book again, fails
+        # same user setup as previous tests
+
+        # send request for book, succeeds
+        # send request for book again, fails
         pass
 
     def test_email_error_on_exchange_request(self):
@@ -462,15 +504,17 @@ class BooksTest(BaseTestCase):
     def test_error_on_request_with_no_offered(self):
         """Test that a user with no listed offered books cannot send an exchange request."""
         # register two users
-        # first user with 3 books
+        # first user with 1 book
         # second no books
-        # send request for second book, fails with need to add books first
+        # send request for the book, fails with need to add books first
         pass
 
     def test_error_on_request_throttled(self):
         """Test that an exchange request fails if the user has already exceeded their limit for the day."""
-        # TODO human to specify
-        # same user setup as previous tests
+        # register two users
+        # 1st with 3 books
+        # 2nd with one
+
         # patch settings to allow 2 books max
         # send 3 requests to same user in a row, first two succeed, last fails with the correct message
         pass
