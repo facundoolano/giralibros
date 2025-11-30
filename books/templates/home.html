@@ -3,7 +3,7 @@
 {% load book_filters %}
 {% block logged_content %}
 <div class="mb-5 has-text-centered" style="margin-top: -1rem">
-  <span class="mr-2">Mostrando libros disponibles en</span>
+  <span class="mr-2">Mostrando los últimos libros disponibles en</span>
   {% for location in user.locations.all %}
   <span class="tag is-light mr-1">{{ location.get_area_display }}</span>
   {% endfor %}
@@ -60,7 +60,7 @@
                     <span>Ya solicitado</span>
                   </button>
                   {% else %}
-                  <button class="button is-primary">
+                  <button class="button is-primary" title="Solicitar intercambio de libros">
                     <span class="icon">
                       <i class="fas fa-rotate"></i>
                     </span>
@@ -83,7 +83,7 @@
             <span>Ya solicitado</span>
           </button>
           {% else %}
-          <button class="button is-primary">
+          <button class="button is-primary" title="Solicitar intercambio de libros">
             <span class="icon">
               <i class="fas fa-rotate"></i>
             </span>
