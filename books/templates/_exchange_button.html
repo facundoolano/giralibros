@@ -1,15 +1,14 @@
-{% if book.already_requested %}
-<button class="button is-light {{ button_classes }}" disabled>
-  <span class="icon {{ icon_classes }}">
-    <i class="fas fa-check"></i>
-  </span>
-  <span>Ya solicitado</span>
-</button>
-{% else %}
-<button class="button is-primary {{ button_classes }}" title="Enviar solicitud de intercambio" data-book-id="{{ book.id }}">
+<button class="button is-primary {{ button_classes }} js-exchange-btn {% if book.already_requested %}is-hidden{% endif %}"
+        title="Enviar solicitud de intercambio"
+        data-book-id="{{ book.id }}">
   <span class="icon {{ icon_classes }}">
     <i class="fas fa-rotate"></i>
   </span>
   <span>Cambio</span>
 </button>
-{% endif %}
+<button class="button is-light {{ button_classes }} js-requested-btn {% if not book.already_requested %}is-hidden{% endif %}" disabled>
+  <span class="icon {{ icon_classes }}">
+    <i class="fas fa-check"></i>
+  </span>
+  <span>Ya solicitado</span>
+</button>

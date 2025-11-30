@@ -139,6 +139,9 @@
             });
 
             function requestExchange(button, bookId) {
+                // Find the sibling "Ya solicitado" button
+                const requestedButton = button.nextElementSibling;
+
                 // Disable button and show loading state
                 button.disabled = true;
 
@@ -170,18 +173,9 @@
                 })
                 .then(({ status, data }) => {
                     if (status === 200) {
-                        // Success - replace button with "Ya solicitado" version
-                        const buttonClasses = button.className.replace('is-primary', 'is-light').replace('is-loading', '');
-                        const iconClasses = icon.className;
-
-                        button.outerHTML = `
-                            <button class="${buttonClasses}" disabled>
-                                <span class="${iconClasses}">
-                                    <i class="fas fa-check"></i>
-                                </span>
-                                <span>Ya solicitado</span>
-                            </button>
-                        `;
+                        // Success - swap buttons
+                        button.classList.add('is-hidden');
+                        requestedButton.classList.remove('is-hidden');
 
                         // Show success notification
                         showNotification(data.message, 'is-success');
