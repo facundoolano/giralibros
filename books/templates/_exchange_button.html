@@ -6,7 +6,7 @@
   <span>Ya solicitado</span>
 </button>
 {% else %}
-<button class="button is-primary {{ button_classes }}" title="Enviar solicitud de intercambio">
+<button class="button is-primary {{ button_classes }}" title="Enviar solicitud de intercambio" data-book-id="{{ book.id }}">
   <span class="icon {{ icon_classes }}">
     <i class="fas fa-rotate"></i>
   </span>

@@ -91,4 +91,146 @@
             {% block logged_content %}{% endblock %}
         </div>
     </section>
+
+    {# Exchange Request Modal #}
+    <div id="exchangeModal" class="modal">
+        <div class="modal-background"></div>
+        <div class="modal-content">
+            <div id="exchangeNotification" class="notification">
+                <button class="delete"></button>
+                <p id="exchangeMessage"></p>
+            </div>
+        </div>
+        <button class="modal-close is-large" aria-label="close"></button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('exchangeModal');
+            const notification = document.getElementById('exchangeNotification');
+            const message = document.getElementById('exchangeMessage');
+
+            // Close modal handlers
+            const closeModal = () => {
+                modal.classList.remove('is-active');
+                document.documentElement.classList.remove('is-clipped');
+            };
+
+            modal.querySelector('.modal-background').addEventListener('click', closeModal);
+            modal.querySelector('.modal-close').addEventListener('click', closeModal);
+            modal.querySelector('.delete').addEventListener('click', closeModal);
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && modal.classList.contains('is-active')) {
+                    closeModal();
+                }
+            });
+
+            // Handle exchange request button clicks
+            document.addEventListener('click', (e) => {
+                const button = e.target.closest('button[data-book-id]');
+                if (!button || button.disabled) {
+                    return;
+                }
+
+                e.preventDefault();
+                const bookId = button.dataset.bookId;
+                requestExchange(button, bookId);
+            });
+
+            function requestExchange(button, bookId) {
+                // Disable button and show loading state
+                button.disabled = true;
+
+                // Hide button content (icon and text)
+                const icon = button.querySelector('.icon');
+                const text = button.querySelector('span:not(.icon)');
+                icon.style.visibility = 'hidden';
+                text.style.visibility = 'hidden';
+
+                button.classList.add('is-loading');
+
+                // Get CSRF token
+                const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value
+                    || getCookie('csrftoken');
+
+                // Make AJAX request
+                fetch(`/books/${bookId}/request-exchange/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(response => {
+                    return response.json().then(data => ({
+                        status: response.status,
+                        data: data
+                    }));
+                })
+                .then(({ status, data }) => {
+                    if (status === 200) {
+                        // Success - replace button with "Ya solicitado" version
+                        const buttonClasses = button.className.replace('is-primary', 'is-light').replace('is-loading', '');
+                        const iconClasses = icon.className;
+
+                        button.outerHTML = `
+                            <button class="${buttonClasses}" disabled>
+                                <span class="${iconClasses}">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                                <span>Ya solicitado</span>
+                            </button>
+                        `;
+
+                        // Show success notification
+                        showNotification(data.message, 'is-success');
+                    } else {
+                        // Error - restore button
+                        button.classList.remove('is-loading');
+                        icon.style.visibility = 'visible';
+                        text.style.visibility = 'visible';
+                        button.disabled = false;
+
+                        // Show error notification
+                        showNotification(data.error || 'Error al enviar la solicitud', 'is-danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    button.classList.remove('is-loading');
+                    icon.style.visibility = 'visible';
+                    text.style.visibility = 'visible';
+                    button.disabled = false;
+                    showNotification('Error al enviar la solicitud. Por favor intente nuevamente.', 'is-danger');
+                });
+            }
+
+            function showNotification(msg, type) {
+                // Update notification content and style
+                notification.className = `notification ${type}`;
+                message.textContent = msg;
+
+                // Show modal
+                modal.classList.add('is-active');
+                document.documentElement.classList.add('is-clipped');
+            }
+
+            // Helper function to get CSRF token from cookies
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+        });
+    </script>
 {% endblock %}
