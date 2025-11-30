@@ -437,18 +437,15 @@ class BooksTest(BaseTestCase):
         )
         self.add_books([("Book B", "Author B")])
 
-        # Get home page and extract book ID from data-book-id attribute
+        # Get book ID from home page context
         response = self.client.get(reverse("home"))
-        import re
-
-        match = re.search(r'data-book-id="(\d+)"', response.content.decode())
-        self.assertIsNotNone(match, "Could not find data-book-id in home page")
-        book_id = match.group(1)
+        offered_books = response.context["offered_books"]
+        book = offered_books[0]
 
         # Clear email outbox and send exchange request
         mail.outbox = []
         response = self.client.post(
-            reverse("request_exchange", kwargs={"book_id": book_id})
+            reverse("request_exchange", kwargs={"book_id": book.id})
         )
         self.assertEqual(response.status_code, 201)
 
