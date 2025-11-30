@@ -4,9 +4,10 @@ from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
 from django.forms import modelformset_factory
 from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
@@ -72,28 +73,26 @@ def register(request):
             )
             verification_url = request.build_absolute_uri(verification_path)
 
-            # Send verification email
+            # Send verification email with both text and HTML versions
             subject = "Verificá tu cuenta en Cambiolibros"
-            message = f"""Hola {user.username},
+            context = {
+                "username": user.username,
+                "verification_url": verification_url,
+            }
 
-Gracias por registrarte en Cambiolibros.
+            # Render text and HTML templates
+            text_message = render_to_string("emails/verification_email.txt", context)
+            html_message = render_to_string("emails/verification_email.html", context)
 
-Para completar tu registro, por favor hacé click en el siguiente enlace:
-
-{verification_url}
-
-Si no te registraste en Cambiolibros, podés ignorar este mensaje.
-
-Saludos,
-El equipo de Cambiolibros
-"""
-            send_mail(
+            # Create email with both text and HTML alternatives
+            email = EmailMultiAlternatives(
                 subject=subject,
-                message=message,
+                body=text_message,
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=False,
+                to=[user.email],
             )
+            email.attach_alternative(html_message, "text/html")
+            email.send(fail_silently=False)
 
             # Show confirmation page
             return render(
