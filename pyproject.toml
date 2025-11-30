@@ -14,4 +14,4 @@ dev = [
 ]
 
 [mypy.plugins.django-stubs]
-django_settings_module = "cambiolibros.settings"
+django_settings_module = "cambiolibros.settings.development"
