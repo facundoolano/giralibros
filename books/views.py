@@ -407,6 +407,10 @@ def request_exchange(request, book_id):
                 book_author=book.author,
             )
 
+            # Build absolute URL for requester's profile
+            profile_path = reverse("profile", kwargs={"username": request.user.username})
+            requester_profile_url = request.build_absolute_uri(profile_path)
+
             send_templated_email(
                 to_email=book.user.profile.contact_email,
                 subject="📚🔄📚 ¡Tenés una solicitud en CambioLibros.com!",
@@ -415,6 +419,7 @@ def request_exchange(request, book_id):
                     "requester": request.user,
                     "book": book,
                     "exchange_request": exchange_request,
+                    "requester_profile_url": requester_profile_url,
                 },
             )
     except Exception:

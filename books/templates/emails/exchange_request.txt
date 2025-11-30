@@ -1,10 +1,19 @@
-Hola {{ book.user.username }},
+Hola {{ book.user.first_name }},
 
-Tienes una nueva solicitud de intercambio para tu libro "{{ book.title }}" de {{ book.author }}.
+Tenés una nueva solicitud de intercambio para tu libro "{{ book.title }}" de {{ book.author }}!
 
-Solicitante: {{ requester.username }}
+{{ requester.first_name }} está en {% for location in requester.locations.all %}{{ location.get_area_display }}{% if not forloop.last %}, {% endif %}{% endfor %} y ofrece estos libros:
 
-(Detalles del contenido del email serán implementados más adelante)
+{% for requester_book in requester.offered.all %}
+- "{{ requester_book.title }}" de {{ requester_book.author }}{% if requester_book.notes %} ({{ requester_book.notes }}){% endif %}
+{% endfor %}
+
+Podés contactar a {{ requester.first_name }}:
+
+{{ requester.profile.contact_email }}
+{% if requester.profile.alternate_contact %}{{ requester.profile.alternate_contact }}
+{% endif %}
+Podés ver su perfil en {{ requester_profile_url }}
 
 --
 CambioLibros

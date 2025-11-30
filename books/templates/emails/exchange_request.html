@@ -3,18 +3,30 @@
 <head>
     <meta charset="UTF-8">
 </head>
-<body>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
     <h2>Nueva solicitud de intercambio</h2>
 
-    <p>Hola {{ book.user.username }},</p>
+    <p>Hola {{ book.user.first_name }},</p>
 
-    <p>Tienes una nueva solicitud de intercambio para tu libro <strong>"{{ book.title }}"</strong> de {{ book.author }}.</p>
+    <p>Tenés una nueva solicitud de intercambio para tu libro <strong>"{{ book.title }}"</strong> de {{ book.author }}!</p>
 
-    <p><strong>Solicitante:</strong> {{ requester.username }}</p>
+    <p>{{ requester.first_name }} está en {% for location in requester.locations.all %}{{ location.get_area_display }}{% if not forloop.last %}, {% endif %}{% endfor %} y ofrece estos libros:</p>
 
-    <p><em>(Detalles del contenido del email serán implementados más adelante)</em></p>
+    <ul>
+    {% for requester_book in requester.offered.all %}
+        <li><strong>"{{ requester_book.title }}"</strong> de {{ requester_book.author }}{% if requester_book.notes %} <em>({{ requester_book.notes }})</em>{% endif %}</li>
+    {% endfor %}
+    </ul>
 
-    <hr>
+    <p>Podés contactar a {{ requester.first_name }}:</p>
+
+    <p>
+        {{ requester.profile.contact_email }}<br>
+        {% if requester.profile.alternate_contact %}{{ requester.profile.alternate_contact }}<br>{% endif %}
+        <a href="{{ requester_profile_url }}">Ver perfil de {{ requester.first_name }}</a>
+    </p>
+
+    <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
     <p style="color: #666; font-size: 12px;">CambioLibros</p>
 </body>
 </html>
