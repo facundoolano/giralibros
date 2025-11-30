@@ -22,6 +22,7 @@ from books import views
 urlpatterns = [
     path('', views.home, name='home'),
     path('books/my/', views.my_books, name='my_books'),
+    path('books/<int:book_id>/request-exchange/', views.request_exchange, name='request_exchange'),
     path('login/', views.login, name='login'),
     path('register/', views.register, name='register'),
     path('verify/<str:uidb64>/<str:token>/', views.verify_email, name='verify_email'),

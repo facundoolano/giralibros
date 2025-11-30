@@ -1,3 +1,6 @@
+import random
+import time
+
 from django.conf import settings
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
@@ -6,6 +9,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMultiAlternatives
 from django.forms import modelformset_factory
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -327,3 +331,27 @@ def send_templated_email(to_email, subject, template_name, context=None):
     email.attach_alternative(html_message, "text/html")
 
     return email.send(fail_silently=False)
+
+
+@login_required
+def request_exchange(request, book_id):
+    """
+    Placeholder view for exchange request.
+    Randomly returns success or error for testing frontend behavior.
+    """
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    # Add delay for testing loading state
+    time.sleep(1)
+
+    # Randomly succeed or fail
+    if random.choice([True, False]):
+        return JsonResponse(
+            {"message": "Solicitud de intercambio enviada exitosamente"}, status=200
+        )
+    else:
+        return JsonResponse(
+            {"error": "Error al enviar la solicitud. Por favor intente nuevamente."},
+            status=500,
+        )
