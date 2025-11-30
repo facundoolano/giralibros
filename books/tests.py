@@ -445,14 +445,46 @@ class BooksTest(BaseTestCase):
         self.assertIn("Author B", sent_email.body)
 
     def test_request_book_reflected_in_profile(self):
-        "Test that when a successful exchange request is sent, it shows up in both user's profiles."
-        # register two users
-        # one book each
-        # 2nd sends request for 1st book
+        """Test that when a successful exchange request is sent, it shows up in both user's profiles."""
+        # Register first user with one book
+        self.register_and_verify_user(username="user1", email="user1@example.com", fill_profile=True)
+        self.add_books([("Book A", "Author A")])
+        self.client.logout()
 
-        # check user 1 has incoming request in their profile
-        # check user 2 has outgoing request in their profile
-        pass
+        # Register second user with one book
+        self.register_and_verify_user(username="user2", email="user2@example.com", fill_profile=True)
+        self.add_books([("Book B", "Author B")])
+
+        # Get book ID from home page context
+        response = self.client.get(reverse("home"))
+        offered_books = response.context["offered_books"]
+        book = offered_books[0]
+
+        # Send exchange request
+        response = self.client.post(
+            reverse("request_exchange", kwargs={"book_id": book.id})
+        )
+        self.assertEqual(response.status_code, 201)
+
+        # Check user 2's profile shows outgoing request
+        response = self.client.get(reverse("profile", kwargs={"username": "user2"}))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Book A")  # The book they requested
+
+        self.client.logout()
+
+        # Log in as user 1 and check their profile shows incoming request
+        self.client.post(
+            reverse("login"),
+            {
+                "username": "user1",
+                "password": "testpass123",
+            },
+        )
+        response = self.client.get(reverse("profile", kwargs={"username": "user1"}))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Book A")  # The book that was requested
+        self.assertContains(response, "user2")  # The user who requested it
 
     def test_mark_as_already_requested(self):
         """Test that books already requested by a user are marked differently in the listing."""
