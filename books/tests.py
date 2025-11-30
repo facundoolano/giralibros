@@ -307,7 +307,7 @@ class UserTest(BaseTestCase):
         pass
 
 
-class BooklistTest(BaseTestCase):
+class BooksTest(BaseTestCase):
     def test_own_books_excluded(self):
         """Test that users do not see their own books in the book listing."""
         # Register first user with profile and books
@@ -412,7 +412,6 @@ class BooklistTest(BaseTestCase):
 
     def test_request_book_exchange(self):
         """Test that exchange requests send email with contact details and requester's book list."""
-        # FIXME functionality not implemented yet
         # register two users
         # first user with 3 books
         # second user two books
@@ -423,14 +422,21 @@ class BooklistTest(BaseTestCase):
         pass
 
     def test_request_book_reflected_in_profile(self):
-        # FIXME human to specify
+        "Test that when a successful exchange request is sent, it shows up in both user's profiles."
+        # register two users
+        # first user with 3 books
+        # second user two books
+        # send request for second book
+
+        # check user 1 has incoming request in their profile
+        # check user 2 has outgoing request in their profile
         pass
 
     def test_mark_as_already_requested(self):
         """Test that books already requested by a user are marked differently in the listing."""
-        # FIXME functionality not implemented yet
         # register two users
         # first user with 3 books
+        # second user two books
         # second user gets home, sees all three books and Cambio button
         # send request for second book
         # request list shows 2 cambio, one ya pedido
@@ -438,26 +444,35 @@ class BooklistTest(BaseTestCase):
 
     def test_fail_on_already_requested(self):
         """Test that users cannot request the same book twice."""
-        # FIXME functionality not implemented yet
         # register two users
         # first user with 3 books
+        # second user two books
         # send request for second book, succeeds
         # send request for second book again, fails
         pass
 
     def test_email_error_on_exchange_request(self):
         """Test handling of email sending failures during exchange requests."""
-        # TODO human to specify
+        # same user setup as previous tests
+        # mock email sending operation to fail (does django have something for this? if not use regular patch)
+        # verify error message returned to user
+        # verify request doesn't show up in the logged user profile
         pass
 
     def test_error_on_request_with_no_offered(self):
         """Test that a user with no listed offered books cannot send an exchange request."""
-        # TODO human to specify
+        # register two users
+        # first user with 3 books
+        # second no books
+        # send request for second book, fails with need to add books first
         pass
 
     def test_error_on_request_throttled(self):
         """Test that an exchange request fails if the user has already exceeded their limit for the day."""
         # TODO human to specify
+        # same user setup as previous tests
+        # patch settings to allow 2 books max
+        # send 3 requests to same user in a row, first two succeed, last fails with the correct message
         pass
 
     def add_books(self, books):
