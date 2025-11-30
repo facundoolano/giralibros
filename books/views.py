@@ -392,9 +392,7 @@ def request_exchange(request, book_id):
 
     if requests_today >= daily_limit:
         return JsonResponse(
-            {
-                "error": f"Has alcanzado el límite de {daily_limit} solicitudes por día. Por favor intenta mañana."
-            },
+            {"error": "Llegaste al límite de pedidos por hoy, probá de nuevo mañana."},
             status=429,
         )
 
@@ -411,7 +409,7 @@ def request_exchange(request, book_id):
 
             send_templated_email(
                 to_email=book.user.profile.contact_email,
-                subject=f"Nueva solicitud de intercambio para '{book.title}'",
+                subject="Tenés una solicitud en CambioLibros.com!",
                 template_name="emails/exchange_request",
                 context={
                     "requester": request.user,
@@ -425,10 +423,13 @@ def request_exchange(request, book_id):
             f"Failed to send exchange request email for book {book_id} to user {book.user.id}"
         )
         return JsonResponse(
-            {"error": "Error al enviar el email. Por favor intenta nuevamente."},
+            {"error": "Hubo un error al procesar tu solicitud, probá más tarde."},
             status=500,
         )
 
     return JsonResponse(
-        {"message": "Solicitud de intercambio enviada exitosamente"}, status=201
+        {
+            "message": f"Le enviamos tu solicitud de intercambio a <b/>{book.user.username}<b/>.<br/>Te va a contactar si le interesa alguno de tus libros."
+        },
+        status=201,
     )
