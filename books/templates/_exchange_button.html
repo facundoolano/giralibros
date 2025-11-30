@@ -1,0 +1,15 @@
+{% if book.already_requested %}
+<button class="button is-light {{ button_classes }}" disabled>
+  <span class="icon {{ icon_classes }}">
+    <i class="fas fa-check"></i>
+  </span>
+  <span>Ya solicitado</span>
+</button>
+{% else %}
+<button class="button is-primary {{ button_classes }}" title="Enviar solicitud de intercambio">
+  <span class="icon {{ icon_classes }}">
+    <i class="fas fa-rotate"></i>
+  </span>
+  <span>Cambio</span>
+</button>
+{% endif %}
