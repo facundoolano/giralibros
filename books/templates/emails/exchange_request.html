@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <h2>Nueva solicitud de intercambio</h2>
+
+    <p>Hola {{ book.user.username }},</p>
+
+    <p>Tienes una nueva solicitud de intercambio para tu libro <strong>"{{ book.title }}"</strong> de {{ book.author }}.</p>
+
+    <p><strong>Solicitante:</strong> {{ requester.username }}</p>
+
+    <p><em>(Detalles del contenido del email serán implementados más adelante)</em></p>
+
+    <hr>
+    <p style="color: #666; font-size: 12px;">CambioLibros</p>
+</body>
+</html>

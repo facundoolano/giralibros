@@ -132,6 +132,7 @@ LOGOUT_REDIRECT_URL = "login"
 
 # Exchange requests
 EXCHANGE_REQUEST_EXPIRY_DAYS = 15  # Days after which an exchange request can be retried
+EXCHANGE_REQUEST_DAILY_LIMIT = 25  # Maximum exchange requests a user can send in 24 hours
 
 # Email settings (common across all environments)
 # The EMAIL_BACKEND will be overridden in environment-specific settings

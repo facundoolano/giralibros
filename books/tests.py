@@ -455,6 +455,11 @@ class BooklistTest(BaseTestCase):
         # TODO human to specify
         pass
 
+    def test_error_on_request_throttled(self):
+        """Test that an exchange request fails if the user has already exceeded their limit for the day."""
+        # TODO human to specify
+        pass
+
     def add_books(self, books):
         """
         Add books for the currently logged-in user.

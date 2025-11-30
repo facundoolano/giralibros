@@ -1,4 +1,3 @@
-import random
 import time
 
 from django.conf import settings
@@ -336,22 +335,98 @@ def send_templated_email(to_email, subject, template_name, context=None):
 @login_required
 def request_exchange(request, book_id):
     """
-    Placeholder view for exchange request.
-    Randomly returns success or error for testing frontend behavior.
+    Create an exchange request for a book. Sends email notification to book owner.
     """
     if request.method != "POST":
         return JsonResponse({"error": "Method not allowed"}, status=405)
 
-    # Add delay for testing loading state
+    # Add delay for testing loading state (remove in production)
     time.sleep(1)
 
-    # Randomly succeed or fail
-    if random.choice([True, False]):
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    # Get the book
+    try:
+        book = OfferedBook.objects.select_related("user").get(pk=book_id)
+    except OfferedBook.DoesNotExist:
+        return JsonResponse({"error": "Libro no encontrado"}, status=404)
+
+    # Check if user is trying to request their own book
+    if book.user == request.user:
         return JsonResponse(
-            {"message": "Solicitud de intercambio enviada exitosamente"}, status=200
+            {"error": "No podés solicitar tus propios libros"}, status=400
         )
-    else:
+
+    # Check if user has any offered books
+    if not request.user.offered.exists():
+        my_books_url = reverse("my_books")
         return JsonResponse(
-            {"error": "Error al enviar la solicitud. Por favor intente nuevamente."},
+            {
+                "error": f'Antes de enviar una solitud tenés que <a href="{my_books_url}">agregar tus libros ofrecidos</a>.'
+            },
+            status=400,
+        )
+
+    # Check if user already requested this book recently
+    expiry_days = getattr(settings, "EXCHANGE_REQUEST_EXPIRY_DAYS", 15)
+    cutoff_date = timezone.now() - timedelta(days=expiry_days)
+
+    existing_request = ExchangeRequest.objects.filter(
+        from_user=request.user, offered_book=book, created_at__gte=cutoff_date
+    ).first()
+
+    if existing_request:
+        return JsonResponse(
+            {"error": "Ya solicitaste este libro recientemente"}, status=400
+        )
+
+    # Check daily request limit
+    daily_limit = getattr(settings, "EXCHANGE_REQUEST_DAILY_LIMIT", 25)
+    last_24h = timezone.now() - timedelta(hours=24)
+
+    requests_today = ExchangeRequest.objects.filter(
+        from_user=request.user, created_at__gte=last_24h
+    ).count()
+
+    if requests_today >= daily_limit:
+        return JsonResponse(
+            {
+                "error": f"Has alcanzado el límite de {daily_limit} solicitudes por día. Por favor intenta mañana."
+            },
+            status=429,
+        )
+
+    # Create exchange request
+    exchange_request = ExchangeRequest.objects.create(
+        from_user=request.user,
+        to_user=book.user,
+        offered_book=book,
+        book_title=book.title,
+        book_author=book.author,
+    )
+
+    # Send email notification to book owner
+    try:
+        send_templated_email(
+            to_email=book.user.profile.contact_email,
+            subject=f"Nueva solicitud de intercambio para '{book.title}'",
+            template_name="emails/exchange_request",
+            context={
+                "requester": request.user,
+                "book": book,
+                "exchange_request": exchange_request,
+            },
+        )
+    except Exception as e:
+        # If email fails, delete the exchange request and return error
+        exchange_request.delete()
+        return JsonResponse(
+            {"error": "Error al enviar el email. Por favor intenta nuevamente."},
             status=500,
         )
+
+    return JsonResponse(
+        {"message": "Solicitud de intercambio enviada exitosamente"}, status=201
+    )

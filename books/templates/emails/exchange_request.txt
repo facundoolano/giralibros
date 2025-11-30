@@ -1,0 +1,10 @@
+Hola {{ book.user.username }},
+
+Tienes una nueva solicitud de intercambio para tu libro "{{ book.title }}" de {{ book.author }}.
+
+Solicitante: {{ requester.username }}
+
+(Detalles del contenido del email serán implementados más adelante)
+
+--
+CambioLibros

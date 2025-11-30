@@ -213,7 +213,7 @@
                 // Update message content and style
                 messageBox.className = `message ${type}`;
                 messageTitle.textContent = type === 'is-success' ? 'Éxito' : 'Error';
-                messageBody.textContent = msg;
+                messageBody.innerHTML = msg;
 
                 // Show modal
                 modal.classList.add('is-active');
