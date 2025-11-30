@@ -1,5 +1,4 @@
 import logging
-import time
 
 from django.conf import settings
 from django.contrib.auth import login as auth_login
@@ -344,9 +343,6 @@ def request_exchange(request, book_id):
     if request.method != "POST":
         return JsonResponse({"error": "Method not allowed"}, status=405)
 
-    # Add delay for testing loading state (remove in production)
-    time.sleep(1)
-
     from datetime import timedelta
 
     from django.utils import timezone
@@ -423,7 +419,7 @@ def request_exchange(request, book_id):
                     "exchange_request": exchange_request,
                 },
             )
-    except Exception as e:
+    except Exception:
         # If email fails, transaction is rolled back automatically
         logger.exception(
             f"Failed to send exchange request email for book {book_id} to user {book.user.id}"
