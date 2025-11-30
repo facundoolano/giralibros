@@ -1,5 +1,13 @@
 {% extends "base.html" %}
 
+{% block extra_css %}
+<style>
+  .js-requested-btn:disabled {
+    cursor: default;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
     {% if user.profile %}
     <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation" style="background-color: #e8f5e9;">
@@ -106,6 +114,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const csrftoken = '{{ csrf_token }}';
             const modal = document.getElementById('exchangeModal');
             const notification = document.getElementById('exchangeNotification');
             const message = document.getElementById('exchangeMessage');
@@ -152,10 +161,6 @@
                 text.style.visibility = 'hidden';
 
                 button.classList.add('is-loading');
-
-                // Get CSRF token
-                const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value
-                    || getCookie('csrftoken');
 
                 // Make AJAX request
                 fetch(`/books/${bookId}/request-exchange/`, {
@@ -208,22 +213,6 @@
                 // Show modal
                 modal.classList.add('is-active');
                 document.documentElement.classList.add('is-clipped');
-            }
-
-            // Helper function to get CSRF token from cookies
-            function getCookie(name) {
-                let cookieValue = null;
-                if (document.cookie && document.cookie !== '') {
-                    const cookies = document.cookie.split(';');
-                    for (let i = 0; i < cookies.length; i++) {
-                        const cookie = cookies[i].trim();
-                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                            break;
-                        }
-                    }
-                }
-                return cookieValue;
             }
         });
     </script>
