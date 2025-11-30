@@ -409,7 +409,7 @@ def request_exchange(request, book_id):
 
             send_templated_email(
                 to_email=book.user.profile.contact_email,
-                subject="Tenés una solicitud en CambioLibros.com!",
+                subject="📚🔄📚 ¡Tenés una solicitud en CambioLibros.com!",
                 template_name="emails/exchange_request",
                 context={
                     "requester": request.user,
