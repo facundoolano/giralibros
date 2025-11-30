@@ -1,3 +1,4 @@
+import logging
 import time
 
 from django.conf import settings
@@ -7,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMultiAlternatives
+from django.db import transaction
 from django.forms import modelformset_factory
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
@@ -22,6 +24,8 @@ from books.forms import (
     RegistrationForm,
 )
 from books.models import ExchangeRequest, OfferedBook, UserLocation, UserProfile
+
+logger = logging.getLogger(__name__)
 
 
 def login(request):
@@ -398,30 +402,32 @@ def request_exchange(request, book_id):
             status=429,
         )
 
-    # Create exchange request
-    exchange_request = ExchangeRequest.objects.create(
-        from_user=request.user,
-        to_user=book.user,
-        offered_book=book,
-        book_title=book.title,
-        book_author=book.author,
-    )
-
-    # Send email notification to book owner
+    # Create exchange request and send email atomically
     try:
-        send_templated_email(
-            to_email=book.user.profile.contact_email,
-            subject=f"Nueva solicitud de intercambio para '{book.title}'",
-            template_name="emails/exchange_request",
-            context={
-                "requester": request.user,
-                "book": book,
-                "exchange_request": exchange_request,
-            },
-        )
+        with transaction.atomic():
+            exchange_request = ExchangeRequest.objects.create(
+                from_user=request.user,
+                to_user=book.user,
+                offered_book=book,
+                book_title=book.title,
+                book_author=book.author,
+            )
+
+            send_templated_email(
+                to_email=book.user.profile.contact_email,
+                subject=f"Nueva solicitud de intercambio para '{book.title}'",
+                template_name="emails/exchange_request",
+                context={
+                    "requester": request.user,
+                    "book": book,
+                    "exchange_request": exchange_request,
+                },
+            )
     except Exception as e:
-        # If email fails, delete the exchange request and return error
-        exchange_request.delete()
+        # If email fails, transaction is rolled back automatically
+        logger.exception(
+            f"Failed to send exchange request email for book {book_id} to user {book.user.id}"
+        )
         return JsonResponse(
             {"error": "Error al enviar el email. Por favor intenta nuevamente."},
             status=500,
