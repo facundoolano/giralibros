@@ -104,10 +104,13 @@
     <div id="exchangeModal" class="modal">
         <div class="modal-background"></div>
         <div class="modal-content">
-            <div id="exchangeNotification" class="notification">
-                <button class="delete"></button>
-                <p id="exchangeMessage"></p>
-            </div>
+            <article id="exchangeMessage" class="message">
+                <div class="message-header">
+                    <p id="exchangeMessageTitle"></p>
+                    <button class="delete" aria-label="delete"></button>
+                </div>
+                <div class="message-body" id="exchangeMessageBody"></div>
+            </article>
         </div>
         <button class="modal-close is-large" aria-label="close"></button>
     </div>
@@ -116,8 +119,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             const csrftoken = '{{ csrf_token }}';
             const modal = document.getElementById('exchangeModal');
-            const notification = document.getElementById('exchangeNotification');
-            const message = document.getElementById('exchangeMessage');
+            const messageBox = document.getElementById('exchangeMessage');
+            const messageTitle = document.getElementById('exchangeMessageTitle');
+            const messageBody = document.getElementById('exchangeMessageBody');
 
             // Close modal handlers
             const closeModal = () => {
@@ -206,9 +210,10 @@
             }
 
             function showNotification(msg, type) {
-                // Update notification content and style
-                notification.className = `notification ${type}`;
-                message.textContent = msg;
+                // Update message content and style
+                messageBox.className = `message ${type}`;
+                messageTitle.textContent = type === 'is-success' ? 'Éxito' : 'Error';
+                messageBody.textContent = msg;
 
                 // Show modal
                 modal.classList.add('is-active');
