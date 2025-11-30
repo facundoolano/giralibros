@@ -450,6 +450,11 @@ class BooklistTest(BaseTestCase):
         # TODO human to specify
         pass
 
+    def test_error_on_request_with_no_offered(self):
+        """Test that a user with no listed offered books cannot send an exchange request."""
+        # TODO human to specify
+        pass
+
     def add_books(self, books):
         """
         Add books for the currently logged-in user.
