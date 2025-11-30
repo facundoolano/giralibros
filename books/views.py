@@ -73,26 +73,16 @@ def register(request):
             )
             verification_url = request.build_absolute_uri(verification_path)
 
-            # Send verification email with both text and HTML versions
-            subject = "Verificá tu cuenta en Cambiolibros"
-            context = {
-                "username": user.username,
-                "verification_url": verification_url,
-            }
-
-            # Render text and HTML templates
-            text_message = render_to_string("emails/verification_email.txt", context)
-            html_message = render_to_string("emails/verification_email.html", context)
-
-            # Create email with both text and HTML alternatives
-            email = EmailMultiAlternatives(
-                subject=subject,
-                body=text_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[user.email],
+            # Send verification email
+            send_templated_email(
+                to_email=user.email,
+                subject="Verificá tu cuenta en CambioLibros",
+                template_name="emails/verification_email",
+                context={
+                    "username": user.username,
+                    "verification_url": verification_url,
+                },
             )
-            email.attach_alternative(html_message, "text/html")
-            email.send(fail_silently=False)
 
             # Show confirmation page
             return render(
@@ -310,3 +300,30 @@ def my_books(request):
             "formset": formset,
         },
     )
+
+
+def send_templated_email(to_email, subject, template_name, context=None):
+    """
+    Send multipart email with HTML and plain text versions.
+
+    template_name should be the base path without extension (e.g., "emails/welcome").
+    Both .txt and .html versions will be rendered and sent.
+    """
+    if context is None:
+        context = {}
+
+    if isinstance(to_email, str):
+        to_email = [to_email]
+
+    text_message = render_to_string(f"{template_name}.txt", context)
+    html_message = render_to_string(f"{template_name}.html", context)
+
+    email = EmailMultiAlternatives(
+        subject=subject,
+        body=text_message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=to_email,
+    )
+    email.attach_alternative(html_message, "text/html")
+
+    return email.send(fail_silently=False)
