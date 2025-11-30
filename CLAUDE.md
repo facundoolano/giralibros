@@ -152,6 +152,18 @@ When working with tests:
 - **Propose tests for new business logic**: When adding new features with business rules, propose test cases (with FIXME placeholders for specs) for the human to review and fill in, but don't implement them without permission
 - **No direct database access in client tests**: Tests using Django's test client should only check observable application behavior (status codes, redirects, response content, outbound emails). Don't directly access the database to verify state (e.g., `User.objects.get()`, checking model attributes). The only exception is helper methods with explicit FIXME notes for temporary workarounds.
 
+## Code Style
+
+### Comments and Docstrings
+
+1. **No redundant comments**: Don't write comments that simply restate what the code does. Comments should explain *why*, not *what*.
+2. **Function docstrings**:
+   - Considered part of the public interface
+   - Should be succinct and focus on behavior
+   - Don't duplicate information already in the function signature
+   - Don't refer to implementation details—describe what callers care about
+   - Example: Instead of "Renders both .txt and .html versions of the template and sends a multipart email", write "Send multipart email with HTML and plain text versions"
+
 ## Frontend & Styling
 
 - **CSS Framework**: Bulma (https://bulma.io/documentation/)
