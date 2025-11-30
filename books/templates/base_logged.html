@@ -181,14 +181,7 @@
                     }));
                 })
                 .then(({ status, data }) => {
-                    if (status === 200) {
-                        // Success - swap buttons
-                        button.classList.add('is-hidden');
-                        requestedButton.classList.remove('is-hidden');
-
-                        // Show success notification
-                        showNotification(data.message, 'is-success');
-                    } else {
+                    if (status >= 400) {
                         // Error - restore button
                         button.classList.remove('is-loading');
                         icon.style.visibility = 'visible';
@@ -197,6 +190,13 @@
 
                         // Show error notification
                         showNotification(data.error || 'Error al enviar la solicitud', 'is-danger');
+                    } else {
+                        // Success - swap buttons
+                        button.classList.add('is-hidden');
+                        requestedButton.classList.remove('is-hidden');
+
+                        // Show success notification
+                        showNotification(data.message, 'is-success');
                     }
                 })
                 .catch(error => {
