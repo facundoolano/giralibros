@@ -10,12 +10,14 @@ class BaseTestCase(DjangoTestCase):
         self.client = Client()
 
     def register_and_verify_user(
-        self, username="testuser", email="test@example.com", password="testpass123"
+        self, username="testuser", email="test@example.com", password="testpass123", fill_profile=False
     ):
         """
         Register a new user and verify their email.
         Returns after verification (user will be logged in).
         Use this helper in tests that need a user to exist but aren't testing registration itself.
+
+        If fill_profile=True, also fills in the profile with basic info using the email username as first_name.
         """
         response = self.client.post(
             reverse("register"),
@@ -27,6 +29,19 @@ class BaseTestCase(DjangoTestCase):
         )
         verify_url = self.get_verification_url_from_email(email)
         self.client.get(verify_url)
+
+        if fill_profile:
+            # Extract first name from email (part before @)
+            first_name = email.split("@")[0]
+            self.client.post(
+                reverse("profile_edit"),
+                {
+                    "first_name": first_name,
+                    "email": email,
+                    "locations": ["CABA"],
+                },
+            )
+
         return response
 
     def get_verification_url_from_email(self, email):
@@ -310,28 +325,12 @@ class BooksTest(BaseTestCase):
     def test_own_books_excluded(self):
         """Test that users do not see their own books in the book listing."""
         # Register first user with profile and books
-        self.register_and_verify_user(username="user1", email="user1@example.com")
-        self.client.post(
-            reverse("profile_edit"),
-            {
-                "first_name": "User One",
-                "email": "user1@example.com",
-                "locations": ["CABA"],
-            },
-        )
+        self.register_and_verify_user(username="user1", email="user1@example.com", fill_profile=True)
         self.add_books([("Book A", "Author A"), ("Book B", "Author B")])
         self.client.logout()
 
         # Register second user with profile and books
-        self.register_and_verify_user(username="user2", email="user2@example.com")
-        self.client.post(
-            reverse("profile_edit"),
-            {
-                "first_name": "User Two",
-                "email": "user2@example.com",
-                "locations": ["CABA"],
-            },
-        )
+        self.register_and_verify_user(username="user2", email="user2@example.com", fill_profile=True)
         self.add_books([("Book C", "Author C"), ("Book D", "Author D")])
 
         # User 2 should see only user 1's books (not their own)
@@ -412,29 +411,12 @@ class BooksTest(BaseTestCase):
     def test_request_book_exchange(self):
         """Test that exchange requests send email with contact details and requester's book list."""
         # Register first user with one book
-        self.register_and_verify_user(username="user1", email="user1@example.com")
-        self.client.post(
-            reverse("profile_edit"),
-            {
-                "first_name": "User One",
-                "email": "user1@example.com",
-                "alternate_contact": "WhatsApp: 123456",
-                "locations": ["CABA"],
-            },
-        )
+        self.register_and_verify_user(username="user1", email="user1@example.com", fill_profile=True)
         self.add_books([("Book A", "Author A")])
         self.client.logout()
 
         # Register second user with one book
-        self.register_and_verify_user(username="user2", email="user2@example.com")
-        self.client.post(
-            reverse("profile_edit"),
-            {
-                "first_name": "User Two",
-                "email": "user2@example.com",
-                "locations": ["CABA"],
-            },
-        )
+        self.register_and_verify_user(username="user2", email="user2@example.com", fill_profile=True)
         self.add_books([("Book B", "Author B")])
 
         # Get book ID from home page context
@@ -456,7 +438,7 @@ class BooksTest(BaseTestCase):
 
         # Check email contains requester's contact details
         self.assertIn("user2@example.com", sent_email.body)
-        self.assertIn("User Two", sent_email.body)
+        self.assertIn("user2", sent_email.body)
 
         # Check email lists requester's offered books
         self.assertIn("Book B", sent_email.body)
