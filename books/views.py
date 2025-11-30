@@ -4,6 +4,7 @@ from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from django.forms import modelformset_factory
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -47,14 +48,8 @@ def register(request):
     """
     Handle user registration.
 
-    TODO: In production, this should send an email verification link instead of
-    immediately creating an active user. The flow should be:
-    1. User submits registration form
-    2. Inactive user is created (is_active=False)
-    3. Email with verification link is sent
-    4. User clicks verification link
-    5. User is activated and can log in
-    6. On first login, user is redirected to profile completion
+    Creates an inactive user and sends an email verification link.
+    The user must click the verification link to activate their account.
     """
     if request.user.is_authenticated:
         return redirect("home")
@@ -77,18 +72,28 @@ def register(request):
             )
             verification_url = request.build_absolute_uri(verification_path)
 
-            if settings.DEBUG:
-                # In development, print verification link to console
-                print("\n" + "=" * 80)
-                print("EMAIL VERIFICATION LINK (Debug Mode)")
-                print("=" * 80)
-                print(f"User: {user.username} ({user.email})")
-                print(f"Verification URL: {verification_url}")
-                print("=" * 80 + "\n")
-            else:
-                # FIXME: Implement send verification email
-                # send_verification_email(user, verification_url)
-                pass
+            # Send verification email
+            subject = "Verificá tu cuenta en Cambiolibros"
+            message = f"""Hola {user.username},
+
+Gracias por registrarte en Cambiolibros.
+
+Para completar tu registro, por favor hacé click en el siguiente enlace:
+
+{verification_url}
+
+Si no te registraste en Cambiolibros, podés ignorar este mensaje.
+
+Saludos,
+El equipo de Cambiolibros
+"""
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=False,
+            )
 
             # Show confirmation page
             return render(

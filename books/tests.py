@@ -1,10 +1,8 @@
 from django.contrib.auth.models import User
-from django.contrib.auth.tokens import default_token_generator
+from django.core import mail
 from django.test import Client
 from django.test import TestCase as DjangoTestCase
 from django.urls import reverse
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode
 
 
 class BaseTestCase(DjangoTestCase):
@@ -35,17 +33,26 @@ class BaseTestCase(DjangoTestCase):
     def get_verification_url_from_email(self, email):
         """
         Extract verification URL from email sent during registration.
-
-        FIXME: This is a temporary workaround that accesses the database directly.
-        Once email sending is implemented in the register view, this should be
-        replaced with Django's mail.outbox to capture the verification URL from
-        the actual email content, which qualifies as observable behavior.
-        See: https://docs.djangoproject.com/en/stable/topics/testing/tools/#email-services
         """
-        user = User.objects.get(email=email)
-        token = default_token_generator.make_token(user)
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        return reverse("verify_email", kwargs={"uidb64": uid, "token": token})
+        # Find the email sent to this address
+        sent_email = None
+        for email_msg in mail.outbox:
+            if email in email_msg.to:
+                sent_email = email_msg
+                break
+
+        if not sent_email:
+            raise AssertionError(f"No email found for {email}")
+
+        # Extract the verification URL from the email body
+        # The URL is in the format: http://testserver/verify/{uidb64}/{token}/
+        email_body = sent_email.body
+        lines = email_body.split("\n")
+        for line in lines:
+            if "/verify/" in line:
+                return line.strip()
+
+        raise AssertionError("No verification URL found in email body")
 
 
 # Create your tests here.
@@ -285,7 +292,9 @@ class UserTest(BaseTestCase):
             },
         )
         # Subsequent edits should redirect to profile view
-        self.assertRedirects(response, reverse("profile", kwargs={"username": "testuser"}))
+        self.assertRedirects(
+            response, reverse("profile", kwargs={"username": "testuser"})
+        )
 
     def test_profile_edit_validations(self):
         """Test that profile form validates required fields and data format."""
@@ -354,18 +363,18 @@ class BooklistTest(BaseTestCase):
         # Register 4 users, each in a different location with one book
         locations = ["CABA", "GBA_NORTE", "GBA_OESTE", "GBA_SUR"]
         for i, location in enumerate(locations):
-            username = f"user{i+1}"
-            email = f"user{i+1}@example.com"
+            username = f"user{i + 1}"
+            email = f"user{i + 1}@example.com"
             self.register_and_verify_user(username=username, email=email)
             self.client.post(
                 reverse("profile_edit"),
                 {
-                    "first_name": f"User {i+1}",
+                    "first_name": f"User {i + 1}",
                     "email": email,
                     "locations": [location],
                 },
             )
-            self.add_books([(f"Book {location}", f"Author {i+1}")])
+            self.add_books([(f"Book {location}", f"Author {i + 1}")])
             self.client.logout()
 
         # Register user 5 with all areas - should see all books
