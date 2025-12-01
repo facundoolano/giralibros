@@ -1,67 +1,6 @@
-{% extends "base_logged.html" %}
-{% load static %}
+function initBookFormset(options) {
+  const profileUrl = options.profileUrl;
 
-{% block extra_css %}
-<style>
-  /* Position delete button in top-right corner */
-  .book-entry {
-    position: relative;
-    padding-right: 3rem; /* Make room for delete button */
-  }
-  .book-entry .delete {
-    position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
-  }
-
-  /* Hide deleted entries but keep in DOM for form submission */
-  .book-entry.is-deleted {
-    display: none;
-  }
-</style>
-{% endblock %}
-
-{% block logged_content %}
-<div class="columns is-centered">
-  <div class="column is-full-mobile is-10-tablet is-8-desktop">
-    <h1 class="title is-4 mb-2">Mis libros ofrecidos</h1>
-    <p class="mb-4 has-text-grey">
-      Agregá abajo los libros que tenés para cambiar. Usá las observaciones para aclarar lo que quieras (editorial, condición, género, etc).
-    </p>
-
-    <form method="post" id="books-form">
-      {% csrf_token %}
-      {{ formset.management_form }}
-
-      <div id="books-container">
-        {% for form in formset %}
-          {% include "_book_form_entry.html" with form=form entry_class=forloop.last|yesno:"new-entry," book_id=form.instance.pk %}
-        {% endfor %}
-      </div>
-
-      {# Template for new entries - using Django's empty_form #}
-      <template id="empty-form-template">
-        {% include "_book_form_entry.html" with form=formset.empty_form entry_class="new-entry" %}
-      </template>
-
-      <div class="field is-grouped is-grouped-right mt-4">
-        <div class="control">
-          <button type="button" class="button" id="cancel-btn">
-            <span id="cancel-btn-text">Volver</span>
-          </button>
-        </div>
-        <div class="control" id="save-btn-container" style="display: none;">
-          <button type="submit" class="button is-primary">
-            Guardar cambios
-          </button>
-        </div>
-      </div>
-    </form>
-  </div>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
   const container = document.getElementById('books-container');
   const form = document.getElementById('books-form');
   const cancelBtn = document.getElementById('cancel-btn');
@@ -184,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.reload();
       }
     } else {
-      window.location.href = "{% url 'profile' username=request.user.username %}";
+      window.location.href = profileUrl;
     }
   });
 
@@ -212,6 +151,4 @@ document.addEventListener('DOMContentLoaded', () => {
   container.querySelectorAll('.book-entry').forEach(entry => {
     setupChangeListeners(entry);
   });
-});
-</script>
-{% endblock %}
+}

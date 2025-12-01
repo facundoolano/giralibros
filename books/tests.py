@@ -1,9 +1,8 @@
 from unittest.mock import patch
 
 from django.core import mail
-from django.test import Client
+from django.test import Client, override_settings
 from django.test import TestCase as DjangoTestCase
-from django.test import override_settings
 from django.urls import reverse
 
 
@@ -13,7 +12,11 @@ class BaseTestCase(DjangoTestCase):
         self.client = Client()
 
     def register_and_verify_user(
-        self, username="testuser", email="test@example.com", password="testpass123", fill_profile=False
+        self,
+        username="testuser",
+        email="test@example.com",
+        password="testpass123",
+        fill_profile=False,
     ):
         """
         Register a new user and verify their email.
@@ -275,8 +278,8 @@ class UserTest(BaseTestCase):
             },
         )
         self.assertRedirects(
-            response, reverse("my_books")
-        )  # First-time setup redirects to my_books
+            response, reverse("my_offered")
+        )  # First-time setup redirects to my_offered
 
         # Navigate to home, should now stay on home
         response = self.client.get(reverse("home"))
@@ -296,8 +299,8 @@ class UserTest(BaseTestCase):
             },
         )
         self.assertRedirects(
-            response, reverse("my_books")
-        )  # First-time setup redirects to my_books
+            response, reverse("my_offered")
+        )  # First-time setup redirects to my_offered
 
         # Navigate to edit profile explicitly, edit again
         response = self.client.post(
@@ -328,12 +331,16 @@ class BooksTest(BaseTestCase):
     def test_own_books_excluded(self):
         """Test that users do not see their own books in the book listing."""
         # Register first user with profile and books
-        self.register_and_verify_user(username="user1", email="user1@example.com", fill_profile=True)
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
         self.add_books([("Book A", "Author A"), ("Book B", "Author B")])
         self.client.logout()
 
         # Register second user with profile and books
-        self.register_and_verify_user(username="user2", email="user2@example.com", fill_profile=True)
+        self.register_and_verify_user(
+            username="user2", email="user2@example.com", fill_profile=True
+        )
         self.add_books([("Book C", "Author C"), ("Book D", "Author D")])
 
         # User 2 should see only user 1's books (not their own)
@@ -414,12 +421,16 @@ class BooksTest(BaseTestCase):
     def test_request_book_exchange(self):
         """Test that exchange requests send email with contact details and requester's book list."""
         # Register first user with one book
-        self.register_and_verify_user(username="user1", email="user1@example.com", fill_profile=True)
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
         self.add_books([("Book A", "Author A")])
         self.client.logout()
 
         # Register second user with one book
-        self.register_and_verify_user(username="user2", email="user2@example.com", fill_profile=True)
+        self.register_and_verify_user(
+            username="user2", email="user2@example.com", fill_profile=True
+        )
         self.add_books([("Book B", "Author B")])
 
         # Get book ID from home page context
@@ -450,12 +461,16 @@ class BooksTest(BaseTestCase):
     def test_request_book_reflected_in_profile(self):
         """Test that when a successful exchange request is sent, it shows up in both user's profiles."""
         # Register first user with one book
-        self.register_and_verify_user(username="user1", email="user1@example.com", fill_profile=True)
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
         self.add_books([("Book A", "Author A")])
         self.client.logout()
 
         # Register second user with one book
-        self.register_and_verify_user(username="user2", email="user2@example.com", fill_profile=True)
+        self.register_and_verify_user(
+            username="user2", email="user2@example.com", fill_profile=True
+        )
         self.add_books([("Book B", "Author B")])
 
         # Get book ID from home page context
@@ -492,12 +507,16 @@ class BooksTest(BaseTestCase):
     def test_mark_as_already_requested(self):
         """Test that books already requested by a user are marked differently in the listing."""
         # Register first user with one book
-        self.register_and_verify_user(username="user1", email="user1@example.com", fill_profile=True)
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
         self.add_books([("Book A", "Author A")])
         self.client.logout()
 
         # Register second user with one book
-        self.register_and_verify_user(username="user2", email="user2@example.com", fill_profile=True)
+        self.register_and_verify_user(
+            username="user2", email="user2@example.com", fill_profile=True
+        )
         self.add_books([("Book B", "Author B")])
 
         # Check home page shows book with exchange button
@@ -523,12 +542,16 @@ class BooksTest(BaseTestCase):
     def test_fail_on_already_requested(self):
         """Test that users cannot request the same book twice."""
         # Register first user with one book
-        self.register_and_verify_user(username="user1", email="user1@example.com", fill_profile=True)
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
         self.add_books([("Book A", "Author A")])
         self.client.logout()
 
         # Register second user with one book
-        self.register_and_verify_user(username="user2", email="user2@example.com", fill_profile=True)
+        self.register_and_verify_user(
+            username="user2", email="user2@example.com", fill_profile=True
+        )
         self.add_books([("Book B", "Author B")])
 
         # Get book ID from home page context
@@ -553,12 +576,16 @@ class BooksTest(BaseTestCase):
     def test_email_error_on_exchange_request(self):
         """Test handling of email sending failures during exchange requests."""
         # Register first user with one book
-        self.register_and_verify_user(username="user1", email="user1@example.com", fill_profile=True)
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
         self.add_books([("Book A", "Author A")])
         self.client.logout()
 
         # Register second user with one book
-        self.register_and_verify_user(username="user2", email="user2@example.com", fill_profile=True)
+        self.register_and_verify_user(
+            username="user2", email="user2@example.com", fill_profile=True
+        )
         self.add_books([("Book B", "Author B")])
 
         # Get book ID from home page context
@@ -567,7 +594,7 @@ class BooksTest(BaseTestCase):
         book = offered_books[0]
 
         # Mock email sending to raise an exception
-        with patch('django.core.mail.message.EmailMessage.send') as mock_send:
+        with patch("django.core.mail.message.EmailMessage.send") as mock_send:
             mock_send.side_effect = Exception("Email service failed")
 
             # Send exchange request, should fail
@@ -586,12 +613,16 @@ class BooksTest(BaseTestCase):
     def test_error_on_request_with_no_offered(self):
         """Test that a user with no listed offered books cannot send an exchange request."""
         # Register first user with one book
-        self.register_and_verify_user(username="user1", email="user1@example.com", fill_profile=True)
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
         self.add_books([("Book A", "Author A")])
         self.client.logout()
 
         # Register second user with no books
-        self.register_and_verify_user(username="user2", email="user2@example.com", fill_profile=True)
+        self.register_and_verify_user(
+            username="user2", email="user2@example.com", fill_profile=True
+        )
 
         # Get book ID from home page context
         response = self.client.get(reverse("home"))
@@ -611,12 +642,18 @@ class BooksTest(BaseTestCase):
     def test_error_on_request_throttled(self):
         """Test that an exchange request fails if the user has already exceeded their limit for the day."""
         # Register first user with 3 books
-        self.register_and_verify_user(username="user1", email="user1@example.com", fill_profile=True)
-        self.add_books([("Book A", "Author A"), ("Book B", "Author B"), ("Book C", "Author C")])
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
+        self.add_books(
+            [("Book A", "Author A"), ("Book B", "Author B"), ("Book C", "Author C")]
+        )
         self.client.logout()
 
         # Register second user with one book
-        self.register_and_verify_user(username="user2", email="user2@example.com", fill_profile=True)
+        self.register_and_verify_user(
+            username="user2", email="user2@example.com", fill_profile=True
+        )
         self.add_books([("Book D", "Author D")])
 
         # Get all three books from home page
@@ -645,12 +682,34 @@ class BooksTest(BaseTestCase):
         self.assertIn("error", response_data)
         self.assertIn("límite de pedidos", response_data["error"])
 
-    def add_books(self, books):
+    def test_wanted_book_reflected_in_profile(self):
+        """Test that wanted books added by a user are displayed on their profile."""
+        # Register and verify user with profile
+        self.register_and_verify_user(
+            username="testuser", email="test@example.com", fill_profile=True
+        )
+
+        # Add a couple of wanted books
+        self.add_books(
+            [("Cien años de soledad", "García Márquez"), ("1984", "George Orwell")],
+            wanted=True
+        )
+
+        # Check that wanted books show up in the user's profile
+        response = self.client.get(reverse("profile", kwargs={"username": "testuser"}))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Cien años de soledad")
+        self.assertContains(response, "García Márquez")
+        self.assertContains(response, "1984")
+        self.assertContains(response, "George Orwell")
+
+    def add_books(self, books, wanted=False):
         """
         Add books for the currently logged-in user.
 
         Args:
             books: List of (title, author) tuples
+            wanted: If True, adds wanted books; otherwise adds offered books
         """
         form_data = {
             "form-TOTAL_FORMS": str(len(books)),
@@ -660,4 +719,5 @@ class BooksTest(BaseTestCase):
             form_data[f"form-{i}-title"] = title
             form_data[f"form-{i}-author"] = author
 
-        self.client.post(reverse("my_books"), form_data)
+        url = reverse("my_wanted") if wanted else reverse("my_offered")
+        self.client.post(url, form_data)

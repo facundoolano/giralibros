@@ -21,8 +21,15 @@ from books.forms import (
     OfferedBookForm,
     ProfileForm,
     RegistrationForm,
+    WantedBookForm,
 )
-from books.models import ExchangeRequest, OfferedBook, UserLocation, UserProfile
+from books.models import (
+    ExchangeRequest,
+    OfferedBook,
+    UserLocation,
+    UserProfile,
+    WantedBook,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +87,7 @@ def register(request):
             verification_url = request.build_absolute_uri(verification_path)
 
             # Send verification email
-            send_templated_email(
+            _send_templated_email(
                 to_email=user.email,
                 subject="Verificá tu cuenta en CambioLibros",
                 template_name="emails/verification_email",
@@ -150,8 +157,14 @@ def home(request):
     if not hasattr(request.user, "profile"):
         return redirect("profile_edit")
 
+    # Check filters (mutually exclusive)
+    filter_wanted = 'wanted' in request.GET
+    search_query = request.GET.get('search', '').strip()
+
     # Get books available in user's locations with already_requested annotation
     offered_books = OfferedBook.objects.for_user(request.user)
+    # TODO: Implement actual search filtering when search_query is present
+    # TODO: Implement wanted books matching when filter_wanted is True
 
     return render(
         request,
@@ -159,6 +172,8 @@ def home(request):
         {
             "offered_books": offered_books,
             "user": request.user,
+            "filter_wanted": filter_wanted,
+            "search_query": search_query,
         },
     )
 
@@ -206,7 +221,7 @@ def profile_edit(request):
 
             # Redirect based on whether this is first-time setup or edit
             if is_new_profile:
-                return redirect("my_books")
+                return redirect("my_offered")
             else:
                 return redirect("profile", username=request.user.username)
     else:
@@ -265,74 +280,25 @@ def profile(request, username):
 
 
 @login_required
-def my_books(request):
-    """
-    Manage user's offered books (bulk add/edit/delete).
-    """
-    # Create formset factory for user's offered books
-    OfferedBookFormSet = modelformset_factory(
-        OfferedBook,
-        form=OfferedBookForm,
-        extra=1,  # Always show 1 empty form for adding new books
-        can_delete=True,
-    )
-
-    # Get queryset of user's books
-    queryset = OfferedBook.objects.filter(user=request.user).order_by("created_at")
-
-    if request.method == "POST":
-        formset = OfferedBookFormSet(request.POST, queryset=queryset)
-        if formset.is_valid():
-            instances = formset.save(commit=False)
-
-            # Assign user to new books
-            for instance in instances:
-                if not instance.pk:  # New book
-                    instance.user = request.user
-                instance.save()
-
-            # Handle deletions
-            for obj in formset.deleted_objects:
-                obj.delete()
-
-            return redirect("profile", username=request.user.username)
-    else:
-        formset = OfferedBookFormSet(queryset=queryset)
-
-    return render(
+def my_offered_books(request):
+    """Manage user's offered books (bulk add/edit/delete)."""
+    return _manage_books(
         request,
-        "my_books.html",
-        {
-            "formset": formset,
-        },
+        book_model=OfferedBook,
+        book_form=OfferedBookForm,
+        template_name="my_offered_books.html",
     )
 
 
-def send_templated_email(to_email, subject, template_name, context=None):
-    """
-    Send multipart email with HTML and plain text versions.
-
-    template_name should be the base path without extension (e.g., "emails/welcome").
-    Both .txt and .html versions will be rendered and sent.
-    """
-    if context is None:
-        context = {}
-
-    if isinstance(to_email, str):
-        to_email = [to_email]
-
-    text_message = render_to_string(f"{template_name}.txt", context)
-    html_message = render_to_string(f"{template_name}.html", context)
-
-    email = EmailMultiAlternatives(
-        subject=subject,
-        body=text_message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        to=to_email,
+@login_required
+def my_wanted_books(request):
+    """Manage user's wanted books (bulk add/edit/delete)."""
+    return _manage_books(
+        request,
+        book_model=WantedBook,
+        book_form=WantedBookForm,
+        template_name="my_wanted_books.html",
     )
-    email.attach_alternative(html_message, "text/html")
-
-    return email.send(fail_silently=False)
 
 
 @login_required
@@ -361,7 +327,7 @@ def request_exchange(request, book_id):
 
     # Check if user has any offered books
     if not request.user.offered.exists():
-        my_books_url = reverse("my_books")
+        my_books_url = reverse("my_offered")
         return JsonResponse(
             {
                 "error": f'Antes de enviar una solitud tenés que <a href="{my_books_url}">agregar tus libros ofrecidos</a>.'
@@ -411,7 +377,7 @@ def request_exchange(request, book_id):
             )
             requester_profile_url = request.build_absolute_uri(profile_path)
 
-            send_templated_email(
+            _send_templated_email(
                 to_email=book.user.profile.contact_email,
                 subject="📚🔄📚 ¡Tenés una solicitud en CambioLibros.com!",
                 template_name="emails/exchange_request",
@@ -438,3 +404,65 @@ def request_exchange(request, book_id):
         },
         status=201,
     )
+
+
+def _manage_books(request, book_model, book_form, template_name):
+    """
+    Generic view for managing user's books (offered or wanted).
+
+    Handles bulk add/edit/delete operations via formsets.
+    """
+    BookFormSet = modelformset_factory(
+        book_model,
+        form=book_form,
+        extra=1,
+        can_delete=True,
+    )
+
+    queryset = book_model.objects.filter(user=request.user).order_by("created_at")
+
+    if request.method == "POST":
+        formset = BookFormSet(request.POST, queryset=queryset)
+        if formset.is_valid():
+            instances = formset.save(commit=False)
+
+            for instance in instances:
+                if not instance.pk:
+                    instance.user = request.user
+                instance.save()
+
+            for obj in formset.deleted_objects:
+                obj.delete()
+
+            return redirect("profile", username=request.user.username)
+    else:
+        formset = BookFormSet(queryset=queryset)
+
+    return render(request, template_name, {"formset": formset})
+
+
+def _send_templated_email(to_email, subject, template_name, context=None):
+    """
+    Send multipart email with HTML and plain text versions.
+
+    template_name should be the base path without extension (e.g., "emails/welcome").
+    Both .txt and .html versions will be rendered and sent.
+    """
+    if context is None:
+        context = {}
+
+    if isinstance(to_email, str):
+        to_email = [to_email]
+
+    text_message = render_to_string(f"{template_name}.txt", context)
+    html_message = render_to_string(f"{template_name}.html", context)
+
+    email = EmailMultiAlternatives(
+        subject=subject,
+        body=text_message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=to_email,
+    )
+    email.attach_alternative(html_message, "text/html")
+
+    return email.send(fail_silently=False)

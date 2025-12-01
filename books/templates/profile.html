@@ -30,6 +30,14 @@
 {% block logged_content %}
 <div class="columns is-centered">
   <div class="column is-full-mobile is-10-tablet is-8-desktop">
+    <div class="mb-3">
+      <a href="{% url 'home' %}" class="button is-white">
+        <span class="icon is-small">
+          <i class="fas fa-arrow-left"></i>
+        </span>
+        <span>Buscar libros</span>
+      </a>
+    </div>
 
     <div class="box">
       {# Header with username and info #}
@@ -104,7 +112,7 @@
         <div class="level-right">
           <div class="level-item">
             {% if is_own_profile %}
-            <a href="{% url 'my_books' %}" class="button is-small is-link is-light button-fixed-width">
+            <a href="{% url 'my_offered' %}" class="button is-small is-link is-light button-fixed-width">
               <span class="icon is-small">
                 <i class="fas fa-edit"></i>
               </span>
@@ -151,16 +159,24 @@
           </div>
         </div>
         <div class="level-right">
+          {% if is_own_profile %}
           <div class="level-item">
-            {% if is_own_profile %}
-            <a href="#" class="button is-small is-link is-light button-fixed-width">
+            <a href="{% url 'my_wanted' %}" class="button is-small is-link is-light button-fixed-width">
               <span class="icon is-small">
                 <i class="fas fa-edit"></i>
               </span>
               <span>Editar</span>
             </a>
-            {% endif %}
           </div>
+          <div class="level-item">
+            <a href="{% url 'home' %}?wanted" class="button is-small is-link is-light button-fixed-width">
+              <span class="icon is-small">
+                <i class="fas fa-search"></i>
+              </span>
+              <span>Buscar</span>
+            </a>
+          </div>
+          {% endif %}
         </div>
       </div>
 
