@@ -30,6 +30,14 @@
 {% block logged_content %}
 <div class="columns is-centered">
   <div class="column is-full-mobile is-10-tablet is-8-desktop">
+    <div class="mb-3">
+      <a href="{% url 'home' %}" class="button is-white">
+        <span class="icon is-small">
+          <i class="fas fa-arrow-left"></i>
+        </span>
+        <span>Buscar libros</span>
+      </a>
+    </div>
 
     <div class="box">
       {# Header with username and info #}
