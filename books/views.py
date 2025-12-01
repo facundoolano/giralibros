@@ -157,11 +157,14 @@ def home(request):
     if not hasattr(request.user, "profile"):
         return redirect("profile_edit")
 
-    # Check if filtering by wanted books
+    # Check filters (mutually exclusive)
     filter_wanted = 'wanted' in request.GET
+    search_query = request.GET.get('search', '').strip()
 
     # Get books available in user's locations with already_requested annotation
     offered_books = OfferedBook.objects.for_user(request.user)
+    # TODO: Implement actual search filtering when search_query is present
+    # TODO: Implement wanted books matching when filter_wanted is True
 
     return render(
         request,
@@ -170,6 +173,7 @@ def home(request):
             "offered_books": offered_books,
             "user": request.user,
             "filter_wanted": filter_wanted,
+            "search_query": search_query,
         },
     )
 

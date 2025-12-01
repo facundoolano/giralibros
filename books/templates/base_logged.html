@@ -28,8 +28,8 @@
                 <div class="navbar-start">
                     <div class="navbar-item is-hidden-desktop">
                         <div class="control has-icons-right" style="width: 100%;">
-                            <input class="input" type="search" placeholder="Buscar Libro o Autor">
-                            <span class="icon is-right" style="pointer-events: none;">
+                            <input id="search-input-mobile" class="input" type="search" placeholder="Buscar Libro o Autor" value="{{ search_query }}">
+                            <span class="icon is-right search-icon-mobile" title="Buscar" style="cursor: pointer; pointer-events: auto;">
                                 <i class="fas fa-search"></i>
                             </span>
                         </div>
@@ -70,8 +70,8 @@
 
             <div class="is-hidden-touch" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 100%; max-width: 500px; pointer-events: none;">
                 <div class="control has-icons-right" style="pointer-events: auto;">
-                    <input class="input" type="search" placeholder="Buscar Libro o Autor">
-                    <span class="icon is-right" style="pointer-events: none;">
+                    <input id="search-input-desktop" class="input" type="search" placeholder="Buscar Libro o Autor" value="{{ search_query }}">
+                    <span class="icon is-right search-icon-desktop" title="Buscar" style="cursor: pointer; pointer-events: auto;">
                         <i class="fas fa-search"></i>
                     </span>
                 </div>
@@ -90,6 +90,51 @@
                     $target.classList.toggle('is-active');
                 });
             });
+
+            // Search functionality
+            const searchInputMobile = document.getElementById('search-input-mobile');
+            const searchInputDesktop = document.getElementById('search-input-desktop');
+            const searchIconMobile = document.querySelector('.search-icon-mobile');
+            const searchIconDesktop = document.querySelector('.search-icon-desktop');
+
+            function performSearch(input) {
+                const query = input.value.trim();
+                if (query) {
+                    window.location.href = "{% url 'home' %}?search=" + encodeURIComponent(query);
+                } else {
+                    window.location.href = "{% url 'home' %}";
+                }
+            }
+
+            // Handle Enter key on both inputs
+            if (searchInputMobile) {
+                searchInputMobile.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        performSearch(searchInputMobile);
+                    }
+                });
+            }
+
+            if (searchInputDesktop) {
+                searchInputDesktop.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        performSearch(searchInputDesktop);
+                    }
+                });
+            }
+
+            // Handle click on search icons
+            if (searchIconMobile) {
+                searchIconMobile.addEventListener('click', () => {
+                    performSearch(searchInputMobile);
+                });
+            }
+
+            if (searchIconDesktop) {
+                searchIconDesktop.addEventListener('click', () => {
+                    performSearch(searchInputDesktop);
+                });
+            }
         });
     </script>
     {% endif %}
