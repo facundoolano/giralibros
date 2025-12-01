@@ -21,8 +21,15 @@ from books.forms import (
     OfferedBookForm,
     ProfileForm,
     RegistrationForm,
+    WantedBookForm,
 )
-from books.models import ExchangeRequest, OfferedBook, UserLocation, UserProfile
+from books.models import (
+    ExchangeRequest,
+    OfferedBook,
+    UserLocation,
+    UserProfile,
+    WantedBook,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -264,6 +271,7 @@ def profile(request, username):
     )
 
 
+# FIXME rename to my_offered_books
 @login_required
 def my_books(request):
     """
@@ -313,8 +321,43 @@ def my_wanted_books(request):
     """
     Manage user's wanted books (bulk add/edit/delete).
     """
-    # TODO: Implement wanted books management
-    return render(request, "my_wanted_books.html")
+    # Create formset factory for user's wanted books
+    WantedBookFormSet = modelformset_factory(
+        WantedBook,
+        form=WantedBookForm,
+        extra=1,  # Always show 1 empty form for adding new books
+        can_delete=True,
+    )
+
+    # Get queryset of user's books
+    queryset = WantedBook.objects.filter(user=request.user).order_by("created_at")
+
+    if request.method == "POST":
+        formset = WantedBookFormSet(request.POST, queryset=queryset)
+        if formset.is_valid():
+            instances = formset.save(commit=False)
+
+            # Assign user to new books
+            for instance in instances:
+                if not instance.pk:  # New book
+                    instance.user = request.user
+                instance.save()
+
+            # Handle deletions
+            for obj in formset.deleted_objects:
+                obj.delete()
+
+            return redirect("profile", username=request.user.username)
+    else:
+        formset = WantedBookFormSet(queryset=queryset)
+
+    return render(
+        request,
+        "my_wanted_books.html",
+        {
+            "formset": formset,
+        },
+    )
 
 
 def send_templated_email(to_email, subject, template_name, context=None):

@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 
-from books.models import LocationArea, OfferedBook, UserProfile
+from books.models import LocationArea, OfferedBook, UserProfile, WantedBook
 
 
 class EmailOrUsernameAuthenticationForm(AuthenticationForm):
@@ -131,5 +131,24 @@ class OfferedBookForm(forms.ModelForm):
                 'class': 'textarea',
                 'rows': 4,
                 'placeholder': 'Observaciones (opcional)',
+            }),
+        }
+
+
+class WantedBookForm(forms.ModelForm):
+    """
+    Form for creating/editing a wanted book.
+    """
+    class Meta:
+        model = WantedBook
+        fields = ['title', 'author']
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'input',
+                'placeholder': 'Título del libro',
+            }),
+            'author': forms.TextInput(attrs={
+                'class': 'input',
+                'placeholder': 'Autor',
             }),
         }

@@ -5,7 +5,7 @@
   {{ form.id }}
 
   <div class="columns">
-    <div class="column">
+    <div class="column {% if not form.notes %}is-full{% endif %}">
       <div class="field">
         <input class="input" type="text" name="{{ form.title.html_name }}" id="{{ form.title.id_for_label }}" value="{{ form.title.value|default:'' }}" placeholder="Título del libro">
         {% if form.title.errors %}
@@ -19,12 +19,14 @@
         {% endif %}
       </div>
     </div>
+    {% if form.notes %}
     <div class="column">
       {{ form.notes }}
       {% if form.notes.errors %}
         <p class="help is-danger">{{ form.notes.errors.0 }}</p>
       {% endif %}
     </div>
+    {% endif %}
   </div>
 
   {# Hidden DELETE checkbox (we'll handle this with JavaScript) #}
