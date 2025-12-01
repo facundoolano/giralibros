@@ -87,7 +87,7 @@ def register(request):
             verification_url = request.build_absolute_uri(verification_path)
 
             # Send verification email
-            send_templated_email(
+            _send_templated_email(
                 to_email=user.email,
                 subject="Verificá tu cuenta en CambioLibros",
                 template_name="emails/verification_email",
@@ -301,68 +301,6 @@ def my_wanted_books(request):
     )
 
 
-def _manage_books(request, book_model, book_form, template_name):
-    """
-    Generic view for managing user's books (offered or wanted).
-
-    Handles bulk add/edit/delete operations via formsets.
-    """
-    BookFormSet = modelformset_factory(
-        book_model,
-        form=book_form,
-        extra=1,
-        can_delete=True,
-    )
-
-    queryset = book_model.objects.filter(user=request.user).order_by("created_at")
-
-    if request.method == "POST":
-        formset = BookFormSet(request.POST, queryset=queryset)
-        if formset.is_valid():
-            instances = formset.save(commit=False)
-
-            for instance in instances:
-                if not instance.pk:
-                    instance.user = request.user
-                instance.save()
-
-            for obj in formset.deleted_objects:
-                obj.delete()
-
-            return redirect("profile", username=request.user.username)
-    else:
-        formset = BookFormSet(queryset=queryset)
-
-    return render(request, template_name, {"formset": formset})
-
-
-def send_templated_email(to_email, subject, template_name, context=None):
-    """
-    Send multipart email with HTML and plain text versions.
-
-    template_name should be the base path without extension (e.g., "emails/welcome").
-    Both .txt and .html versions will be rendered and sent.
-    """
-    if context is None:
-        context = {}
-
-    if isinstance(to_email, str):
-        to_email = [to_email]
-
-    text_message = render_to_string(f"{template_name}.txt", context)
-    html_message = render_to_string(f"{template_name}.html", context)
-
-    email = EmailMultiAlternatives(
-        subject=subject,
-        body=text_message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        to=to_email,
-    )
-    email.attach_alternative(html_message, "text/html")
-
-    return email.send(fail_silently=False)
-
-
 @login_required
 def request_exchange(request, book_id):
     """
@@ -439,7 +377,7 @@ def request_exchange(request, book_id):
             )
             requester_profile_url = request.build_absolute_uri(profile_path)
 
-            send_templated_email(
+            _send_templated_email(
                 to_email=book.user.profile.contact_email,
                 subject="📚🔄📚 ¡Tenés una solicitud en CambioLibros.com!",
                 template_name="emails/exchange_request",
@@ -466,3 +404,65 @@ def request_exchange(request, book_id):
         },
         status=201,
     )
+
+
+def _manage_books(request, book_model, book_form, template_name):
+    """
+    Generic view for managing user's books (offered or wanted).
+
+    Handles bulk add/edit/delete operations via formsets.
+    """
+    BookFormSet = modelformset_factory(
+        book_model,
+        form=book_form,
+        extra=1,
+        can_delete=True,
+    )
+
+    queryset = book_model.objects.filter(user=request.user).order_by("created_at")
+
+    if request.method == "POST":
+        formset = BookFormSet(request.POST, queryset=queryset)
+        if formset.is_valid():
+            instances = formset.save(commit=False)
+
+            for instance in instances:
+                if not instance.pk:
+                    instance.user = request.user
+                instance.save()
+
+            for obj in formset.deleted_objects:
+                obj.delete()
+
+            return redirect("profile", username=request.user.username)
+    else:
+        formset = BookFormSet(queryset=queryset)
+
+    return render(request, template_name, {"formset": formset})
+
+
+def _send_templated_email(to_email, subject, template_name, context=None):
+    """
+    Send multipart email with HTML and plain text versions.
+
+    template_name should be the base path without extension (e.g., "emails/welcome").
+    Both .txt and .html versions will be rendered and sent.
+    """
+    if context is None:
+        context = {}
+
+    if isinstance(to_email, str):
+        to_email = [to_email]
+
+    text_message = render_to_string(f"{template_name}.txt", context)
+    html_message = render_to_string(f"{template_name}.html", context)
+
+    email = EmailMultiAlternatives(
+        subject=subject,
+        body=text_message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=to_email,
+    )
+    email.attach_alternative(html_message, "text/html")
+
+    return email.send(fail_silently=False)
