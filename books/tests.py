@@ -519,11 +519,33 @@ class BooksTest(BaseTestCase):
 
     def test_fail_on_already_requested(self):
         """Test that users cannot request the same book twice."""
-        # same user setup as previous tests
+        # Register first user with one book
+        self.register_and_verify_user(username="user1", email="user1@example.com", fill_profile=True)
+        self.add_books([("Book A", "Author A")])
+        self.client.logout()
 
-        # send request for book, succeeds
-        # send request for book again, fails
-        pass
+        # Register second user with one book
+        self.register_and_verify_user(username="user2", email="user2@example.com", fill_profile=True)
+        self.add_books([("Book B", "Author B")])
+
+        # Get book ID from home page context
+        response = self.client.get(reverse("home"))
+        offered_books = response.context["offered_books"]
+        book = offered_books[0]
+
+        # Send first request, should succeed
+        response = self.client.post(
+            reverse("request_exchange", kwargs={"book_id": book.id})
+        )
+        self.assertEqual(response.status_code, 201)
+
+        # Send second request for same book, should fail
+        response = self.client.post(
+            reverse("request_exchange", kwargs={"book_id": book.id})
+        )
+        self.assertEqual(response.status_code, 400)
+        response_data = response.json()
+        self.assertIn("error", response_data)
 
     def test_email_error_on_exchange_request(self):
         """Test handling of email sending failures during exchange requests."""
