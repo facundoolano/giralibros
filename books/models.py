@@ -2,6 +2,7 @@ import re
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import Q
 
 
 class UserProfile(models.Model):
@@ -58,7 +59,8 @@ class BaseBook(models.Model):
     title_normalized = models.CharField(max_length=200, db_index=True)
     author_normalized = models.CharField(max_length=200, db_index=True)
 
-    def normalize_spanish(self, text):
+    @staticmethod
+    def normalize_spanish(text):
         """Normalize text for search"""
         text = text.lower()
         replacements = {"á": "a", "é": "e", "í": "i", "ó": "o", "ú": "u", "ü": "u"}
@@ -117,6 +119,54 @@ class OfferedBookManager(models.Manager):
             queryset = self._annotate_already_requested(queryset, viewing_user)
 
         return queryset
+
+    def search(self, queryset, search_query):
+        """
+        Filter books by search query against normalized title and author fields.
+
+        The search query is normalized using the same logic as book titles/authors,
+        then split into words. Books match if all words appear in either the title
+        or author (case-insensitive, accent-insensitive).
+        """
+        if not search_query:
+            return queryset
+
+        # Normalize the search query using the same method as books
+        normalized_query = self.model.normalize_spanish(search_query)
+
+        # Split into individual words
+        search_words = normalized_query.split()
+
+        # Filter: all words must appear in title or author
+        for word in search_words:
+            queryset = queryset.filter(
+                Q(title_normalized__icontains=word)
+                | Q(author_normalized__icontains=word)
+            )
+
+        return queryset
+
+    def filter_by_wanted(self, queryset, user):
+        """
+        Filter offered books that match the user's wanted books.
+
+        A book matches if both the normalized title and author from a wanted book
+        appear as substrings in the offered book (case-insensitive, accent-insensitive).
+        Results are aggregated across all wanted books and deduplicated.
+        """
+        wanted_books = user.wanted.all()
+
+        if not wanted_books.exists():
+            return queryset.none()
+
+        match_conditions = Q()
+
+        for wanted in wanted_books:
+            match_conditions |= Q(
+                title_normalized__icontains=wanted.title_normalized
+            ) & Q(author_normalized__icontains=wanted.author_normalized)
+
+        return queryset.filter(match_conditions).distinct()
 
     def _annotate_already_requested(self, queryset, requesting_user):
         """

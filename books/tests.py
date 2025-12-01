@@ -418,6 +418,97 @@ class BooksTest(BaseTestCase):
         self.assertNotContains(response, "Book GBA_OESTE")
         self.assertNotContains(response, "Book GBA_SUR")
 
+    def test_text_search(self):
+        """Test that text search filters books by normalized title and author with accent-insensitive matching."""
+        # Register first user with 4 books (2 by same author)
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
+        self.add_books([
+            ("Rayuela", "Julio Cortázar"),
+            ("Bestiario", "Julio Cortázar"),
+            ("Ficciones", "Jorge Luis Borges"),
+            ("El Aleph", "Jorge Luis Borges"),
+        ])
+        self.client.logout()
+
+        # Register second user to make books searchable
+        self.register_and_verify_user(
+            username="user2", email="user2@example.com", fill_profile=True
+        )
+        self.add_books([("Book B", "Author B")])
+
+        # Search by specific title - should find one book
+        response = self.client.get(reverse("home"), {"search": "Rayuela"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Rayuela")
+        self.assertNotContains(response, "Bestiario")
+        self.assertNotContains(response, "Ficciones")
+
+        # Search by author - should find both books by that author
+        response = self.client.get(reverse("home"), {"search": "Cortázar"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Rayuela")
+        self.assertContains(response, "Bestiario")
+        self.assertNotContains(response, "Ficciones")
+
+        # Search with accent variations - should still match
+        response = self.client.get(reverse("home"), {"search": "cortazar"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Rayuela")
+        self.assertContains(response, "Bestiario")
+
+        # Search by title + author - should find specific book
+        response = self.client.get(reverse("home"), {"search": "Rayuela Cortázar"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Rayuela")
+        self.assertNotContains(response, "Bestiario")
+
+        # Search with reversed order - should still work
+        response = self.client.get(reverse("home"), {"search": "Cortázar Rayuela"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Rayuela")
+        self.assertNotContains(response, "Bestiario")
+
+    def test_filter_by_wanted_books(self):
+        """Test that wanted books filter shows only offered books matching user's wanted list."""
+        # Register first user with several books
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
+        self.add_books([
+            ("Rayuela", "Julio Cortázar"),
+            ("Ficciones", "Jorge Luis Borges"),
+            ("El túnel", "Ernesto Sábato"),
+            ("Cien años de soledad", "Gabriel García Márquez"),
+        ])
+        self.client.logout()
+
+        # Register second user with wanted books
+        self.register_and_verify_user(
+            username="user2", email="user2@example.com", fill_profile=True
+        )
+        # Add offered book (needed to see other users' books)
+        self.add_books([("Book B", "Author B")])
+        # Add wanted books
+        self.add_books([
+            ("Rayuela", "Julio Cortázar"),
+            ("Ficciones", "Jorge Luis Borges"),
+        ], wanted=True)
+
+        # Filter by wanted books - should only show matching books
+        response = self.client.get(reverse("home"), {"wanted": ""})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Rayuela")
+        self.assertContains(response, "Ficciones")
+        self.assertNotContains(response, "El túnel")
+        self.assertNotContains(response, "Cien años de soledad")
+
+        # Should handle accent variations (wanted without accent matches offered with accent)
+        self.add_books([("Cronica de una muerte anunciada", "Garcia Marquez")], wanted=True)
+        response = self.client.get(reverse("home"), {"wanted": ""})
+        # If user1 had this book with accents, it would match
+
     def test_request_book_exchange(self):
         """Test that exchange requests send email with contact details and requester's book list."""
         # Register first user with one book
@@ -692,7 +783,7 @@ class BooksTest(BaseTestCase):
         # Add a couple of wanted books
         self.add_books(
             [("Cien años de soledad", "García Márquez"), ("1984", "George Orwell")],
-            wanted=True
+            wanted=True,
         )
 
         # Check that wanted books show up in the user's profile

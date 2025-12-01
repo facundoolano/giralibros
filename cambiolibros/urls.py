@@ -20,7 +20,7 @@ from django.urls import path
 from books import views
 
 urlpatterns = [
-    path('', views.home, name='home'),
+    path('', views.list_books, name='home'),
     path('my/offered/', views.my_offered_books, name='my_offered'),
     path('my/wanted/', views.my_wanted_books, name='my_wanted'),
     path('books/<int:book_id>/request-exchange/', views.request_exchange, name='request_exchange'),

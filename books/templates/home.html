@@ -47,7 +47,7 @@
                   <span>{{ book.created_at|timeago }}</span>
                 </p>
               </div>
-              <p class="mb-2 is-size-6">{{ book.author }}</p>
+              <p class="mb-2 is-size-6"><a href="{% url 'home' %}?search={{ book.author|urlencode }}" class="has-text-grey-dark">{{ book.author }}</a></p>
               {% if book.notes %}
               <p class="is-size-7 has-text-grey mb-2">
                 Observaciones: {{ book.notes }}

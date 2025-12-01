@@ -113,6 +113,8 @@
     "fields": {
       "title": "Cien años de soledad",
       "author": "Gabriel García Márquez",
+      "title_normalized": "cien años de soledad",
+      "author_normalized": "gabriel garcia marquez",
       "user": 2,
       "notes": "Buen estado, tapa blanda",
       "reserved": false,
@@ -125,6 +127,8 @@
     "fields": {
       "title": "Rayuela",
       "author": "Julio Cortázar",
+      "title_normalized": "rayuela",
+      "author_normalized": "julio cortazar",
       "user": 3,
       "notes": "Como nuevo",
       "reserved": false,
@@ -137,6 +141,8 @@
     "fields": {
       "title": "El túnel",
       "author": "Ernesto Sábato",
+      "title_normalized": "el tunel",
+      "author_normalized": "ernesto sabato",
       "user": 4,
       "notes": "",
       "reserved": false,
@@ -149,6 +155,8 @@
     "fields": {
       "title": "Ficciones",
       "author": "Jorge Luis Borges",
+      "title_normalized": "ficciones",
+      "author_normalized": "jorge luis borges",
       "user": 2,
       "notes": "Primera edición, excelente estado",
       "reserved": false,
@@ -161,6 +169,8 @@
     "fields": {
       "title": "La casa de los espíritus",
       "author": "Isabel Allende",
+      "title_normalized": "la casa de los espiritus",
+      "author_normalized": "isabel allende",
       "user": 3,
       "notes": "",
       "reserved": false,
@@ -173,6 +183,8 @@
     "fields": {
       "title": "El Aleph",
       "author": "Jorge Luis Borges",
+      "title_normalized": "el aleph",
+      "author_normalized": "jorge luis borges",
       "user": 4,
       "notes": "Algunas páginas subrayadas",
       "reserved": false,
@@ -185,6 +197,8 @@
     "fields": {
       "title": "Crónica de una muerte anunciada",
       "author": "Gabriel García Márquez",
+      "title_normalized": "cronica de una muerte anunciada",
+      "author_normalized": "gabriel garcia marquez",
       "user": 2,
       "notes": "",
       "reserved": false,
@@ -197,6 +211,8 @@
     "fields": {
       "title": "La tregua",
       "author": "Mario Benedetti",
+      "title_normalized": "la tregua",
+      "author_normalized": "mario benedetti",
       "user": 3,
       "notes": "Muy buen estado",
       "reserved": false,
@@ -209,6 +225,8 @@
     "fields": {
       "title": "Pedro Páramo",
       "author": "Juan Rulfo",
+      "title_normalized": "pedro paramo",
+      "author_normalized": "juan rulfo",
       "user": 4,
       "notes": "Edición de bolsillo",
       "reserved": false,
