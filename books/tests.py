@@ -683,18 +683,33 @@ class BooksTest(BaseTestCase):
         self.assertIn("límite de pedidos", response_data["error"])
 
     def test_wanted_book_reflected_in_profile(self):
-        # TODO add wanted = true to add_books helper
-        # register/verify user
-        # add a couple of wanted books
-        # verify they show up in the user profile
-        pass
+        """Test that wanted books added by a user are displayed on their profile."""
+        # Register and verify user with profile
+        self.register_and_verify_user(
+            username="testuser", email="test@example.com", fill_profile=True
+        )
 
-    def add_books(self, books):
+        # Add a couple of wanted books
+        self.add_books(
+            [("Cien años de soledad", "García Márquez"), ("1984", "George Orwell")],
+            wanted=True
+        )
+
+        # Check that wanted books show up in the user's profile
+        response = self.client.get(reverse("profile", kwargs={"username": "testuser"}))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Cien años de soledad")
+        self.assertContains(response, "García Márquez")
+        self.assertContains(response, "1984")
+        self.assertContains(response, "George Orwell")
+
+    def add_books(self, books, wanted=False):
         """
         Add books for the currently logged-in user.
 
         Args:
             books: List of (title, author) tuples
+            wanted: If True, adds wanted books; otherwise adds offered books
         """
         form_data = {
             "form-TOTAL_FORMS": str(len(books)),
@@ -704,4 +719,5 @@ class BooksTest(BaseTestCase):
             form_data[f"form-{i}-title"] = title
             form_data[f"form-{i}-author"] = author
 
-        self.client.post(reverse("my_offered"), form_data)
+        url = reverse("my_wanted") if wanted else reverse("my_offered")
+        self.client.post(url, form_data)
