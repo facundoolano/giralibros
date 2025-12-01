@@ -275,8 +275,8 @@ class UserTest(BaseTestCase):
             },
         )
         self.assertRedirects(
-            response, reverse("my_books")
-        )  # First-time setup redirects to my_books
+            response, reverse("my_offered")
+        )  # First-time setup redirects to my_offered
 
         # Navigate to home, should now stay on home
         response = self.client.get(reverse("home"))
@@ -296,8 +296,8 @@ class UserTest(BaseTestCase):
             },
         )
         self.assertRedirects(
-            response, reverse("my_books")
-        )  # First-time setup redirects to my_books
+            response, reverse("my_offered")
+        )  # First-time setup redirects to my_offered
 
         # Navigate to edit profile explicitly, edit again
         response = self.client.post(
@@ -660,4 +660,4 @@ class BooksTest(BaseTestCase):
             form_data[f"form-{i}-title"] = title
             form_data[f"form-{i}-author"] = author
 
-        self.client.post(reverse("my_books"), form_data)
+        self.client.post(reverse("my_offered"), form_data)

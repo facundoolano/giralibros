@@ -206,7 +206,7 @@ def profile_edit(request):
 
             # Redirect based on whether this is first-time setup or edit
             if is_new_profile:
-                return redirect("my_books")
+                return redirect("my_offered")
             else:
                 return redirect("profile", username=request.user.username)
     else:
@@ -308,6 +308,15 @@ def my_books(request):
     )
 
 
+@login_required
+def my_wanted_books(request):
+    """
+    Manage user's wanted books (bulk add/edit/delete).
+    """
+    # TODO: Implement wanted books management
+    return render(request, "my_wanted_books.html")
+
+
 def send_templated_email(to_email, subject, template_name, context=None):
     """
     Send multipart email with HTML and plain text versions.
@@ -361,7 +370,7 @@ def request_exchange(request, book_id):
 
     # Check if user has any offered books
     if not request.user.offered.exists():
-        my_books_url = reverse("my_books")
+        my_books_url = reverse("my_offered")
         return JsonResponse(
             {
                 "error": f'Antes de enviar una solitud tenés que <a href="{my_books_url}">agregar tus libros ofrecidos</a>.'

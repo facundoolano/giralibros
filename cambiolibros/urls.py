@@ -21,7 +21,8 @@ from books import views
 
 urlpatterns = [
     path('', views.home, name='home'),
-    path('books/my/', views.my_books, name='my_books'),
+    path('my/offered/', views.my_books, name='my_offered'),
+    path('my/wanted/', views.my_wanted_books, name='my_wanted'),
     path('books/<int:book_id>/request-exchange/', views.request_exchange, name='request_exchange'),
     path('login/', views.login, name='login'),
     path('register/', views.register, name='register'),

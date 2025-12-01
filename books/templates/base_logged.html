@@ -37,7 +37,7 @@
                     <a class="navbar-item is-hidden-desktop" href="{% url 'profile' username=request.user.username %}">
                         Mi perfil
                     </a>
-                    <a class="navbar-item is-hidden-desktop" href="{% url 'my_books' %}">
+                    <a class="navbar-item is-hidden-desktop" href="{% url 'my_offered' %}">
                         Mis libros
                     </a>
                     <a class="navbar-item is-hidden-desktop" href="{% url 'logout' %}">
@@ -56,7 +56,7 @@
                             <a class="navbar-item" href="{% url 'profile' username=request.user.username %}">
                                 Mi perfil
                             </a>
-                            <a class="navbar-item" href="{% url 'my_books' %}">
+                            <a class="navbar-item" href="{% url 'my_offered' %}">
                                 Mis libros
                             </a>
                             <hr class="navbar-divider">
