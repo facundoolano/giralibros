@@ -58,7 +58,8 @@ class BaseBook(models.Model):
     title_normalized = models.CharField(max_length=200, db_index=True)
     author_normalized = models.CharField(max_length=200, db_index=True)
 
-    def normalize_spanish(self, text):
+    @staticmethod
+    def normalize_spanish(text):
         """Normalize text for search"""
         text = text.lower()
         replacements = {"á": "a", "é": "e", "í": "i", "ó": "o", "ú": "u", "ü": "u"}
@@ -130,9 +131,7 @@ class OfferedBookManager(models.Manager):
             return queryset
 
         # Normalize the search query using the same method as books
-        # We need to instantiate a temporary model to access the method
-        temp_book = self.model()
-        normalized_query = temp_book.normalize_spanish(search_query)
+        normalized_query = self.model.normalize_spanish(search_query)
 
         # Split into individual words
         search_words = normalized_query.split()
