@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.core import mail
 from django.test import Client
 from django.test import TestCase as DjangoTestCase
@@ -549,11 +551,36 @@ class BooksTest(BaseTestCase):
 
     def test_email_error_on_exchange_request(self):
         """Test handling of email sending failures during exchange requests."""
-        # same user setup as previous tests
-        # mock email sending operation to fail (does django have something for this? if not use regular patch)
-        # verify error message returned to user
-        # verify request doesn't show up in the logged user profile
-        pass
+        # Register first user with one book
+        self.register_and_verify_user(username="user1", email="user1@example.com", fill_profile=True)
+        self.add_books([("Book A", "Author A")])
+        self.client.logout()
+
+        # Register second user with one book
+        self.register_and_verify_user(username="user2", email="user2@example.com", fill_profile=True)
+        self.add_books([("Book B", "Author B")])
+
+        # Get book ID from home page context
+        response = self.client.get(reverse("home"))
+        offered_books = response.context["offered_books"]
+        book = offered_books[0]
+
+        # Mock email sending to raise an exception
+        with patch('django.core.mail.message.EmailMessage.send') as mock_send:
+            mock_send.side_effect = Exception("Email service failed")
+
+            # Send exchange request, should fail
+            response = self.client.post(
+                reverse("request_exchange", kwargs={"book_id": book.id})
+            )
+            self.assertEqual(response.status_code, 500)
+            response_data = response.json()
+            self.assertIn("error", response_data)
+
+        # Verify request doesn't show up in user's profile
+        response = self.client.get(reverse("profile", kwargs={"username": "user2"}))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Book A")
 
     def test_error_on_request_with_no_offered(self):
         """Test that a user with no listed offered books cannot send an exchange request."""
