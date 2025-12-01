@@ -134,6 +134,9 @@ LOGOUT_REDIRECT_URL = "login"
 EXCHANGE_REQUEST_EXPIRY_DAYS = 15  # Days after which an exchange request can be retried
 EXCHANGE_REQUEST_DAILY_LIMIT = 25  # Maximum exchange requests a user can send in 24 hours
 
+# Pagination
+BOOKS_PER_PAGE = 20  # Number of books to display per page in infinite scroll
+
 # Email settings (common across all environments)
 # The EMAIL_BACKEND will be overridden in environment-specific settings
 DEFAULT_FROM_EMAIL = "noreply@cambiolibros.com"
