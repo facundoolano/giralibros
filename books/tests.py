@@ -3,6 +3,7 @@ from unittest.mock import patch
 from django.core import mail
 from django.test import Client
 from django.test import TestCase as DjangoTestCase
+from django.test import override_settings
 from django.urls import reverse
 
 
@@ -584,21 +585,65 @@ class BooksTest(BaseTestCase):
 
     def test_error_on_request_with_no_offered(self):
         """Test that a user with no listed offered books cannot send an exchange request."""
-        # register two users
-        # first user with 1 book
-        # second no books
-        # send request for the book, fails with need to add books first
-        pass
+        # Register first user with one book
+        self.register_and_verify_user(username="user1", email="user1@example.com", fill_profile=True)
+        self.add_books([("Book A", "Author A")])
+        self.client.logout()
 
+        # Register second user with no books
+        self.register_and_verify_user(username="user2", email="user2@example.com", fill_profile=True)
+
+        # Get book ID from home page context
+        response = self.client.get(reverse("home"))
+        offered_books = response.context["offered_books"]
+        book = offered_books[0]
+
+        # Send exchange request, should fail
+        response = self.client.post(
+            reverse("request_exchange", kwargs={"book_id": book.id})
+        )
+        self.assertEqual(response.status_code, 400)
+        response_data = response.json()
+        self.assertIn("error", response_data)
+        self.assertIn("agregar tus libros", response_data["error"])
+
+    @override_settings(EXCHANGE_REQUEST_DAILY_LIMIT=2)
     def test_error_on_request_throttled(self):
         """Test that an exchange request fails if the user has already exceeded their limit for the day."""
-        # register two users
-        # 1st with 3 books
-        # 2nd with one
+        # Register first user with 3 books
+        self.register_and_verify_user(username="user1", email="user1@example.com", fill_profile=True)
+        self.add_books([("Book A", "Author A"), ("Book B", "Author B"), ("Book C", "Author C")])
+        self.client.logout()
 
-        # patch settings to allow 2 books max
-        # send 3 requests to same user in a row, first two succeed, last fails with the correct message
-        pass
+        # Register second user with one book
+        self.register_and_verify_user(username="user2", email="user2@example.com", fill_profile=True)
+        self.add_books([("Book D", "Author D")])
+
+        # Get all three books from home page
+        response = self.client.get(reverse("home"))
+        offered_books = response.context["offered_books"]
+        self.assertEqual(len(offered_books), 3)
+
+        # First request should succeed
+        response = self.client.post(
+            reverse("request_exchange", kwargs={"book_id": offered_books[0].id})
+        )
+        self.assertEqual(response.status_code, 201)
+
+        # Second request should succeed
+        response = self.client.post(
+            reverse("request_exchange", kwargs={"book_id": offered_books[1].id})
+        )
+        self.assertEqual(response.status_code, 201)
+
+        # Third request should fail due to throttling
+        response = self.client.post(
+            reverse("request_exchange", kwargs={"book_id": offered_books[2].id})
+        )
+        self.assertEqual(response.status_code, 429)
+        response_data = response.json()
+        self.assertIn("error", response_data)
+        self.assertIn("límite de pedidos", response_data["error"])
 
     def add_books(self, books):
         """
