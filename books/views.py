@@ -370,8 +370,7 @@ def request_exchange(request, book_id):
         )
 
     # Check if user already requested this book recently
-    expiry_days = getattr(settings, "EXCHANGE_REQUEST_EXPIRY_DAYS", 15)
-    cutoff_date = timezone.now() - timedelta(days=expiry_days)
+    cutoff_date = timezone.now() - timedelta(days=settings.EXCHANGE_REQUEST_EXPIRY_DAYS)
 
     existing_request = ExchangeRequest.objects.filter(
         from_user=request.user, offered_book=book, created_at__gte=cutoff_date
@@ -383,14 +382,13 @@ def request_exchange(request, book_id):
         )
 
     # Check daily request limit
-    daily_limit = getattr(settings, "EXCHANGE_REQUEST_DAILY_LIMIT", 25)
     last_24h = timezone.now() - timedelta(hours=24)
 
     requests_today = ExchangeRequest.objects.filter(
         from_user=request.user, created_at__gte=last_24h
     ).count()
 
-    if requests_today >= daily_limit:
+    if requests_today >= settings.EXCHANGE_REQUEST_DAILY_LIMIT:
         return JsonResponse(
             {"error": "Llegaste al límite de pedidos por hoy, probá de nuevo mañana."},
             status=429,
