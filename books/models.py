@@ -147,6 +147,31 @@ class OfferedBookManager(models.Manager):
 
         return queryset
 
+    def filter_by_wanted(self, queryset, user):
+        """
+        Filter offered books that match the user's wanted books.
+
+        A book matches if both the normalized title and author from a wanted book
+        appear as substrings in the offered book (case-insensitive, accent-insensitive).
+        Results are aggregated across all wanted books and deduplicated.
+        """
+        from django.db.models import Q
+
+        wanted_books = user.wanted.all()
+
+        if not wanted_books.exists():
+            return queryset.none()
+
+        match_conditions = Q()
+
+        for wanted in wanted_books:
+            match_conditions |= (
+                Q(title_normalized__icontains=wanted.title_normalized) &
+                Q(author_normalized__icontains=wanted.author_normalized)
+            )
+
+        return queryset.filter(match_conditions).distinct()
+
     def _annotate_already_requested(self, queryset, requesting_user):
         """
         Helper to add already_requested annotation to a queryset.

@@ -153,13 +153,15 @@ def logout(request):
 
 @login_required
 def list_books(request):
+    """TODO document"""
+
     # Redirect to profile completion if user hasn't set up their profile
     if not hasattr(request.user, "profile"):
         return redirect("profile_edit")
 
     # Check filters (mutually exclusive)
-    filter_wanted = 'wanted' in request.GET
-    search_query = request.GET.get('search', '').strip()
+    filter_wanted = "wanted" in request.GET
+    search_query = request.GET.get("search", "").strip()
 
     # Get books available in user's locations with already_requested annotation
     offered_books = OfferedBook.objects.for_user(request.user)
@@ -167,8 +169,11 @@ def list_books(request):
     # Apply search filter if query is present
     if search_query:
         offered_books = OfferedBook.objects.search(offered_books, search_query)
-
-    # TODO: Implement wanted books matching when filter_wanted is True
+    # Apply wanted books filter if requested
+    elif filter_wanted:
+        offered_books = OfferedBook.objects.filter_by_wanted(
+            offered_books, request.user
+        )
 
     return render(
         request,

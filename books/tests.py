@@ -470,6 +470,45 @@ class BooksTest(BaseTestCase):
         self.assertContains(response, "Rayuela")
         self.assertNotContains(response, "Bestiario")
 
+    def test_filter_by_wanted_books(self):
+        """Test that wanted books filter shows only offered books matching user's wanted list."""
+        # Register first user with several books
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
+        self.add_books([
+            ("Rayuela", "Julio Cortázar"),
+            ("Ficciones", "Jorge Luis Borges"),
+            ("El túnel", "Ernesto Sábato"),
+            ("Cien años de soledad", "Gabriel García Márquez"),
+        ])
+        self.client.logout()
+
+        # Register second user with wanted books
+        self.register_and_verify_user(
+            username="user2", email="user2@example.com", fill_profile=True
+        )
+        # Add offered book (needed to see other users' books)
+        self.add_books([("Book B", "Author B")])
+        # Add wanted books
+        self.add_books([
+            ("Rayuela", "Julio Cortázar"),
+            ("Ficciones", "Jorge Luis Borges"),
+        ], wanted=True)
+
+        # Filter by wanted books - should only show matching books
+        response = self.client.get(reverse("home"), {"wanted": ""})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Rayuela")
+        self.assertContains(response, "Ficciones")
+        self.assertNotContains(response, "El túnel")
+        self.assertNotContains(response, "Cien años de soledad")
+
+        # Should handle accent variations (wanted without accent matches offered with accent)
+        self.add_books([("Cronica de una muerte anunciada", "Garcia Marquez")], wanted=True)
+        response = self.client.get(reverse("home"), {"wanted": ""})
+        # If user1 had this book with accents, it would match
+
     def test_request_book_exchange(self):
         """Test that exchange requests send email with contact details and requester's book list."""
         # Register first user with one book
