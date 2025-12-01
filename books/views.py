@@ -157,6 +157,9 @@ def home(request):
     if not hasattr(request.user, "profile"):
         return redirect("profile_edit")
 
+    # Check if filtering by wanted books
+    filter_wanted = 'wanted' in request.GET
+
     # Get books available in user's locations with already_requested annotation
     offered_books = OfferedBook.objects.for_user(request.user)
 
@@ -166,6 +169,7 @@ def home(request):
         {
             "offered_books": offered_books,
             "user": request.user,
+            "filter_wanted": filter_wanted,
         },
     )
 

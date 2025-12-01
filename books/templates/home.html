@@ -3,10 +3,16 @@
 {% load book_filters %}
 {% block logged_content %}
 <div class="mb-5 has-text-centered" style="margin-top: -1rem">
+  {% if filter_wanted %}<span class="mr-2">Mostrando los libros de</span>{% for location in user.locations.all %}<span class="tag is-light mr-1">{{ location.get_area_display }}</span>{% endfor %} que coinciden con tus <a href="{% url 'my_wanted' %}">libros deseados</a>.
+  <div class="mt-2">
+    <a href="{% url 'home' %}">Ver todos</a>
+  </div>
+  {% else %}
   <span class="mr-2">Mostrando los últimos libros disponibles en</span>
   {% for location in user.locations.all %}
   <span class="tag is-light mr-1">{{ location.get_area_display }}</span>
   {% endfor %}
+  {% endif %}
 </div>
 
 <div class="columns is-centered">
