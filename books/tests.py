@@ -418,6 +418,58 @@ class BooksTest(BaseTestCase):
         self.assertNotContains(response, "Book GBA_OESTE")
         self.assertNotContains(response, "Book GBA_SUR")
 
+    def test_text_search(self):
+        """Test that text search filters books by normalized title and author with accent-insensitive matching."""
+        # Register first user with 4 books (2 by same author)
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
+        self.add_books([
+            ("Rayuela", "Julio Cortázar"),
+            ("Bestiario", "Julio Cortázar"),
+            ("Ficciones", "Jorge Luis Borges"),
+            ("El Aleph", "Jorge Luis Borges"),
+        ])
+        self.client.logout()
+
+        # Register second user to make books searchable
+        self.register_and_verify_user(
+            username="user2", email="user2@example.com", fill_profile=True
+        )
+        self.add_books([("Book B", "Author B")])
+
+        # Search by specific title - should find one book
+        response = self.client.get(reverse("home"), {"search": "Rayuela"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Rayuela")
+        self.assertNotContains(response, "Bestiario")
+        self.assertNotContains(response, "Ficciones")
+
+        # Search by author - should find both books by that author
+        response = self.client.get(reverse("home"), {"search": "Cortázar"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Rayuela")
+        self.assertContains(response, "Bestiario")
+        self.assertNotContains(response, "Ficciones")
+
+        # Search with accent variations - should still match
+        response = self.client.get(reverse("home"), {"search": "cortazar"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Rayuela")
+        self.assertContains(response, "Bestiario")
+
+        # Search by title + author - should find specific book
+        response = self.client.get(reverse("home"), {"search": "Rayuela Cortázar"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Rayuela")
+        self.assertNotContains(response, "Bestiario")
+
+        # Search with reversed order - should still work
+        response = self.client.get(reverse("home"), {"search": "Cortázar Rayuela"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Rayuela")
+        self.assertNotContains(response, "Bestiario")
+
     def test_request_book_exchange(self):
         """Test that exchange requests send email with contact details and requester's book list."""
         # Register first user with one book
@@ -692,7 +744,7 @@ class BooksTest(BaseTestCase):
         # Add a couple of wanted books
         self.add_books(
             [("Cien años de soledad", "García Márquez"), ("1984", "George Orwell")],
-            wanted=True
+            wanted=True,
         )
 
         # Check that wanted books show up in the user's profile
