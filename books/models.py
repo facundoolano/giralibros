@@ -2,6 +2,7 @@ import re
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import Q
 
 
 class UserProfile(models.Model):
@@ -137,11 +138,10 @@ class OfferedBookManager(models.Manager):
         search_words = normalized_query.split()
 
         # Filter: all words must appear in title or author
-        from django.db.models import Q
-
         for word in search_words:
             queryset = queryset.filter(
-                Q(title_normalized__icontains=word) | Q(author_normalized__icontains=word)
+                Q(title_normalized__icontains=word)
+                | Q(author_normalized__icontains=word)
             )
 
         return queryset
@@ -154,8 +154,6 @@ class OfferedBookManager(models.Manager):
         appear as substrings in the offered book (case-insensitive, accent-insensitive).
         Results are aggregated across all wanted books and deduplicated.
         """
-        from django.db.models import Q
-
         wanted_books = user.wanted.all()
 
         if not wanted_books.exists():
@@ -164,10 +162,9 @@ class OfferedBookManager(models.Manager):
         match_conditions = Q()
 
         for wanted in wanted_books:
-            match_conditions |= (
-                Q(title_normalized__icontains=wanted.title_normalized) &
-                Q(author_normalized__icontains=wanted.author_normalized)
-            )
+            match_conditions |= Q(
+                title_normalized__icontains=wanted.title_normalized
+            ) & Q(author_normalized__icontains=wanted.author_normalized)
 
         return queryset.filter(match_conditions).distinct()
 
