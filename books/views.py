@@ -406,7 +406,9 @@ def request_exchange(request, book_id):
             )
 
             # Build absolute URL for requester's profile
-            profile_path = reverse("profile", kwargs={"username": request.user.username})
+            profile_path = reverse(
+                "profile", kwargs={"username": request.user.username}
+            )
             requester_profile_url = request.build_absolute_uri(profile_path)
 
             send_templated_email(
@@ -432,7 +434,7 @@ def request_exchange(request, book_id):
 
     return JsonResponse(
         {
-            "message": f"Le enviamos tu solicitud de intercambio a <b/>{book.user.username}<b/>.<br/>Te va a contactar si le interesa alguno de tus libros."
+            "message": f"Le enviamos tu solicitud de intercambio a <b>{book.user.username}</b>.<br/>Te va a contactar si le interesa alguno de tus libros."
         },
         status=201,
     )
