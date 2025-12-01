@@ -163,7 +163,11 @@ def list_books(request):
 
     # Get books available in user's locations with already_requested annotation
     offered_books = OfferedBook.objects.for_user(request.user)
-    # TODO: Implement actual search filtering when search_query is present
+
+    # Apply search filter if query is present
+    if search_query:
+        offered_books = OfferedBook.objects.search(offered_books, search_query)
+
     # TODO: Implement wanted books matching when filter_wanted is True
 
     return render(

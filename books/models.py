@@ -118,6 +118,35 @@ class OfferedBookManager(models.Manager):
 
         return queryset
 
+    def search(self, queryset, search_query):
+        """
+        Filter books by search query against normalized title and author fields.
+
+        The search query is normalized using the same logic as book titles/authors,
+        then split into words. Books match if all words appear in either the title
+        or author (case-insensitive, accent-insensitive).
+        """
+        if not search_query:
+            return queryset
+
+        # Normalize the search query using the same method as books
+        # We need to instantiate a temporary model to access the method
+        temp_book = self.model()
+        normalized_query = temp_book.normalize_spanish(search_query)
+
+        # Split into individual words
+        search_words = normalized_query.split()
+
+        # Filter: all words must appear in title or author
+        from django.db.models import Q
+
+        for word in search_words:
+            queryset = queryset.filter(
+                Q(title_normalized__icontains=word) | Q(author_normalized__icontains=word)
+            )
+
+        return queryset
+
     def _annotate_already_requested(self, queryset, requesting_user):
         """
         Helper to add already_requested annotation to a queryset.
