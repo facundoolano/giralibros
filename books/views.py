@@ -281,90 +281,59 @@ def profile(request, username):
 
 @login_required
 def my_offered_books(request):
-    """
-    Manage user's offered books (bulk add/edit/delete).
-    """
-    # Create formset factory for user's offered books
-    OfferedBookFormSet = modelformset_factory(
-        OfferedBook,
-        form=OfferedBookForm,
-        extra=1,  # Always show 1 empty form for adding new books
-        can_delete=True,
-    )
-
-    # Get queryset of user's books
-    queryset = OfferedBook.objects.filter(user=request.user).order_by("created_at")
-
-    if request.method == "POST":
-        formset = OfferedBookFormSet(request.POST, queryset=queryset)
-        if formset.is_valid():
-            instances = formset.save(commit=False)
-
-            # Assign user to new books
-            for instance in instances:
-                if not instance.pk:  # New book
-                    instance.user = request.user
-                instance.save()
-
-            # Handle deletions
-            for obj in formset.deleted_objects:
-                obj.delete()
-
-            return redirect("profile", username=request.user.username)
-    else:
-        formset = OfferedBookFormSet(queryset=queryset)
-
-    return render(
+    """Manage user's offered books (bulk add/edit/delete)."""
+    return _manage_books(
         request,
-        "my_offered_books.html",
-        {
-            "formset": formset,
-        },
+        book_model=OfferedBook,
+        book_form=OfferedBookForm,
+        template_name="my_offered_books.html",
     )
 
 
 @login_required
 def my_wanted_books(request):
+    """Manage user's wanted books (bulk add/edit/delete)."""
+    return _manage_books(
+        request,
+        book_model=WantedBook,
+        book_form=WantedBookForm,
+        template_name="my_wanted_books.html",
+    )
+
+
+def _manage_books(request, book_model, book_form, template_name):
     """
-    Manage user's wanted books (bulk add/edit/delete).
+    Generic view for managing user's books (offered or wanted).
+
+    Handles bulk add/edit/delete operations via formsets.
     """
-    # Create formset factory for user's wanted books
-    WantedBookFormSet = modelformset_factory(
-        WantedBook,
-        form=WantedBookForm,
-        extra=1,  # Always show 1 empty form for adding new books
+    BookFormSet = modelformset_factory(
+        book_model,
+        form=book_form,
+        extra=1,
         can_delete=True,
     )
 
-    # Get queryset of user's books
-    queryset = WantedBook.objects.filter(user=request.user).order_by("created_at")
+    queryset = book_model.objects.filter(user=request.user).order_by("created_at")
 
     if request.method == "POST":
-        formset = WantedBookFormSet(request.POST, queryset=queryset)
+        formset = BookFormSet(request.POST, queryset=queryset)
         if formset.is_valid():
             instances = formset.save(commit=False)
 
-            # Assign user to new books
             for instance in instances:
-                if not instance.pk:  # New book
+                if not instance.pk:
                     instance.user = request.user
                 instance.save()
 
-            # Handle deletions
             for obj in formset.deleted_objects:
                 obj.delete()
 
             return redirect("profile", username=request.user.username)
     else:
-        formset = WantedBookFormSet(queryset=queryset)
+        formset = BookFormSet(queryset=queryset)
 
-    return render(
-        request,
-        "my_wanted_books.html",
-        {
-            "formset": formset,
-        },
-    )
+    return render(request, template_name, {"formset": formset})
 
 
 def send_templated_email(to_email, subject, template_name, context=None):
