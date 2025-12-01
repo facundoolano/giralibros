@@ -152,7 +152,7 @@ def logout(request):
 
 
 @login_required
-def home(request):
+def list_books(request):
     # Redirect to profile completion if user hasn't set up their profile
     if not hasattr(request.user, "profile"):
         return redirect("profile_edit")
