@@ -271,9 +271,8 @@ def profile(request, username):
     )
 
 
-# FIXME rename to my_offered_books
 @login_required
-def my_books(request):
+def my_offered_books(request):
     """
     Manage user's offered books (bulk add/edit/delete).
     """
@@ -309,7 +308,7 @@ def my_books(request):
 
     return render(
         request,
-        "my_books.html",
+        "my_offered_books.html",
         {
             "formset": formset,
         },
