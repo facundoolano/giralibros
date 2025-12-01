@@ -1,3 +1,5 @@
+import logging
+
 from django.conf import settings
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
@@ -5,7 +7,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMultiAlternatives
+from django.db import transaction
 from django.forms import modelformset_factory
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -19,6 +23,8 @@ from books.forms import (
     RegistrationForm,
 )
 from books.models import ExchangeRequest, OfferedBook, UserLocation, UserProfile
+
+logger = logging.getLogger(__name__)
 
 
 def login(request):
@@ -327,3 +333,108 @@ def send_templated_email(to_email, subject, template_name, context=None):
     email.attach_alternative(html_message, "text/html")
 
     return email.send(fail_silently=False)
+
+
+@login_required
+def request_exchange(request, book_id):
+    """
+    Create an exchange request for a book. Sends email notification to book owner.
+    """
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    # Get the book
+    try:
+        book = OfferedBook.objects.select_related("user").get(pk=book_id)
+    except OfferedBook.DoesNotExist:
+        return JsonResponse({"error": "Libro no encontrado"}, status=404)
+
+    # Check if user is trying to request their own book
+    if book.user == request.user:
+        return JsonResponse(
+            {"error": "No podés solicitar tus propios libros"}, status=400
+        )
+
+    # Check if user has any offered books
+    if not request.user.offered.exists():
+        my_books_url = reverse("my_books")
+        return JsonResponse(
+            {
+                "error": f'Antes de enviar una solitud tenés que <a href="{my_books_url}">agregar tus libros ofrecidos</a>.'
+            },
+            status=400,
+        )
+
+    # Check if user already requested this book recently
+    cutoff_date = timezone.now() - timedelta(days=settings.EXCHANGE_REQUEST_EXPIRY_DAYS)
+
+    existing_request = ExchangeRequest.objects.filter(
+        from_user=request.user, offered_book=book, created_at__gte=cutoff_date
+    ).first()
+
+    if existing_request:
+        return JsonResponse(
+            {"error": "Ya solicitaste este libro recientemente"}, status=400
+        )
+
+    # Check daily request limit
+    last_24h = timezone.now() - timedelta(hours=24)
+
+    requests_today = ExchangeRequest.objects.filter(
+        from_user=request.user, created_at__gte=last_24h
+    ).count()
+
+    if requests_today >= settings.EXCHANGE_REQUEST_DAILY_LIMIT:
+        return JsonResponse(
+            {"error": "Llegaste al límite de pedidos por hoy, probá de nuevo mañana."},
+            status=429,
+        )
+
+    # Create exchange request and send email atomically
+    try:
+        with transaction.atomic():
+            exchange_request = ExchangeRequest.objects.create(
+                from_user=request.user,
+                to_user=book.user,
+                offered_book=book,
+                book_title=book.title,
+                book_author=book.author,
+            )
+
+            # Build absolute URL for requester's profile
+            profile_path = reverse(
+                "profile", kwargs={"username": request.user.username}
+            )
+            requester_profile_url = request.build_absolute_uri(profile_path)
+
+            send_templated_email(
+                to_email=book.user.profile.contact_email,
+                subject="📚🔄📚 ¡Tenés una solicitud en CambioLibros.com!",
+                template_name="emails/exchange_request",
+                context={
+                    "requester": request.user,
+                    "book": book,
+                    "exchange_request": exchange_request,
+                    "requester_profile_url": requester_profile_url,
+                },
+            )
+    except Exception:
+        # If email fails, transaction is rolled back automatically
+        logger.exception(
+            f"Failed to send exchange request email for book {book_id} to user {book.user.id}"
+        )
+        return JsonResponse(
+            {"error": "Hubo un error al procesar tu solicitud, probá más tarde."},
+            status=500,
+        )
+
+    return JsonResponse(
+        {
+            "message": f"Le enviamos tu solicitud de intercambio a <b>{book.user.username}</b>.<br/>Te va a contactar si le interesa alguno de tus libros."
+        },
+        status=201,
+    )

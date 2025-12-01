@@ -52,21 +52,7 @@
                   {% endfor %}
                 </div>
                 <div class="is-hidden-mobile">
-                  {% if book.already_requested %}
-                  <button class="button is-light" disabled>
-                    <span class="icon">
-                      <i class="fas fa-check"></i>
-                    </span>
-                    <span>Ya solicitado</span>
-                  </button>
-                  {% else %}
-                  <button class="button is-primary" title="Solicitar intercambio de libros">
-                    <span class="icon">
-                      <i class="fas fa-rotate"></i>
-                    </span>
-                    <span>Cambio</span>
-                  </button>
-                  {% endif %}
+                  {% include '_exchange_button.html' %}
                 </div>
               </div>
             </div>
@@ -75,21 +61,7 @@
       </div>
       <div class="card-content pt-0 is-hidden-tablet">
         <div class="has-text-right">
-          {% if book.already_requested %}
-          <button class="button is-light" disabled>
-            <span class="icon">
-              <i class="fas fa-check"></i>
-            </span>
-            <span>Ya solicitado</span>
-          </button>
-          {% else %}
-          <button class="button is-primary" title="Solicitar intercambio de libros">
-            <span class="icon">
-              <i class="fas fa-rotate"></i>
-            </span>
-            <span>Cambio</span>
-          </button>
-          {% endif %}
+          {% include '_exchange_button.html' %}
         </div>
       </div>
     </div>

@@ -1,7 +1,9 @@
-from django.contrib.auth.models import User
+from unittest.mock import patch
+
 from django.core import mail
 from django.test import Client
 from django.test import TestCase as DjangoTestCase
+from django.test import override_settings
 from django.urls import reverse
 
 
@@ -11,12 +13,14 @@ class BaseTestCase(DjangoTestCase):
         self.client = Client()
 
     def register_and_verify_user(
-        self, username="testuser", email="test@example.com", password="testpass123"
+        self, username="testuser", email="test@example.com", password="testpass123", fill_profile=False
     ):
         """
         Register a new user and verify their email.
         Returns after verification (user will be logged in).
         Use this helper in tests that need a user to exist but aren't testing registration itself.
+
+        If fill_profile=True, also fills in the profile with basic info using the email username as first_name.
         """
         response = self.client.post(
             reverse("register"),
@@ -28,6 +32,19 @@ class BaseTestCase(DjangoTestCase):
         )
         verify_url = self.get_verification_url_from_email(email)
         self.client.get(verify_url)
+
+        if fill_profile:
+            # Extract first name from email (part before @)
+            first_name = email.split("@")[0]
+            self.client.post(
+                reverse("profile_edit"),
+                {
+                    "first_name": first_name,
+                    "email": email,
+                    "locations": ["CABA"],
+                },
+            )
+
         return response
 
     def get_verification_url_from_email(self, email):
@@ -307,32 +324,16 @@ class UserTest(BaseTestCase):
         pass
 
 
-class BooklistTest(BaseTestCase):
+class BooksTest(BaseTestCase):
     def test_own_books_excluded(self):
         """Test that users do not see their own books in the book listing."""
         # Register first user with profile and books
-        self.register_and_verify_user(username="user1", email="user1@example.com")
-        self.client.post(
-            reverse("profile_edit"),
-            {
-                "first_name": "User One",
-                "email": "user1@example.com",
-                "locations": ["CABA"],
-            },
-        )
+        self.register_and_verify_user(username="user1", email="user1@example.com", fill_profile=True)
         self.add_books([("Book A", "Author A"), ("Book B", "Author B")])
         self.client.logout()
 
         # Register second user with profile and books
-        self.register_and_verify_user(username="user2", email="user2@example.com")
-        self.client.post(
-            reverse("profile_edit"),
-            {
-                "first_name": "User Two",
-                "email": "user2@example.com",
-                "locations": ["CABA"],
-            },
-        )
+        self.register_and_verify_user(username="user2", email="user2@example.com", fill_profile=True)
         self.add_books([("Book C", "Author C"), ("Book D", "Author D")])
 
         # User 2 should see only user 1's books (not their own)
@@ -412,48 +413,237 @@ class BooklistTest(BaseTestCase):
 
     def test_request_book_exchange(self):
         """Test that exchange requests send email with contact details and requester's book list."""
-        # FIXME functionality not implemented yet
-        # register two users
-        # first user with 3 books
-        # second user two books
-        # send request for second book
-        # check outgoing email
-        # check email content includes 2nd user contact details
-        # check email content lists user books
-        pass
+        # Register first user with one book
+        self.register_and_verify_user(username="user1", email="user1@example.com", fill_profile=True)
+        self.add_books([("Book A", "Author A")])
+        self.client.logout()
+
+        # Register second user with one book
+        self.register_and_verify_user(username="user2", email="user2@example.com", fill_profile=True)
+        self.add_books([("Book B", "Author B")])
+
+        # Get book ID from home page context
+        response = self.client.get(reverse("home"))
+        offered_books = response.context["offered_books"]
+        book = offered_books[0]
+
+        # Clear email outbox and send exchange request
+        mail.outbox = []
+        response = self.client.post(
+            reverse("request_exchange", kwargs={"book_id": book.id})
+        )
+        self.assertEqual(response.status_code, 201)
+
+        # Check that exactly one email was sent to the book owner
+        self.assertEqual(len(mail.outbox), 1)
+        sent_email = mail.outbox[0]
+        self.assertIn("user1@example.com", sent_email.to)
+
+        # Check email contains requester's contact details
+        self.assertIn("user2@example.com", sent_email.body)
+        self.assertIn("user2", sent_email.body)
+
+        # Check email lists requester's offered books
+        self.assertIn("Book B", sent_email.body)
+        self.assertIn("Author B", sent_email.body)
 
     def test_request_book_reflected_in_profile(self):
-        # FIXME human to specify
-        pass
+        """Test that when a successful exchange request is sent, it shows up in both user's profiles."""
+        # Register first user with one book
+        self.register_and_verify_user(username="user1", email="user1@example.com", fill_profile=True)
+        self.add_books([("Book A", "Author A")])
+        self.client.logout()
+
+        # Register second user with one book
+        self.register_and_verify_user(username="user2", email="user2@example.com", fill_profile=True)
+        self.add_books([("Book B", "Author B")])
+
+        # Get book ID from home page context
+        response = self.client.get(reverse("home"))
+        offered_books = response.context["offered_books"]
+        book = offered_books[0]
+
+        # Send exchange request
+        response = self.client.post(
+            reverse("request_exchange", kwargs={"book_id": book.id})
+        )
+        self.assertEqual(response.status_code, 201)
+
+        # Check user 2's profile shows outgoing request
+        response = self.client.get(reverse("profile", kwargs={"username": "user2"}))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Book A")  # The book they requested
+
+        self.client.logout()
+
+        # Log in as user 1 and check their profile shows incoming request
+        self.client.post(
+            reverse("login"),
+            {
+                "username": "user1",
+                "password": "testpass123",
+            },
+        )
+        response = self.client.get(reverse("profile", kwargs={"username": "user1"}))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Book A")  # The book that was requested
+        self.assertContains(response, "user2")  # The user who requested it
 
     def test_mark_as_already_requested(self):
         """Test that books already requested by a user are marked differently in the listing."""
-        # FIXME functionality not implemented yet
-        # register two users
-        # first user with 3 books
-        # second user gets home, sees all three books and Cambio button
-        # send request for second book
-        # request list shows 2 cambio, one ya pedido
-        pass
+        # Register first user with one book
+        self.register_and_verify_user(username="user1", email="user1@example.com", fill_profile=True)
+        self.add_books([("Book A", "Author A")])
+        self.client.logout()
+
+        # Register second user with one book
+        self.register_and_verify_user(username="user2", email="user2@example.com", fill_profile=True)
+        self.add_books([("Book B", "Author B")])
+
+        # Check home page shows book with exchange button
+        response = self.client.get(reverse("home"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Book A")
+        self.assertContains(response, "Cambio")
+
+        # Get book ID and send exchange request
+        offered_books = response.context["offered_books"]
+        book = offered_books[0]
+        response = self.client.post(
+            reverse("request_exchange", kwargs={"book_id": book.id})
+        )
+        self.assertEqual(response.status_code, 201)
+
+        # Check home page now shows book as already requested
+        response = self.client.get(reverse("home"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Book A")
+        self.assertContains(response, "Ya solicitado")
 
     def test_fail_on_already_requested(self):
         """Test that users cannot request the same book twice."""
-        # FIXME functionality not implemented yet
-        # register two users
-        # first user with 3 books
-        # send request for second book, succeeds
-        # send request for second book again, fails
-        pass
+        # Register first user with one book
+        self.register_and_verify_user(username="user1", email="user1@example.com", fill_profile=True)
+        self.add_books([("Book A", "Author A")])
+        self.client.logout()
+
+        # Register second user with one book
+        self.register_and_verify_user(username="user2", email="user2@example.com", fill_profile=True)
+        self.add_books([("Book B", "Author B")])
+
+        # Get book ID from home page context
+        response = self.client.get(reverse("home"))
+        offered_books = response.context["offered_books"]
+        book = offered_books[0]
+
+        # Send first request, should succeed
+        response = self.client.post(
+            reverse("request_exchange", kwargs={"book_id": book.id})
+        )
+        self.assertEqual(response.status_code, 201)
+
+        # Send second request for same book, should fail
+        response = self.client.post(
+            reverse("request_exchange", kwargs={"book_id": book.id})
+        )
+        self.assertEqual(response.status_code, 400)
+        response_data = response.json()
+        self.assertIn("error", response_data)
 
     def test_email_error_on_exchange_request(self):
         """Test handling of email sending failures during exchange requests."""
-        # TODO human to specify
-        pass
+        # Register first user with one book
+        self.register_and_verify_user(username="user1", email="user1@example.com", fill_profile=True)
+        self.add_books([("Book A", "Author A")])
+        self.client.logout()
+
+        # Register second user with one book
+        self.register_and_verify_user(username="user2", email="user2@example.com", fill_profile=True)
+        self.add_books([("Book B", "Author B")])
+
+        # Get book ID from home page context
+        response = self.client.get(reverse("home"))
+        offered_books = response.context["offered_books"]
+        book = offered_books[0]
+
+        # Mock email sending to raise an exception
+        with patch('django.core.mail.message.EmailMessage.send') as mock_send:
+            mock_send.side_effect = Exception("Email service failed")
+
+            # Send exchange request, should fail
+            response = self.client.post(
+                reverse("request_exchange", kwargs={"book_id": book.id})
+            )
+            self.assertEqual(response.status_code, 500)
+            response_data = response.json()
+            self.assertIn("error", response_data)
+
+        # Verify request doesn't show up in user's profile
+        response = self.client.get(reverse("profile", kwargs={"username": "user2"}))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Book A")
 
     def test_error_on_request_with_no_offered(self):
         """Test that a user with no listed offered books cannot send an exchange request."""
-        # TODO human to specify
-        pass
+        # Register first user with one book
+        self.register_and_verify_user(username="user1", email="user1@example.com", fill_profile=True)
+        self.add_books([("Book A", "Author A")])
+        self.client.logout()
+
+        # Register second user with no books
+        self.register_and_verify_user(username="user2", email="user2@example.com", fill_profile=True)
+
+        # Get book ID from home page context
+        response = self.client.get(reverse("home"))
+        offered_books = response.context["offered_books"]
+        book = offered_books[0]
+
+        # Send exchange request, should fail
+        response = self.client.post(
+            reverse("request_exchange", kwargs={"book_id": book.id})
+        )
+        self.assertEqual(response.status_code, 400)
+        response_data = response.json()
+        self.assertIn("error", response_data)
+        self.assertIn("agregar tus libros", response_data["error"])
+
+    @override_settings(EXCHANGE_REQUEST_DAILY_LIMIT=2)
+    def test_error_on_request_throttled(self):
+        """Test that an exchange request fails if the user has already exceeded their limit for the day."""
+        # Register first user with 3 books
+        self.register_and_verify_user(username="user1", email="user1@example.com", fill_profile=True)
+        self.add_books([("Book A", "Author A"), ("Book B", "Author B"), ("Book C", "Author C")])
+        self.client.logout()
+
+        # Register second user with one book
+        self.register_and_verify_user(username="user2", email="user2@example.com", fill_profile=True)
+        self.add_books([("Book D", "Author D")])
+
+        # Get all three books from home page
+        response = self.client.get(reverse("home"))
+        offered_books = response.context["offered_books"]
+        self.assertEqual(len(offered_books), 3)
+
+        # First request should succeed
+        response = self.client.post(
+            reverse("request_exchange", kwargs={"book_id": offered_books[0].id})
+        )
+        self.assertEqual(response.status_code, 201)
+
+        # Second request should succeed
+        response = self.client.post(
+            reverse("request_exchange", kwargs={"book_id": offered_books[1].id})
+        )
+        self.assertEqual(response.status_code, 201)
+
+        # Third request should fail due to throttling
+        response = self.client.post(
+            reverse("request_exchange", kwargs={"book_id": offered_books[2].id})
+        )
+        self.assertEqual(response.status_code, 429)
+        response_data = response.json()
+        self.assertIn("error", response_data)
+        self.assertIn("límite de pedidos", response_data["error"])
 
     def add_books(self, books):
         """

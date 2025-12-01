@@ -1,5 +1,13 @@
 {% extends "base.html" %}
 
+{% block extra_css %}
+<style>
+  .js-requested-btn:disabled {
+    cursor: default;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
     {% if user.profile %}
     <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation" style="background-color: #e8f5e9;">
@@ -91,4 +99,126 @@
             {% block logged_content %}{% endblock %}
         </div>
     </section>
+
+    {# Exchange Request Modal #}
+    <div id="exchangeModal" class="modal">
+        <div class="modal-background"></div>
+        <div class="modal-content">
+            <article id="exchangeMessage" class="message">
+                <div class="message-header">
+                    <p id="exchangeMessageTitle"></p>
+                    <button class="delete" aria-label="delete"></button>
+                </div>
+                <div class="message-body" id="exchangeMessageBody"></div>
+            </article>
+        </div>
+        <button class="modal-close is-large" aria-label="close"></button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const csrftoken = '{{ csrf_token }}';
+            const modal = document.getElementById('exchangeModal');
+            const messageBox = document.getElementById('exchangeMessage');
+            const messageTitle = document.getElementById('exchangeMessageTitle');
+            const messageBody = document.getElementById('exchangeMessageBody');
+
+            // Close modal handlers
+            const closeModal = () => {
+                modal.classList.remove('is-active');
+                document.documentElement.classList.remove('is-clipped');
+            };
+
+            modal.querySelector('.modal-background').addEventListener('click', closeModal);
+            modal.querySelector('.modal-close').addEventListener('click', closeModal);
+            modal.querySelector('.delete').addEventListener('click', closeModal);
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && modal.classList.contains('is-active')) {
+                    closeModal();
+                }
+            });
+
+            // Handle exchange request button clicks
+            document.addEventListener('click', (e) => {
+                const button = e.target.closest('button[data-book-id]');
+                if (!button || button.disabled) {
+                    return;
+                }
+
+                e.preventDefault();
+                const bookId = button.dataset.bookId;
+                requestExchange(button, bookId);
+            });
+
+            function requestExchange(button, bookId) {
+                // Find the sibling "Ya solicitado" button
+                const requestedButton = button.nextElementSibling;
+
+                // Disable button and show loading state
+                button.disabled = true;
+
+                // Hide button content (icon and text)
+                const icon = button.querySelector('.icon');
+                const text = button.querySelector('span:not(.icon)');
+                icon.style.visibility = 'hidden';
+                text.style.visibility = 'hidden';
+
+                button.classList.add('is-loading');
+
+                // Make AJAX request
+                fetch(`/books/${bookId}/request-exchange/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(response => {
+                    return response.json().then(data => ({
+                        status: response.status,
+                        data: data
+                    }));
+                })
+                .then(({ status, data }) => {
+                    if (status >= 400) {
+                        // Error - restore button
+                        button.classList.remove('is-loading');
+                        icon.style.visibility = 'visible';
+                        text.style.visibility = 'visible';
+                        button.disabled = false;
+
+                        // Show error notification
+                        showNotification(data.error || 'Error al enviar la solicitud', 'is-danger');
+                    } else {
+                        // Success - swap buttons
+                        button.classList.add('is-hidden');
+                        requestedButton.classList.remove('is-hidden');
+
+                        // Show success notification
+                        showNotification(data.message, 'is-success');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    button.classList.remove('is-loading');
+                    icon.style.visibility = 'visible';
+                    text.style.visibility = 'visible';
+                    button.disabled = false;
+                    showNotification('Error al enviar la solicitud. Por favor intente nuevamente.', 'is-danger');
+                });
+            }
+
+            function showNotification(msg, type) {
+                // Update message content and style
+                messageBox.className = `message ${type}`;
+                messageTitle.textContent = type === 'is-success' ? 'Éxito' : 'Error';
+                messageBody.innerHTML = msg;
+
+                // Show modal
+                modal.classList.add('is-active');
+                document.documentElement.classList.add('is-clipped');
+            }
+        });
+    </script>
 {% endblock %}

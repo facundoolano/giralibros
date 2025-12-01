@@ -124,21 +124,7 @@
               <strong>{{ book.title }}</strong>, {{ book.author }}{% if book.notes %} · <span class="has-text-grey is-size-7">{{ book.notes }}</span>{% endif %}
             </div>
             {% if not is_own_profile %}
-              {% if book.already_requested %}
-              <button class="button is-light is-small button-fixed-width" disabled>
-                <span class="icon is-small">
-                  <i class="fas fa-check"></i>
-                </span>
-                <span>Ya solicitado</span>
-              </button>
-              {% else %}
-              <button class="button is-primary is-small button-fixed-width" title="Solicitar intercambio de libros">
-                <span class="icon is-small">
-                  <i class="fas fa-rotate"></i>
-                </span>
-                <span>Cambio</span>
-              </button>
-              {% endif %}
+              {% include '_exchange_button.html' with button_classes='is-small button-fixed-width' icon_classes='is-small' %}
             {% endif %}
           </div>
         </li>
