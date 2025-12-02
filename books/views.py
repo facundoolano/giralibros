@@ -90,7 +90,7 @@ def register(request):
             # Send verification email
             _send_templated_email(
                 to_email=user.email,
-                subject="Verificá tu cuenta en CambioLibros",
+                subject="Verificá tu cuenta en GiraLibros",
                 template_name="emails/verification_email",
                 context={
                     "username": user.username,
@@ -422,7 +422,7 @@ def request_exchange(request, book_id):
 
             _send_templated_email(
                 to_email=book.user.profile.contact_email,
-                subject="📚🔄📚 ¡Tenés una solicitud en CambioLibros.com!",
+                subject="📚🔄📚 ¡Tenés una solicitud en GiraLibros.com!",
                 template_name="emails/exchange_request",
                 context={
                     "requester": request.user,
