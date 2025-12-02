@@ -1,5 +1,5 @@
 """
-Django settings for cambiolibros project.
+Django settings for giralibros project.
 
 This package contains environment-specific settings modules:
 - base.py: Common settings shared across all environments

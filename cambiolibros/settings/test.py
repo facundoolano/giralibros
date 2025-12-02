@@ -1,5 +1,5 @@
 """
-Test settings for cambiolibros project.
+Test settings for giralibros project.
 
 These settings are used when running the test suite.
 Django will automatically use these settings when running tests.

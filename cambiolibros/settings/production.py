@@ -1,5 +1,5 @@
 """
-Production settings for cambiolibros project.
+Production settings for giralibros project.
 
 These settings are used for production deployment.
 Sensitive values are loaded from environment variables.
