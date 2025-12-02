@@ -41,35 +41,29 @@
 
     <div class="box">
       {# Header with username and info #}
-      <div class="level is-mobile mb-3">
-        <div class="level-left">
-          <div class="level-item">
-            <div class="is-flex is-align-items-center">
-              <h1 class="title is-4 mb-0 mr-2">
-                <span class="icon is-small mr-1">
-                  <i class="fas fa-user fa-sm"></i>
-                </span>
-                <span>{{ profile_user.username }}</span>
-              </h1>
-              <div class="tags">
-                {% for location in profile_user.locations.all %}
-                <span class="tag is-light">{{ location.get_area_display }}</span>
-                {% endfor %}
-              </div>
-            </div>
+      <div class="is-flex is-justify-content-space-between is-align-items-start mb-3">
+        <div class="is-flex is-align-items-center is-flex-wrap-wrap" style="gap: 0.5rem;">
+          <h1 class="title is-4 mb-0">
+            <span class="icon is-small mr-1">
+              <i class="fas fa-user fa-sm"></i>
+            </span>
+            <span>{{ profile_user.username }}</span>
+          </h1>
+          <div class="tags">
+            {% for location in profile_user.locations.all %}
+            <span class="tag is-light">{{ location.get_area_display }}</span>
+            {% endfor %}
           </div>
         </div>
-        <div class="level-right">
-          <div class="level-item">
-            {% if is_own_profile %}
-            <a href="{% url 'profile_edit' %}" class="button is-small is-link is-light button-fixed-width">
-              <span class="icon is-small">
-                <i class="fas fa-edit"></i>
-              </span>
-              <span>Editar</span>
-            </a>
-            {% endif %}
-          </div>
+        <div>
+          {% if is_own_profile %}
+          <a href="{% url 'profile_edit' %}" class="button is-small is-link is-light button-fixed-width">
+            <span class="icon is-small">
+              <i class="fas fa-edit"></i>
+            </span>
+            <span>Editar</span>
+          </a>
+          {% endif %}
         </div>
       </div>
 
