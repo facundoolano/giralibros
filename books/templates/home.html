@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const timestamp = element.dataset.timestamp;
       if (timestamp) {
         const date = new Date(timestamp);
-        element.title = date.toLocaleString('es-AR', {
+        element.title = "Publicado el " + date.toLocaleString('es-AR', {
           day: '2-digit',
           month: '2-digit',
           year: 'numeric',
