@@ -44,7 +44,7 @@ class BaseTestCase(DjangoTestCase):
                 {
                     "first_name": first_name,
                     "email": email,
-                    "locations": ["CABA"],
+                    "locations": ["CABA_CENTRO"],
                 },
             )
 
@@ -274,7 +274,7 @@ class UserTest(BaseTestCase):
             {
                 "first_name": "Test",
                 "email": "test@example.com",
-                "locations": ["CABA"],
+                "locations": ["CABA_CENTRO"],
             },
         )
         self.assertRedirects(
@@ -295,7 +295,7 @@ class UserTest(BaseTestCase):
             {
                 "first_name": "Test",
                 "email": "test@example.com",
-                "locations": ["CABA"],
+                "locations": ["CABA_CENTRO"],
             },
         )
         self.assertRedirects(
@@ -308,7 +308,7 @@ class UserTest(BaseTestCase):
             {
                 "first_name": "Updated Name",
                 "email": "test@example.com",
-                "locations": ["CABA", "GBA_NORTE"],
+                "locations": ["CABA_CENTRO", "GBA_NORTE"],
             },
         )
         # Subsequent edits should redirect to profile view
@@ -369,7 +369,7 @@ class BooksTest(BaseTestCase):
     def test_filter_by_location(self):
         """Test that book listings are filtered based on user's selected location areas."""
         # Register 4 users, each in a different location with one book
-        locations = ["CABA", "GBA_NORTE", "GBA_OESTE", "GBA_SUR"]
+        locations = ["CABA_CENTRO", "GBA_NORTE", "GBA_OESTE", "GBA_SUR"]
         for i, location in enumerate(locations):
             username = f"user{i + 1}"
             email = f"user{i + 1}@example.com"
@@ -392,12 +392,12 @@ class BooksTest(BaseTestCase):
             {
                 "first_name": "User Five",
                 "email": "user5@example.com",
-                "locations": ["CABA", "GBA_NORTE", "GBA_OESTE", "GBA_SUR"],
+                "locations": ["CABA_CENTRO", "GBA_NORTE", "GBA_OESTE", "GBA_SUR"],
             },
         )
 
         response = self.client.get(reverse("home"))
-        self.assertContains(response, "Book CABA")
+        self.assertContains(response, "Book CABA_CENTRO")
         self.assertContains(response, "Book GBA_NORTE")
         self.assertContains(response, "Book GBA_OESTE")
         self.assertContains(response, "Book GBA_SUR")
@@ -408,12 +408,12 @@ class BooksTest(BaseTestCase):
             {
                 "first_name": "User Five",
                 "email": "user5@example.com",
-                "locations": ["CABA", "GBA_NORTE"],
+                "locations": ["CABA_CENTRO", "GBA_NORTE"],
             },
         )
 
         response = self.client.get(reverse("home"))
-        self.assertContains(response, "Book CABA")
+        self.assertContains(response, "Book CABA_CENTRO")
         self.assertContains(response, "Book GBA_NORTE")
         self.assertNotContains(response, "Book GBA_OESTE")
         self.assertNotContains(response, "Book GBA_SUR")
