@@ -7,8 +7,8 @@ It should be referenced in the systemd service file with --config flag.
 
 import multiprocessing
 
-# Bind to unix socket (systemd will create it)
-bind = "unix:/run/gunicorn.sock"
+# Bind to unix socket (systemd creates /run/gunicorn/ directory)
+bind = "unix:/run/gunicorn/gunicorn.sock"
 
 # Worker processes
 workers = multiprocessing.cpu_count() * 2 + 1
