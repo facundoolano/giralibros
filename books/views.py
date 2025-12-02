@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMultiAlternatives
+from django.core.paginator import Paginator
 from django.db import transaction
 from django.forms import modelformset_factory
 from django.http import JsonResponse
@@ -153,7 +154,13 @@ def logout(request):
 
 @login_required
 def list_books(request):
-    """TODO document"""
+    """
+    List books with pagination support for infinite scroll.
+
+    Handles both regular page loads and AJAX requests for pagination.
+    AJAX requests (detected via X-Requested-With header) return JSON
+    with HTML fragment and pagination metadata.
+    """
 
     # Redirect to profile completion if user hasn't set up their profile
     if not hasattr(request.user, "profile"):
@@ -175,14 +182,41 @@ def list_books(request):
             offered_books, request.user
         )
 
+    # Paginate results
+    page_size = getattr(settings, "BOOKS_PER_PAGE", 20)
+    paginator = Paginator(offered_books, page_size)
+    page_number = request.GET.get("page", 1)
+    page_obj = paginator.get_page(page_number)
+
+    # Handle AJAX requests for infinite scroll
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    if is_ajax:
+        html = render_to_string(
+            "_book_list.html",
+            {
+                "offered_books": page_obj,
+                "user": request.user,
+            },
+            request=request,
+        )
+        return JsonResponse(
+            {
+                "html": html,
+                "has_next": page_obj.has_next(),
+                "next_page": page_obj.next_page_number() if page_obj.has_next() else None,
+            }
+        )
+
+    # Regular page load
     return render(
         request,
         "home.html",
         {
-            "offered_books": offered_books,
+            "offered_books": page_obj,
             "user": request.user,
             "filter_wanted": filter_wanted,
             "search_query": search_query,
+            "has_next": page_obj.has_next(),
         },
     )
 

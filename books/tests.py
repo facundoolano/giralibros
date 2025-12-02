@@ -812,3 +812,234 @@ class BooksTest(BaseTestCase):
 
         url = reverse("my_wanted") if wanted else reverse("my_offered")
         self.client.post(url, form_data)
+
+
+class BooksPaginationTest(BaseTestCase):
+    def test_pagination_limits_results(self):
+        """Test that book listing is paginated at 20 items per page."""
+        # Register user1 with 25 books
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
+        books = [(f"Book {i}", f"Author {i}") for i in range(25)]
+        self.add_books(books)
+        self.client.logout()
+
+        # Register user2 to view the books
+        self.register_and_verify_user(
+            username="user2", email="user2@example.com", fill_profile=True
+        )
+
+        # First page should show exactly 20 books
+        response = self.client.get(reverse("home"))
+        self.assertEqual(response.status_code, 200)
+        offered_books = response.context["offered_books"]
+        self.assertEqual(len(offered_books), 20)
+
+        # Should indicate more pages available
+        self.assertTrue(response.context["has_next"])
+
+        # Verify first page shows books 0-19 (most recent first)
+        self.assertContains(response, "Book 24")  # Most recent
+        self.assertContains(response, "Book 5")   # 20th book
+        self.assertNotContains(response, "Book 4")  # Should be on page 2
+
+    def test_pagination_second_page(self):
+        """Test that second page shows remaining books."""
+        # Register user1 with 25 books
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
+        books = [(f"Book {i}", f"Author {i}") for i in range(25)]
+        self.add_books(books)
+        self.client.logout()
+
+        # Register user2 to view the books
+        self.register_and_verify_user(
+            username="user2", email="user2@example.com", fill_profile=True
+        )
+
+        # Second page should show remaining 5 books
+        response = self.client.get(reverse("home"), {"page": 2})
+        self.assertEqual(response.status_code, 200)
+        offered_books = response.context["offered_books"]
+        self.assertEqual(len(offered_books), 5)
+
+        # Should indicate no more pages
+        self.assertFalse(response.context["has_next"])
+
+        # Verify second page shows books 0-4
+        self.assertContains(response, "Book 4")
+        self.assertContains(response, "Book 0")
+        self.assertNotContains(response, "Book 5")  # Was on page 1
+
+    def test_pagination_ajax_response(self):
+        """Test that AJAX requests return JSON with HTML and pagination metadata."""
+        # Setup: user1 with 25 books
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
+        books = [(f"Book {i}", f"Author {i}") for i in range(25)]
+        self.add_books(books)
+        self.client.logout()
+
+        # user2 views page 2 via AJAX
+        self.register_and_verify_user(
+            username="user2", email="user2@example.com", fill_profile=True
+        )
+
+        response = self.client.get(
+            reverse("home") + "?page=2",
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/json")
+
+        data = response.json()
+        self.assertIn("html", data)
+        self.assertIn("has_next", data)
+        self.assertIn("next_page", data)
+
+        # Page 2 should show remaining 5 books, no next page
+        self.assertFalse(data["has_next"])
+        self.assertIsNone(data["next_page"])
+
+        # HTML should contain the book content
+        self.assertIn("Book 4", data["html"])
+        self.assertIn("Book 0", data["html"])
+
+    def test_pagination_ajax_first_page(self):
+        """Test that AJAX request for first page returns correct pagination metadata."""
+        # Setup: user1 with 25 books
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
+        books = [(f"Book {i}", f"Author {i}") for i in range(25)]
+        self.add_books(books)
+        self.client.logout()
+
+        # user2 views page 1 via AJAX
+        self.register_and_verify_user(
+            username="user2", email="user2@example.com", fill_profile=True
+        )
+
+        response = self.client.get(
+            reverse("home") + "?page=1",
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+
+        # Page 1 should have 20 books and indicate next page
+        self.assertTrue(data["has_next"])
+        self.assertEqual(data["next_page"], 2)
+
+    def test_pagination_with_search(self):
+        """Test that pagination works correctly with search filters."""
+        # Register user1 with 25 books by same author
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
+        books = [(f"Book {i}", "Julio Cortázar") for i in range(25)]
+        self.add_books(books)
+        self.client.logout()
+
+        # Register user2 to search
+        self.register_and_verify_user(
+            username="user2", email="user2@example.com", fill_profile=True
+        )
+
+        # Search for author - should get paginated results
+        response = self.client.get(reverse("home"), {"search": "Cortázar"})
+        self.assertEqual(response.status_code, 200)
+        offered_books = response.context["offered_books"]
+        self.assertEqual(len(offered_books), 20)
+        self.assertTrue(response.context["has_next"])
+
+        # Second page of search results
+        response = self.client.get(reverse("home"), {"search": "Cortázar", "page": 2})
+        self.assertEqual(response.status_code, 200)
+        offered_books = response.context["offered_books"]
+        self.assertEqual(len(offered_books), 5)
+        self.assertFalse(response.context["has_next"])
+
+    def test_pagination_with_wanted_filter(self):
+        """Test that pagination works correctly with wanted books filter."""
+        # Register user1 with 25 books
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
+        books = [(f"Book {i}", f"Author {i}") for i in range(25)]
+        self.add_books(books)
+        self.client.logout()
+
+        # Register user2 with all 25 books as wanted
+        self.register_and_verify_user(
+            username="user2", email="user2@example.com", fill_profile=True
+        )
+        self.add_books([("Dummy", "Dummy")])  # Need at least one offered book
+        wanted_books = [(f"Book {i}", f"Author {i}") for i in range(25)]
+        self.add_books(wanted_books, wanted=True)
+
+        # Filter by wanted books - should get paginated results
+        response = self.client.get(reverse("home"), {"wanted": ""})
+        self.assertEqual(response.status_code, 200)
+        offered_books = response.context["offered_books"]
+        self.assertEqual(len(offered_books), 20)
+        self.assertTrue(response.context["has_next"])
+
+        # Second page of wanted filter
+        response = self.client.get(reverse("home"), {"wanted": "", "page": 2})
+        self.assertEqual(response.status_code, 200)
+        offered_books = response.context["offered_books"]
+        self.assertEqual(len(offered_books), 5)
+        self.assertFalse(response.context["has_next"])
+
+    def test_pagination_invalid_page(self):
+        """Test that invalid page numbers are handled gracefully."""
+        # Register user1 with 5 books
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
+        books = [(f"Book {i}", f"Author {i}") for i in range(5)]
+        self.add_books(books)
+        self.client.logout()
+
+        # Register user2 to view the books
+        self.register_and_verify_user(
+            username="user2", email="user2@example.com", fill_profile=True
+        )
+
+        # Request page 999 - should return last page (Django's get_page behavior)
+        response = self.client.get(reverse("home"), {"page": 999})
+        self.assertEqual(response.status_code, 200)
+        offered_books = response.context["offered_books"]
+        self.assertEqual(len(offered_books), 5)
+        self.assertFalse(response.context["has_next"])
+
+        # Request page 0 - should return first page
+        response = self.client.get(reverse("home"), {"page": 0})
+        self.assertEqual(response.status_code, 200)
+        offered_books = response.context["offered_books"]
+        self.assertEqual(len(offered_books), 5)
+
+    def add_books(self, books, wanted=False):
+        """
+        Add books for the currently logged-in user.
+
+        Args:
+            books: List of (title, author) tuples
+            wanted: If True, adds wanted books; otherwise adds offered books
+        """
+        form_data = {
+            "form-TOTAL_FORMS": str(len(books)),
+            "form-INITIAL_FORMS": "0",
+        }
+        for i, (title, author) in enumerate(books):
+            form_data[f"form-{i}-title"] = title
+            form_data[f"form-{i}-author"] = author
+
+        url = reverse("my_wanted") if wanted else reverse("my_offered")
+        self.client.post(url, form_data)
