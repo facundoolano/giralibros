@@ -37,10 +37,10 @@
                         </form>
                     </div>
                     <a class="navbar-item is-hidden-desktop" href="{% url 'profile' username=request.user.username %}">
-                        Mi perfil
+                        Ver mi perfil
                     </a>
                     <a class="navbar-item is-hidden-desktop" href="{% url 'my_offered' %}">
-                        Mis libros
+                        Mis libros ofrecidos
                     </a>
                     <a class="navbar-item is-hidden-desktop" href="{% url 'logout' %}">
                         Cerrar sesión
@@ -56,10 +56,10 @@
                         </a>
                         <div class="navbar-dropdown">
                             <a class="navbar-item" href="{% url 'profile' username=request.user.username %}">
-                                Mi perfil
+                                Ver mi perfil
                             </a>
                             <a class="navbar-item" href="{% url 'my_offered' %}">
-                                Mis libros
+                                Mis libros ofrecidos
                             </a>
                             <hr class="navbar-divider">
                             <a class="navbar-item" href="{% url 'logout' %}">

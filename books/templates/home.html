@@ -21,6 +21,11 @@
   {% for location in user.locations.all %}
   <span class="tag is-light mr-1">{{ location.get_area_display }}</span>
   {% endfor %}
+  {% if user.wanted.exists %}
+  <div class="mt-2">
+    <a href="{% url 'home' %}?wanted">Buscar mis libros deseados</a>
+  </div>
+  {% endif %}
   {% endif %}
 </div>
 
