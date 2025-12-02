@@ -1,5 +1,5 @@
 """
-Development settings for cambiolibros project.
+Development settings for giralibros project.
 
 These settings are used for local development.
 """

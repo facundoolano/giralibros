@@ -1,5 +1,5 @@
 """
-Base settings for cambiolibros project.
+Base settings for giralibros project.
 
 These settings are common across all environments (development, test, production).
 Environment-specific overrides should be placed in the respective settings modules.
@@ -40,7 +40,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "cambiolibros.urls"
+ROOT_URLCONF = "giralibros.urls"
 
 TEMPLATES = [
     {
@@ -58,7 +58,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "cambiolibros.wsgi.application"
+WSGI_APPLICATION = "giralibros.wsgi.application"
 
 
 # Database
@@ -139,5 +139,5 @@ BOOKS_PER_PAGE = 20  # Number of books to display per page in infinite scroll
 
 # Email settings (common across all environments)
 # The EMAIL_BACKEND will be overridden in environment-specific settings
-DEFAULT_FROM_EMAIL = "noreply@cambiolibros.com"
-SERVER_EMAIL = "server@cambiolibros.com"
+DEFAULT_FROM_EMAIL = "noreply@giralibros.com"
+SERVER_EMAIL = "server@giralibros.com"

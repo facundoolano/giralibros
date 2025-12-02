@@ -1,5 +1,5 @@
 [project]
-name = "cambiolibros"
+name = "giralibros"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -14,4 +14,4 @@ dev = [
 ]
 
 [mypy.plugins.django-stubs]
-django_settings_module = "cambiolibros.settings.development"
+django_settings_module = "giralibros.settings.development"
