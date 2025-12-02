@@ -31,24 +31,28 @@
           <div
             class="is-flex is-justify-content-space-between is-align-items-center"
           >
-            <div class="is-size-6">
-              <span class="has-text-grey timeago-tooltip is-hidden-mobile" style="white-space: nowrap; margin-right: 0.5rem;" data-timestamp="{{ book.created_at|date:'c' }}">
+            <div class="is-size-6 book-meta">
+              <span class="has-text-grey timeago-tooltip" style="white-space: nowrap; margin-right: 0.5rem;" data-timestamp="{{ book.created_at|date:'c' }}">
                 <span class="icon is-small">
                   <i class="fas fa-clock"></i>
                 </span>
                 <span>{{ book.created_at|timeago }}</span>
               </span>
-              <a href="{% url 'profile' username=book.user.username %}" class="has-text-grey" title="Ver el perfil de {{ book.user.username }}">
-                <span class="icon is-small">
-                  <i class="fas fa-user"></i>
-                </span>
-              </a>
-              <a href="{% url 'profile' username=book.user.username %}" class="mr-2" title="Ver el perfil de {{ book.user.username }}">{{ book.user.username }}</a>
-              {% for location in book.user.locations.all %}
-              <span class="tag is-light mr-1"
-                >{{ location.get_area_display }}</span
-              >
-              {% endfor %}
+              <span class="user-info">
+                <a href="{% url 'profile' username=book.user.username %}" class="has-text-grey" title="Ver el perfil de {{ book.user.username }}">
+                  <span class="icon is-small">
+                    <i class="fas fa-user"></i>
+                  </span>
+                </a>
+                <a href="{% url 'profile' username=book.user.username %}" class="mr-2" title="Ver el perfil de {{ book.user.username }}">{{ book.user.username }}</a>
+              </span>
+              <span class="location-tags">
+                {% for location in book.user.locations.all %}
+                <span class="tag is-light mr-1"
+                  >{{ location.get_area_display }}</span
+                >
+                {% endfor %}
+              </span>
             </div>
           </div>
         </div>
