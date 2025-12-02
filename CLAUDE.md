@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Cambiolibros is a Django-based book exchange platform where users can offer books for exchange and request books from other users. The system includes location-based filtering (focused on Buenos Aires areas) and manages exchange requests between users.
+Giralibros is a Django-based book exchange platform where users can offer books for exchange and request books from other users. The system includes location-based filtering (focused on Buenos Aires areas) and manages exchange requests between users.
 
 ## Development Commands
 
@@ -84,7 +84,7 @@ Users can have multiple locations via UserLocation ForeignKey relationship, affe
 ## Project Structure
 
 ```
-cambiolibros/          # Django project configuration
+giralibros/            # Django project configuration
   settings.py          # Django settings (SQLite database, installed apps)
   urls.py             # URL routing (currently only admin)
 
@@ -102,7 +102,7 @@ books/                 # Main application
 - **Database**: SQLite (db.sqlite3)
 - **Python Version**: >= 3.14
 - **Django Version**: >= 4.2.26
-- **Settings Module**: cambiolibros.settings
+- **Settings Module**: giralibros.settings
 - **Installed Apps**: Standard Django apps + 'books'
 - **Admin Interface**: Enabled at /admin/
 
@@ -111,7 +111,7 @@ books/                 # Main application
 The project uses django-stubs for type checking. Configuration in pyproject.toml:
 ```toml
 [mypy.plugins.django-stubs]
-django_settings_module = "cambiolibros.settings"
+django_settings_module = "giralibros.settings"
 ```
 
 ## Testing Philosophy
