@@ -9,6 +9,8 @@ import os
 
 from .base import *  # noqa: F403, F401
 
+STATIC_ROOT = os.environ.get("STATIC_ROOT", "/var/www/giralibros/static")
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 if not SECRET_KEY:
