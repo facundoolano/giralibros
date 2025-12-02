@@ -20,6 +20,10 @@ DEBUG = False
 # Allow specific hosts in production
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",")
 
+# Feature flags
+# Disable registration by default in production (can be enabled via env var)
+REGISTRATION_ENABLED = os.environ.get("REGISTRATION_ENABLED", "False") == "True"
+
 # Email backend - SMTP for production
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 

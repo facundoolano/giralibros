@@ -137,6 +137,9 @@ EXCHANGE_REQUEST_DAILY_LIMIT = 25  # Maximum exchange requests a user can send i
 # Pagination
 BOOKS_PER_PAGE = 20  # Number of books to display per page in infinite scroll
 
+# Feature flags
+REGISTRATION_ENABLED = True  # Allow new user registrations
+
 # Email settings (common across all environments)
 # The EMAIL_BACKEND will be overridden in environment-specific settings
 DEFAULT_FROM_EMAIL = "noreply@giralibros.com"

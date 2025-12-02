@@ -40,7 +40,6 @@ def login(request):
         return redirect("home")
 
     login_form = EmailOrUsernameAuthenticationForm(request, data=request.POST or None)
-    register_form = RegistrationForm()
 
     if request.method == "POST":
         if login_form.is_valid():
@@ -49,14 +48,15 @@ def login(request):
             next_url = request.GET.get("next", "home")
             return redirect(next_url)
 
-    return render(
-        request,
-        "login.html",
-        {
-            "login_form": login_form,
-            "register_form": register_form,
-        },
-    )
+    context = {
+        "login_form": login_form,
+    }
+
+    # Only include registration form if registration is enabled
+    if settings.REGISTRATION_ENABLED:
+        context["register_form"] = RegistrationForm()
+
+    return render(request, "login.html", context)
 
 
 def register(request):
@@ -66,6 +66,9 @@ def register(request):
     Creates an inactive user and sends an email verification link.
     The user must click the verification link to activate their account.
     """
+    if not settings.REGISTRATION_ENABLED:
+        return redirect("login")
+
     if request.user.is_authenticated:
         return redirect("home")
 
@@ -126,6 +129,9 @@ def verify_email(request, uidb64, token):
     Verify user's email address using the token sent via email.
     On success, activate the user and log them in.
     """
+    if not settings.REGISTRATION_ENABLED:
+        return redirect("login")
+
     try:
         # Decode the user ID
         uid = force_str(urlsafe_base64_decode(uidb64))
