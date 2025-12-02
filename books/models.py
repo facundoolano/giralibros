@@ -26,7 +26,9 @@ class UserProfile(models.Model):
 
 
 class LocationArea(models.TextChoices):
-    CABA = "CABA", "CABA"
+    CABA_CENTRO = "CABA_CENTRO", "CABA Centro"
+    CABA_SUR = "CABA_SUR", "CABA Sur"
+    CABA_NORTE = "CABA_NORTE", "CABA Norte"
     GBA_NORTE = "GBA_NORTE", "GBA Norte"
     GBA_OESTE = "GBA_OESTE", "GBA Oeste"
     GBA_SUR = "GBA_SUR", "GBA Sur"

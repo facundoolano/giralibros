@@ -19,31 +19,31 @@
       <div class="field">
         <label class="label">Ubicación <span class="has-text-danger">*</span></label>
         <div class="control">
-          <div class="field is-grouped is-grouped-multiline">
-            <div class="control">
-              <label class="tag is-medium is-light location-tag" style="cursor: pointer">
-                <input type="checkbox" name="locations" value="CABA" {% if 'CABA' in form.locations.value|default:'' %}checked{% endif %} style="margin-right: 0.5rem" />
-                CABA
-              </label>
-            </div>
-            <div class="control">
-              <label class="tag is-medium is-light location-tag" style="cursor: pointer">
-                <input type="checkbox" name="locations" value="GBA_NORTE" {% if 'GBA_NORTE' in form.locations.value|default:'' %}checked{% endif %} style="margin-right: 0.5rem" />
-                GBA Norte
-              </label>
-            </div>
-            <div class="control">
-              <label class="tag is-medium is-light location-tag" style="cursor: pointer">
-                <input type="checkbox" name="locations" value="GBA_OESTE" {% if 'GBA_OESTE' in form.locations.value|default:'' %}checked{% endif %} style="margin-right: 0.5rem" />
-                GBA Oeste
-              </label>
-            </div>
-            <div class="control">
-              <label class="tag is-medium is-light location-tag" style="cursor: pointer">
-                <input type="checkbox" name="locations" value="GBA_SUR" {% if 'GBA_SUR' in form.locations.value|default:'' %}checked{% endif %} style="margin-right: 0.5rem" />
-                GBA Sur
-              </label>
-            </div>
+          <div class="location-grid">
+            <label class="tag is-medium is-light location-tag" style="cursor: pointer">
+              <input type="checkbox" name="locations" value="CABA_NORTE" {% if 'CABA_NORTE' in form.locations.value|default:'' %}checked{% endif %} style="margin-right: 0.5rem" />
+              CABA Norte
+            </label>
+            <label class="tag is-medium is-light location-tag" style="cursor: pointer">
+              <input type="checkbox" name="locations" value="CABA_CENTRO" {% if 'CABA_CENTRO' in form.locations.value|default:'' %}checked{% endif %} style="margin-right: 0.5rem" />
+              CABA Centro
+            </label>
+            <label class="tag is-medium is-light location-tag" style="cursor: pointer">
+              <input type="checkbox" name="locations" value="CABA_SUR" {% if 'CABA_SUR' in form.locations.value|default:'' %}checked{% endif %} style="margin-right: 0.5rem" />
+              CABA Sur
+            </label>
+            <label class="tag is-medium is-light location-tag" style="cursor: pointer">
+              <input type="checkbox" name="locations" value="GBA_NORTE" {% if 'GBA_NORTE' in form.locations.value|default:'' %}checked{% endif %} style="margin-right: 0.5rem" />
+              GBA Norte
+            </label>
+            <label class="tag is-medium is-light location-tag" style="cursor: pointer">
+              <input type="checkbox" name="locations" value="GBA_OESTE" {% if 'GBA_OESTE' in form.locations.value|default:'' %}checked{% endif %} style="margin-right: 0.5rem" />
+              GBA Oeste
+            </label>
+            <label class="tag is-medium is-light location-tag" style="cursor: pointer">
+              <input type="checkbox" name="locations" value="GBA_SUR" {% if 'GBA_SUR' in form.locations.value|default:'' %}checked{% endif %} style="margin-right: 0.5rem" />
+              GBA Sur
+            </label>
           </div>
         </div>
         {% if form.locations.errors %}
@@ -118,6 +118,16 @@
 </div>
 
 <style>
+  .location-grid {
+    display: grid;
+    gap: 0.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+  @media screen and (min-width: 769px) {
+    .location-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
   .location-tag {
     transition: all 0.15s;
   }
