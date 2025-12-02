@@ -8,7 +8,7 @@
         class="media-content"
         style="display: flex; flex-direction: column; min-height: 100px;"
       >
-        <div>
+        <div class="mb-4">
           <div class="is-flex is-justify-content-space-between is-align-items-center mb-1">
             <p class="is-size-5">
               <span class="icon is-small mr-2">
@@ -16,16 +16,13 @@
               </span>
               <strong>{{ book.title }}</strong>
             </p>
-            <p class="is-size-7 has-text-grey timeago-tooltip" style="white-space: nowrap; margin-left: 1rem;" data-timestamp="{{ book.created_at|date:'c' }}">
-              <span class="icon is-small">
-                <i class="fas fa-clock"></i>
-              </span>
-              <span>{{ book.created_at|timeago }}</span>
-            </p>
+            <div class="is-hidden-mobile">
+              {% include '_exchange_button.html' %}
+            </div>
           </div>
           <p class="mb-2 is-size-6"><a href="{% url 'home' %}?search={{ book.author|urlencode }}" class="has-text-grey-dark">{{ book.author }}</a></p>
           {% if book.notes %}
-          <p class="is-size-7 has-text-grey mb-2">
+          <p class="is-size-7 has-text-grey">
             Observaciones: {{ book.notes }}
           </p>
           {% endif %}
@@ -34,7 +31,13 @@
           <div
             class="is-flex is-justify-content-space-between is-align-items-center"
           >
-            <div>
+            <div class="is-size-6">
+              <span class="has-text-grey timeago-tooltip is-hidden-mobile" style="white-space: nowrap; margin-right: 0.5rem;" data-timestamp="{{ book.created_at|date:'c' }}">
+                <span class="icon is-small">
+                  <i class="fas fa-clock"></i>
+                </span>
+                <span>{{ book.created_at|timeago }}</span>
+              </span>
               <a href="{% url 'profile' username=book.user.username %}" class="has-text-grey">
                 <span class="icon is-small">
                   <i class="fas fa-user"></i>
@@ -47,16 +50,13 @@
               >
               {% endfor %}
             </div>
-            <div class="is-hidden-mobile">
-              {% include '_exchange_button.html' %}
-            </div>
           </div>
         </div>
       </div>
     </article>
   </div>
   <div class="card-content pt-0 is-hidden-tablet">
-    <div class="has-text-right">
+    <div class="has-text-centered">
       {% include '_exchange_button.html' %}
     </div>
   </div>
