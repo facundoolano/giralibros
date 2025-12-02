@@ -12,25 +12,6 @@ wheels = [
 ]
 
 [[package]]
-name = "cambiolibros"
-version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "django" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "django-stubs", extra = ["compatible-mypy"] },
-]
-
-[package.metadata]
-requires-dist = [{ name = "django", specifier = ">=4.2.26" }]
-
-[package.metadata.requires-dev]
-dev = [{ name = "django-stubs", extras = ["compatible-mypy"], specifier = ">=5.2.7" }]
-
-[[package]]
 name = "django"
 version = "5.2.8"
 source = { registry = "https://pypi.org/simple" }
@@ -76,6 +57,25 @@ sdist = { url = "https://files.pythonhosted.org/packages/9b/6f/a0bab0e6a7676ab3c
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f8/c9/60445606e26706d3fccadf3b80ee1a9f32c1012683ff2ada7580937b2da9/django_stubs_ext-5.2.7-py3-none-any.whl", hash = "sha256:0466a7132587d49c5bbe12082ac9824d117a0dedcad5d0ada75a6e0d3aca6f60", size = 9979, upload-time = "2025-10-08T08:00:37.499Z" },
 ]
+
+[[package]]
+name = "giralibros"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "django" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "django-stubs", extra = ["compatible-mypy"] },
+]
+
+[package.metadata]
+requires-dist = [{ name = "django", specifier = ">=4.2.26" }]
+
+[package.metadata.requires-dev]
+dev = [{ name = "django-stubs", extras = ["compatible-mypy"], specifier = ">=5.2.7" }]
 
 [[package]]
 name = "mypy"
