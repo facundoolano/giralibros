@@ -18,6 +18,10 @@
 
       <div class="field">
         <label class="label">Ubicación <span class="has-text-danger">*</span></label>
+        <p class="mb-3">
+          Seleccioná las zonas donde quieras hacer intercambios.
+          Te vamos a mostrar libros de esas zonas.
+        </p>
         <div class="control">
           <div class="location-grid">
             <label class="tag is-medium is-light location-tag" style="cursor: pointer">
@@ -49,10 +53,6 @@
         {% if form.locations.errors %}
           <p class="help is-danger">{{ form.locations.errors.0 }}</p>
         {% endif %}
-        <p>
-          Seleccioná las zonas donde quieras intercambiar libros.
-          Te vamos a mostrar libros de esas zonas.
-        </p>
       </div>
 
       <div class="box">
