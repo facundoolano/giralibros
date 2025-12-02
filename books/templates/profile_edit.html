@@ -22,8 +22,20 @@
           <div class="field is-grouped is-grouped-multiline">
             <div class="control">
               <label class="tag is-medium is-light location-tag" style="cursor: pointer">
-                <input type="checkbox" name="locations" value="CABA" {% if 'CABA' in form.locations.value|default:'' %}checked{% endif %} style="margin-right: 0.5rem" />
-                CABA
+                <input type="checkbox" name="locations" value="CABA_CENTRO" {% if 'CABA_CENTRO' in form.locations.value|default:'' %}checked{% endif %} style="margin-right: 0.5rem" />
+                CABA Centro
+              </label>
+            </div>
+            <div class="control">
+              <label class="tag is-medium is-light location-tag" style="cursor: pointer">
+                <input type="checkbox" name="locations" value="CABA_SUR" {% if 'CABA_SUR' in form.locations.value|default:'' %}checked{% endif %} style="margin-right: 0.5rem" />
+                CABA Sur
+              </label>
+            </div>
+            <div class="control">
+              <label class="tag is-medium is-light location-tag" style="cursor: pointer">
+                <input type="checkbox" name="locations" value="CABA_NORTE" {% if 'CABA_NORTE' in form.locations.value|default:'' %}checked{% endif %} style="margin-right: 0.5rem" />
+                CABA Norte
               </label>
             </div>
             <div class="control">
