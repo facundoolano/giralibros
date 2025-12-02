@@ -16,4 +16,4 @@ Podés contactar a {{ requester.first_name }}:
 Podés ver su perfil en {{ requester_profile_url }}
 
 --
-CambioLibros
+GiraLibros

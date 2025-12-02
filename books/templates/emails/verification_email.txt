@@ -1,12 +1,12 @@
 Hola {{ username }},
 
-Gracias por registrarte en CambioLibros.
+Gracias por registrarte en GiraLibros.
 
 Para completar tu registro, por favor hacé click en el siguiente enlace:
 
 {{ verification_url }}
 
-Si no te registraste en CambioLibros, podés ignorar este mensaje.
+Si no te registraste en GiraLibros, podés ignorar este mensaje.
 
 Saludos,
-El equipo de CambioLibros
+El equipo de GiraLibros
