@@ -141,5 +141,5 @@ REGISTRATION_ENABLED = True  # Allow new user registrations
 
 # Email settings (common across all environments)
 # The EMAIL_BACKEND will be overridden in environment-specific settings
-DEFAULT_FROM_EMAIL = "noreply@giralibros.com"
+DEFAULT_FROM_EMAIL = "GiraLibros <noreply@giralibros.com>"
 SERVER_EMAIL = "server@giralibros.com"
