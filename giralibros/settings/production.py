@@ -30,12 +30,11 @@ REGISTRATION_ENABLED = os.environ.get("REGISTRATION_ENABLED", "False") == "True"
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 # SMTP settings (to be configured when setting up email service)
-# Uncomment and configure these when ready to set up the email service:
-# EMAIL_HOST = os.environ.get("EMAIL_HOST")
-# EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
-# EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True") == "True"
-# EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
-# EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+EMAIL_HOST = os.environ.get("EMAIL_HOST")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True") == "True"
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 
 # Security settings for production
 SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "True") == "True"
