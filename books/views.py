@@ -48,15 +48,14 @@ def login(request):
             next_url = request.GET.get("next", "home")
             return redirect(next_url)
 
-    context = {
-        "login_form": login_form,
-    }
-
-    # Only include registration form if registration is enabled
-    if settings.REGISTRATION_ENABLED:
-        context["register_form"] = RegistrationForm()
-
-    return render(request, "login.html", context)
+    return render(
+        request,
+        "login.html",
+        {
+            "login_form": login_form,
+            "registration_enabled": settings.REGISTRATION_ENABLED,
+        },
+    )
 
 
 def register(request):
@@ -109,19 +108,10 @@ def register(request):
                     "email": user.email,
                 },
             )
-        else:
-            # If form is invalid, re-render login page with errors
-            login_form = EmailOrUsernameAuthenticationForm(request)
-            return render(
-                request,
-                "login.html",
-                {
-                    "login_form": login_form,
-                    "register_form": form,
-                },
-            )
+    else:
+        form = RegistrationForm()
 
-    return redirect("login")
+    return render(request, "register.html", {"form": form})
 
 
 def verify_email(request, uidb64, token):
@@ -155,6 +145,8 @@ def verify_email(request, uidb64, token):
 
 def logout(request):
     auth_logout(request)
+    if settings.REGISTRATION_ENABLED:
+        return redirect("register")
     return redirect("login")
 
 

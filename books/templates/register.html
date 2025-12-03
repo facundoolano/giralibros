@@ -30,14 +30,14 @@
     </div>
     <div class="columns is-centered">
       <div class="column is-5-tablet is-4-desktop is-3-widescreen">
-        {% if login_form.non_field_errors %}
+        {% if form.non_field_errors %}
         <div class="notification is-danger is-light">
-          {{ login_form.non_field_errors }}
+          {{ form.non_field_errors }}
         </div>
         {% endif %}
 
-        <form method="post" action="{% url 'login' %}">
-          {% csrf_token %} {% for field in login_form %}
+        <form method="post" action="{% url 'register' %}">
+          {% csrf_token %} {% for field in form %}
           <div class="field">
             <label class="label">{{ field.label }}</label>
             <div class="control">{{ field }}</div>
@@ -54,7 +54,7 @@
                 type="submit"
                 disabled
               >
-                Iniciar sesión
+                Registrarse
               </button>
             </div>
           </div>
@@ -63,13 +63,8 @@
         <hr class="my-5" />
 
         <div class="has-text-centered">
-          {% if registration_enabled %}
-          <p class="is-size-6 has-text-grey mb-2">
-            ¿No tenés cuenta? <a href="{% url 'register' %}">Registrate acá</a>
-          </p>
-          {% endif %}
           <p class="is-size-6 has-text-grey">
-            ¿Te olvidaste la contraseña? <a href="#">Recuperala</a>
+            ¿Ya estás registrado? <a href="{% url 'login' %}">Iniciá sesión</a>
           </p>
         </div>
       </div>

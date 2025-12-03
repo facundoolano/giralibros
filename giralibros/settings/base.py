@@ -126,9 +126,8 @@ AUTHENTICATION_BACKENDS = [
     "books.backends.EmailOrUsernameBackend",
 ]
 
-LOGIN_URL = "login"
+LOGIN_URL = "register"
 LOGIN_REDIRECT_URL = "home"
-LOGOUT_REDIRECT_URL = "login"
 
 # Exchange requests
 EXCHANGE_REQUEST_EXPIRY_DAYS = 15  # Days after which an exchange request can be retried
