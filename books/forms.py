@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth import password_validation
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 
@@ -61,6 +62,15 @@ class RegistrationForm(forms.ModelForm):
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError('Este email ya está registrado')
         return email
+
+    def clean_password(self):
+        password = self.cleaned_data.get('password')
+        if password:
+            # Validate password using Django's configured validators
+            # This will use AUTH_PASSWORD_VALIDATORS from settings
+            # (which is empty in dev/test but enforced in production)
+            password_validation.validate_password(password, self.instance)
+        return password
 
     def save(self, commit=True):
         user = super().save(commit=False)

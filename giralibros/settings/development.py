@@ -15,5 +15,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# Disable password validators in development for easier testing
+AUTH_PASSWORD_VALIDATORS = []
+
 # Email backend - prints emails to console
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

@@ -260,6 +260,50 @@ class UserTest(BaseTestCase):
         self.assertEqual(response.status_code, 200)  # Stays on form
         self.assertContains(response, "Este email ya está registrado")  # Error message
 
+    def test_register_weak_password_fails(self):
+        """Test that registration enforces strong password requirements."""
+        # Try to register with password that's too short
+        response = self.client.post(
+            reverse("register"),
+            {
+                "username": "testuser",
+                "email": "test@example.com",
+                "password": "short",
+            },
+        )
+        self.assertEqual(response.status_code, 200)  # Stays on form
+        self.assertContains(
+            response, "La contraseña es demasiado corta"
+        )  # Error message
+
+        # Try to register with all-numeric password
+        response = self.client.post(
+            reverse("register"),
+            {
+                "username": "testuser2",
+                "email": "test2@example.com",
+                "password": "12345678",
+            },
+        )
+        self.assertEqual(response.status_code, 200)  # Stays on form
+        self.assertContains(
+            response, "La contraseña está formada completamente por dígitos"
+        )  # Error message
+
+        # Try to register with common password
+        response = self.client.post(
+            reverse("register"),
+            {
+                "username": "testuser3",
+                "email": "test3@example.com",
+                "password": "password",
+            },
+        )
+        self.assertEqual(response.status_code, 200)  # Stays on form
+        self.assertContains(
+            response, "La contraseña tiene un valor demasiado común"
+        )  # Error message
+
     def test_home_redirects_on_no_profile(self):
         """Test that users without profile data are redirected to profile setup before accessing home."""
         self.register_and_verify_user()
