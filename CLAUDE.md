@@ -45,7 +45,7 @@ uv run python manage.py runserver
 ### Testing and Type Checking
 ```bash
 # Run tests
-uv run python manage.py test
+uv run python manage.py test --settings=giralibros.settings.test
 
 # Type checking with mypy (django-stubs configured)
 uv run mypy .

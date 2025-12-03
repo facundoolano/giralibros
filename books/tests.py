@@ -180,18 +180,18 @@ class UserTest(BaseTestCase):
         )  # Error message
 
     def test_logout_redirects(self):
-        """Test that logout redirects to login and clears authentication."""
+        """Test that logout redirects to register and clears authentication."""
         self.register_and_verify_user()
 
-        # Logout should redirect to login
+        # Logout should redirect to register
         response = self.client.post(reverse("logout"))
-        self.assertRedirects(response, reverse("login"))
+        self.assertRedirects(response, reverse("register"))
 
-        # Try to navigate to home, should redirect to login
+        # Try to navigate to home, should redirect to register
         response = self.client.get(reverse("home"))
         self.assertRedirects(
-            response, reverse("login") + "?next=/"
-        )  # Login with next parameter
+            response, reverse("register") + "?next=/"
+        )  # Register with next parameter
 
     def test_login_username(self):
         """Test that users can log in with either username or email."""
@@ -259,6 +259,50 @@ class UserTest(BaseTestCase):
         )
         self.assertEqual(response.status_code, 200)  # Stays on form
         self.assertContains(response, "Este email ya está registrado")  # Error message
+
+    def test_register_weak_password_fails(self):
+        """Test that registration enforces strong password requirements."""
+        # Try to register with password that's too short
+        response = self.client.post(
+            reverse("register"),
+            {
+                "username": "testuser",
+                "email": "test@example.com",
+                "password": "short",
+            },
+        )
+        self.assertEqual(response.status_code, 200)  # Stays on form
+        self.assertContains(
+            response, "La contraseña es demasiado corta"
+        )  # Error message
+
+        # Try to register with all-numeric password
+        response = self.client.post(
+            reverse("register"),
+            {
+                "username": "testuser2",
+                "email": "test2@example.com",
+                "password": "1111333777",
+            },
+        )
+        self.assertEqual(response.status_code, 200)  # Stays on form
+        self.assertContains(
+            response, "La contraseña está formada completamente por dígitos"
+        )  # Error message
+
+        # Try to register with common password
+        response = self.client.post(
+            reverse("register"),
+            {
+                "username": "testuser3",
+                "email": "test3@example.com",
+                "password": "password",
+            },
+        )
+        self.assertEqual(response.status_code, 200)  # Stays on form
+        self.assertContains(
+            response, "La contraseña tiene un valor demasiado común"
+        )  # Error message
 
     def test_home_redirects_on_no_profile(self):
         """Test that users without profile data are redirected to profile setup before accessing home."""
@@ -424,12 +468,14 @@ class BooksTest(BaseTestCase):
         self.register_and_verify_user(
             username="user1", email="user1@example.com", fill_profile=True
         )
-        self.add_books([
-            ("Rayuela", "Julio Cortázar"),
-            ("Bestiario", "Julio Cortázar"),
-            ("Ficciones", "Jorge Luis Borges"),
-            ("El Aleph", "Jorge Luis Borges"),
-        ])
+        self.add_books(
+            [
+                ("Rayuela", "Julio Cortázar"),
+                ("Bestiario", "Julio Cortázar"),
+                ("Ficciones", "Jorge Luis Borges"),
+                ("El Aleph", "Jorge Luis Borges"),
+            ]
+        )
         self.client.logout()
 
         # Register second user to make books searchable
@@ -476,12 +522,14 @@ class BooksTest(BaseTestCase):
         self.register_and_verify_user(
             username="user1", email="user1@example.com", fill_profile=True
         )
-        self.add_books([
-            ("Rayuela", "Julio Cortázar"),
-            ("Ficciones", "Jorge Luis Borges"),
-            ("El túnel", "Ernesto Sábato"),
-            ("Cien años de soledad", "Gabriel García Márquez"),
-        ])
+        self.add_books(
+            [
+                ("Rayuela", "Julio Cortázar"),
+                ("Ficciones", "Jorge Luis Borges"),
+                ("El túnel", "Ernesto Sábato"),
+                ("Cien años de soledad", "Gabriel García Márquez"),
+            ]
+        )
         self.client.logout()
 
         # Register second user with wanted books
@@ -491,10 +539,13 @@ class BooksTest(BaseTestCase):
         # Add offered book (needed to see other users' books)
         self.add_books([("Book B", "Author B")])
         # Add wanted books
-        self.add_books([
-            ("Rayuela", "Julio Cortázar"),
-            ("Ficciones", "Jorge Luis Borges"),
-        ], wanted=True)
+        self.add_books(
+            [
+                ("Rayuela", "Julio Cortázar"),
+                ("Ficciones", "Jorge Luis Borges"),
+            ],
+            wanted=True,
+        )
 
         # Filter by wanted books - should only show matching books
         response = self.client.get(reverse("home"), {"wanted": ""})
@@ -505,7 +556,9 @@ class BooksTest(BaseTestCase):
         self.assertNotContains(response, "Cien años de soledad")
 
         # Should handle accent variations (wanted without accent matches offered with accent)
-        self.add_books([("Cronica de una muerte anunciada", "Garcia Marquez")], wanted=True)
+        self.add_books(
+            [("Cronica de una muerte anunciada", "Garcia Marquez")], wanted=True
+        )
         response = self.client.get(reverse("home"), {"wanted": ""})
         # If user1 had this book with accents, it would match
 
@@ -841,7 +894,7 @@ class BooksPaginationTest(BaseTestCase):
 
         # Verify first page shows books 0-19 (most recent first)
         self.assertContains(response, "Book 24")  # Most recent
-        self.assertContains(response, "Book 5")   # 20th book
+        self.assertContains(response, "Book 5")  # 20th book
         self.assertNotContains(response, "Book 4")  # Should be on page 2
 
     def test_pagination_second_page(self):
@@ -889,8 +942,7 @@ class BooksPaginationTest(BaseTestCase):
         )
 
         response = self.client.get(
-            reverse("home") + "?page=2",
-            HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+            reverse("home") + "?page=2", HTTP_X_REQUESTED_WITH="XMLHttpRequest"
         )
 
         self.assertEqual(response.status_code, 200)
@@ -925,8 +977,7 @@ class BooksPaginationTest(BaseTestCase):
         )
 
         response = self.client.get(
-            reverse("home") + "?page=1",
-            HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+            reverse("home") + "?page=1", HTTP_X_REQUESTED_WITH="XMLHttpRequest"
         )
 
         self.assertEqual(response.status_code, 200)
