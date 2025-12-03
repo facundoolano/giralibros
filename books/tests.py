@@ -282,7 +282,7 @@ class UserTest(BaseTestCase):
             {
                 "username": "testuser2",
                 "email": "test2@example.com",
-                "password": "12345678",
+                "password": "1111333777",
             },
         )
         self.assertEqual(response.status_code, 200)  # Stays on form
@@ -468,12 +468,14 @@ class BooksTest(BaseTestCase):
         self.register_and_verify_user(
             username="user1", email="user1@example.com", fill_profile=True
         )
-        self.add_books([
-            ("Rayuela", "Julio Cortázar"),
-            ("Bestiario", "Julio Cortázar"),
-            ("Ficciones", "Jorge Luis Borges"),
-            ("El Aleph", "Jorge Luis Borges"),
-        ])
+        self.add_books(
+            [
+                ("Rayuela", "Julio Cortázar"),
+                ("Bestiario", "Julio Cortázar"),
+                ("Ficciones", "Jorge Luis Borges"),
+                ("El Aleph", "Jorge Luis Borges"),
+            ]
+        )
         self.client.logout()
 
         # Register second user to make books searchable
@@ -520,12 +522,14 @@ class BooksTest(BaseTestCase):
         self.register_and_verify_user(
             username="user1", email="user1@example.com", fill_profile=True
         )
-        self.add_books([
-            ("Rayuela", "Julio Cortázar"),
-            ("Ficciones", "Jorge Luis Borges"),
-            ("El túnel", "Ernesto Sábato"),
-            ("Cien años de soledad", "Gabriel García Márquez"),
-        ])
+        self.add_books(
+            [
+                ("Rayuela", "Julio Cortázar"),
+                ("Ficciones", "Jorge Luis Borges"),
+                ("El túnel", "Ernesto Sábato"),
+                ("Cien años de soledad", "Gabriel García Márquez"),
+            ]
+        )
         self.client.logout()
 
         # Register second user with wanted books
@@ -535,10 +539,13 @@ class BooksTest(BaseTestCase):
         # Add offered book (needed to see other users' books)
         self.add_books([("Book B", "Author B")])
         # Add wanted books
-        self.add_books([
-            ("Rayuela", "Julio Cortázar"),
-            ("Ficciones", "Jorge Luis Borges"),
-        ], wanted=True)
+        self.add_books(
+            [
+                ("Rayuela", "Julio Cortázar"),
+                ("Ficciones", "Jorge Luis Borges"),
+            ],
+            wanted=True,
+        )
 
         # Filter by wanted books - should only show matching books
         response = self.client.get(reverse("home"), {"wanted": ""})
@@ -549,7 +556,9 @@ class BooksTest(BaseTestCase):
         self.assertNotContains(response, "Cien años de soledad")
 
         # Should handle accent variations (wanted without accent matches offered with accent)
-        self.add_books([("Cronica de una muerte anunciada", "Garcia Marquez")], wanted=True)
+        self.add_books(
+            [("Cronica de una muerte anunciada", "Garcia Marquez")], wanted=True
+        )
         response = self.client.get(reverse("home"), {"wanted": ""})
         # If user1 had this book with accents, it would match
 
@@ -885,7 +894,7 @@ class BooksPaginationTest(BaseTestCase):
 
         # Verify first page shows books 0-19 (most recent first)
         self.assertContains(response, "Book 24")  # Most recent
-        self.assertContains(response, "Book 5")   # 20th book
+        self.assertContains(response, "Book 5")  # 20th book
         self.assertNotContains(response, "Book 4")  # Should be on page 2
 
     def test_pagination_second_page(self):
@@ -933,8 +942,7 @@ class BooksPaginationTest(BaseTestCase):
         )
 
         response = self.client.get(
-            reverse("home") + "?page=2",
-            HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+            reverse("home") + "?page=2", HTTP_X_REQUESTED_WITH="XMLHttpRequest"
         )
 
         self.assertEqual(response.status_code, 200)
@@ -969,8 +977,7 @@ class BooksPaginationTest(BaseTestCase):
         )
 
         response = self.client.get(
-            reverse("home") + "?page=1",
-            HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+            reverse("home") + "?page=1", HTTP_X_REQUESTED_WITH="XMLHttpRequest"
         )
 
         self.assertEqual(response.status_code, 200)
