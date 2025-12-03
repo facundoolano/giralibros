@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-    <h2>Nueva solicitud de intercambio</h2>
+    <p>¡Hola {{ book.user.first_name }}!</p>
 
-    <p>Hola {{ book.user.first_name }},</p>
-
-    <p>Tenés una nueva solicitud de intercambio para tu libro <strong>"{{ book.title }}"</strong> de {{ book.author }}!</p>
+    <p>{{ requester.first_name }} te envió una solicitud de intercambio para tu libro <strong>"{{ book.title }}"</strong> de {{ book.author }}.</p>
 
     <p>{{ requester.first_name }} está en {% for location in requester.locations.all %}{{ location.get_area_display }}{% if not forloop.last %}, {% endif %}{% endfor %} y ofrece estos libros:</p>
 
@@ -18,12 +16,11 @@
     {% endfor %}
     </ul>
 
-    <p>Podés contactar a {{ requester.first_name }}:</p>
+    <p>Ponete en contacto con {{ requester.first_name }} en {{ requester.profile.contact_email }}{% if requester.profile.alternate_contact %}o {{ requester.profile.alternate_contact }}<br>{% endif %}.
+    </p>
 
     <p>
-        {{ requester.profile.contact_email }}<br>
-        {% if requester.profile.alternate_contact %}{{ requester.profile.alternate_contact }}<br>{% endif %}
-        <a href="{{ requester_profile_url }}">Ver perfil de {{ requester.first_name }}</a>
+        <br><a href="{{ requester_profile_url }}">Ver el perfil de completo {{ requester.first_name }}</a>
     </p>
 
     <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">

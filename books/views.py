@@ -201,7 +201,9 @@ def list_books(request):
             {
                 "html": html,
                 "has_next": page_obj.has_next(),
-                "next_page": page_obj.next_page_number() if page_obj.has_next() else None,
+                "next_page": page_obj.next_page_number()
+                if page_obj.has_next()
+                else None,
             }
         )
 
@@ -420,7 +422,7 @@ def request_exchange(request, book_id):
 
             _send_templated_email(
                 to_email=book.user.profile.contact_email,
-                subject="📚🔄📚 ¡Tenés una solicitud en GiraLibros.com!",
+                subject="📚 ¡Tenés una solicitud en GiraLibros.com!",
                 template_name="emails/exchange_request",
                 context={
                     "requester": request.user,

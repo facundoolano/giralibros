@@ -1,6 +1,6 @@
-Hola {{ book.user.first_name }},
+¡Hola {{ book.user.first_name }}!
 
-Tenés una nueva solicitud de intercambio para tu libro "{{ book.title }}" de {{ book.author }}!
+{{ requester.first_name }} te envió una solicitud de intercambio para tu libro "{{ book.title }}" de {{ book.author }}.
 
 {{ requester.first_name }} está en {% for location in requester.locations.all %}{{ location.get_area_display }}{% if not forloop.last %}, {% endif %}{% endfor %} y ofrece estos libros:
 
@@ -8,12 +8,9 @@ Tenés una nueva solicitud de intercambio para tu libro "{{ book.title }}" de {{
 - "{{ requester_book.title }}" de {{ requester_book.author }}{% if requester_book.notes %} ({{ requester_book.notes }}){% endif %}
 {% endfor %}
 
-Podés contactar a {{ requester.first_name }}:
+Ponete en contacto con {{ requester.first_name }} en {{ requester.profile.contact_email }}{% if requester.profile.alternate_contact %}o {{ requester.profile.alternate_contact }}<br>{% endif %}.
 
-{{ requester.profile.contact_email }}
-{% if requester.profile.alternate_contact %}{{ requester.profile.alternate_contact }}
-{% endif %}
-Podés ver su perfil en {{ requester_profile_url }}
+Podés ver su perfil completo en {{ requester_profile_url }}
 
 --
 GiraLibros
