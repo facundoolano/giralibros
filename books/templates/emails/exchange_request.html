@@ -16,11 +16,11 @@
     {% endfor %}
     </ul>
 
-    <p>Ponete en contacto con {{ requester.first_name }} en {{ requester.profile.contact_email }}{% if requester.profile.alternate_contact %}o {{ requester.profile.alternate_contact }}<br>{% endif %}.
+    <p>Ponete en contacto con {{ requester.first_name }} en {{ requester.profile.contact_email }}{% if requester.profile.alternate_contact %}o {{ requester.profile.alternate_contact }}<br>{% endif %} para coordinar el intercambio.
     </p>
 
     <p>
-        <br><a href="{{ requester_profile_url }}">Ver el perfil de completo {{ requester.first_name }}</a>
+        <a href="{{ requester_profile_url }}">Ver el perfil de completo {{ requester.first_name }}</a>
     </p>
 
     <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
