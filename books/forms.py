@@ -78,6 +78,9 @@ class RegistrationForm(forms.ModelForm):
     def clean_password(self):
         password = self.cleaned_data.get("password")
         if password:
+            # FIXME this seems like it's manually doing validations that should be already
+            # provided by the django auth forms
+
             # Create a temporary user with submitted data for validation
             # This allows validators to check password similarity with username/email
             user = User(
