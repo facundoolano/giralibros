@@ -55,9 +55,25 @@ class BaseTestCase(DjangoTestCase):
         """
         Extract verification URL from email sent during registration.
         """
-        # Find the email sent to this address
+        return self._get_url_from_email(email, "/verify/")
+
+    def get_password_reset_url_from_email(self, email):
+        """
+        Extract password reset URL from email sent during password reset request.
+        """
+        return self._get_url_from_email(email, "/password-reset/")
+
+    def _get_url_from_email(self, email, url_pattern):
+        """
+        Extract URL containing a specific pattern from email body.
+
+        Args:
+            email: Email address to search for
+            url_pattern: URL pattern to find (e.g., "/verify/", "/password-reset/")
+        """
+        # Find the most recent email sent to this address
         sent_email = None
-        for email_msg in mail.outbox:
+        for email_msg in reversed(mail.outbox):
             if email in email_msg.to:
                 sent_email = email_msg
                 break
@@ -65,15 +81,14 @@ class BaseTestCase(DjangoTestCase):
         if not sent_email:
             raise AssertionError(f"No email found for {email}")
 
-        # Extract the verification URL from the email body
-        # The URL is in the format: http://testserver/verify/{uidb64}/{token}/
+        # Extract the URL from the email body
         email_body = sent_email.body
         lines = email_body.split("\n")
         for line in lines:
-            if "/verify/" in line:
+            if url_pattern in line:
                 return line.strip()
 
-        raise AssertionError("No verification URL found in email body")
+        raise AssertionError(f"No URL with pattern '{url_pattern}' found in email body")
 
 
 # Create your tests here.
@@ -163,6 +178,15 @@ class UserTest(BaseTestCase):
             },
         )
         self.assertEqual(response.status_code, 302)  # Redirects after successful login
+
+    def test_wrong_verification_code(self):
+        "Test that a registered user cannot log in after entering the wrong verification code."
+        # TODO implement
+        # register a user as in previous tests
+        # attempt a request to verify url with a formally correct verification code but not the the correct one
+        # the user is still logged out.
+        # attempt login, it doesn't work
+        pass
 
     def test_login_wrong_password(self):
         """Test that login fails with appropriate error message for wrong password."""
@@ -378,6 +402,174 @@ class UserTest(BaseTestCase):
         """Test that repeated registration attempts are rate-limited."""
         # TODO human to specify
         pass
+
+    def test_password_reset_login_with_new_password(self):
+        """Test that user can login after resetting password with new password."""
+        # Register and verify user
+        self.register_and_verify_user()
+        self.client.logout()
+
+        # Request password reset
+        response = self.client.post(
+            reverse("password_reset_request"),
+            {"email": "test@example.com"},
+        )
+        self.assertEqual(response.status_code, 200)  # Confirmation page
+
+        # Extract reset URL from email
+        reset_url = self.get_password_reset_url_from_email("test@example.com")
+
+        # Follow reset link and set new password
+        response = self.client.post(
+            reset_url,
+            {
+                "new_password1": "newpassword123",
+                "new_password2": "newpassword123",
+            },
+        )
+        self.assertEqual(response.status_code, 200)  # Password changed success page
+
+        # Try login with new password, should succeed
+        response = self.client.post(
+            reverse("login"),
+            {
+                "username": "testuser",
+                "password": "newpassword123",
+            },
+        )
+        self.assertEqual(response.status_code, 302)  # Redirects after successful login
+
+    def test_password_reset_old_password_invalid(self):
+        """Test that user can't login using old password after resetting."""
+        # Register and verify user
+        self.register_and_verify_user()
+        self.client.logout()
+
+        # Request password reset
+        response = self.client.post(
+            reverse("password_reset_request"),
+            {"email": "test@example.com"},
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # Extract reset URL from email
+        reset_url = self.get_password_reset_url_from_email("test@example.com")
+
+        # Follow reset link and set new password
+        response = self.client.post(
+            reset_url,
+            {
+                "new_password1": "newpassword123",
+                "new_password2": "newpassword123",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # Try login with old password, should fail
+        response = self.client.post(
+            reverse("login"),
+            {
+                "username": "testuser",
+                "password": "testpass123",  # Old password
+            },
+        )
+        self.assertEqual(response.status_code, 200)  # Stays on login page
+        self.assertContains(
+            response, "Por favor introduzca un nombre de usuario"
+        )  # Error message
+
+    def test_password_reset_invalid_token(self):
+        """Test that password is not reset if the token is not valid."""
+        # Register and verify user
+        self.register_and_verify_user()
+        self.client.logout()
+
+        # Request password reset
+        response = self.client.post(
+            reverse("password_reset_request"),
+            {"email": "test@example.com"},
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # Try to use an invalid token
+        invalid_url = "/password-reset/MQ/invalid-token-12345/"
+        response = self.client.get(invalid_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "inválido")  # Invalid token message
+
+        # Try to POST to invalid token, should also fail
+        response = self.client.post(
+            invalid_url,
+            {
+                "new_password1": "newpassword123",
+                "new_password2": "newpassword123",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "inválido")
+
+        # Old password should still work
+        response = self.client.post(
+            reverse("login"),
+            {
+                "username": "testuser",
+                "password": "testpass123",  # Old password
+            },
+        )
+        self.assertEqual(response.status_code, 302)  # Login succeeds
+
+    def test_password_reset_weak_password_fails(self):
+        """Test that password reset form enforces same validations as registration."""
+        # Register and verify user
+        self.register_and_verify_user()
+        self.client.logout()
+
+        # Request password reset
+        response = self.client.post(
+            reverse("password_reset_request"),
+            {"email": "test@example.com"},
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # Extract reset URL from email
+        reset_url = self.get_password_reset_url_from_email("test@example.com")
+
+        # Try to set password that's too short
+        response = self.client.post(
+            reset_url,
+            {
+                "new_password1": "short",
+                "new_password2": "short",
+            },
+        )
+        self.assertEqual(response.status_code, 200)  # Stays on form
+        self.assertContains(
+            response, "La contraseña es demasiado corta"
+        )  # Error message
+
+        # Try to set all-numeric password
+        response = self.client.post(
+            reset_url,
+            {
+                "new_password1": "1111333777",
+                "new_password2": "1111333777",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response, "La contraseña está formada completamente por dígitos"
+        )
+
+        # Try to set common password
+        response = self.client.post(
+            reset_url,
+            {
+                "new_password1": "password",
+                "new_password2": "password",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "La contraseña tiene un valor demasiado común")
 
 
 class BooksTest(BaseTestCase):
