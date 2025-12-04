@@ -180,13 +180,66 @@ class UserTest(BaseTestCase):
         self.assertEqual(response.status_code, 302)  # Redirects after successful login
 
     def test_wrong_verification_code(self):
-        "Test that a registered user cannot log in after entering the wrong verification code."
-        # TODO implement
-        # register a user as in previous tests
-        # attempt a request to verify url with a formally correct verification code but not the the correct one
-        # the user is still logged out.
-        # attempt login, it doesn't work
-        pass
+        """Test that a registered user cannot log in after entering the wrong verification code."""
+        # Register first user
+        response = self.client.post(
+            reverse("register"),
+            {
+                "username": "testuser",
+                "email": "test@example.com",
+                "password1": "testpass123",
+                "password2": "testpass123",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # Register second user
+        response = self.client.post(
+            reverse("register"),
+            {
+                "username": "testuser2",
+                "email": "test2@example.com",
+                "password1": "testpass456",
+                "password2": "testpass456",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # Get verification URLs from emails
+        verify_url_user1 = self.get_verification_url_from_email("test@example.com")
+        verify_url_user2 = self.get_verification_url_from_email("test2@example.com")
+
+        # Parse URLs to extract uidb64 and token
+        # URL format: http://testserver/verify/{uidb64}/{token}/
+        parts_user1 = verify_url_user1.rstrip("/").split("/")
+        uidb64_user1 = parts_user1[-2]
+        token_user1 = parts_user1[-1]
+
+        parts_user2 = verify_url_user2.rstrip("/").split("/")
+        uidb64_user2 = parts_user2[-2]
+        token_user2 = parts_user2[-1]
+
+        # Construct mismatched URL: user 1's uidb64 with user 2's token
+        wrong_verification_url = f"/verify/{uidb64_user1}/{token_user2}/"
+
+        # Try to verify with wrong token
+        response = self.client.get(wrong_verification_url)
+        self.assertEqual(response.status_code, 200)
+        # Should show verification failed page
+        self.assertContains(response, "inválido")  # Verification failed message
+
+        # Try to login, should fail because user is not verified
+        response = self.client.post(
+            reverse("login"),
+            {
+                "username": "testuser",
+                "password": "testpass123",
+            },
+        )
+        self.assertEqual(response.status_code, 200)  # Stays on login page
+        self.assertContains(
+            response, "Por favor introduzca un nombre de usuario"
+        )  # Login error message
 
     def test_login_wrong_password(self):
         """Test that login fails with appropriate error message for wrong password."""
