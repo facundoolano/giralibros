@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMultiAlternatives
@@ -20,6 +21,7 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from books.forms import (
     EmailOrUsernameAuthenticationForm,
     OfferedBookForm,
+    PasswordResetRequestForm,
     ProfileForm,
     RegistrationForm,
     WantedBookForm,
@@ -141,6 +143,100 @@ def verify_email(request, uidb64, token):
     else:
         # Invalid or expired token
         return render(request, "verification_failed.html")
+
+
+def password_reset_request(request):
+    """
+    Handle password reset request.
+
+    Displays a form to enter email address. If a user with that email exists,
+    sends a password reset link via email.
+    """
+    if request.user.is_authenticated:
+        return redirect("home")
+
+    if request.method == "POST":
+        form = PasswordResetRequestForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data["email"]
+
+            # Look up user by email
+            try:
+                user = User.objects.get(email=email)
+
+                # Generate password reset token and URL
+                token = default_token_generator.make_token(user)
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+                # Build absolute URL for password reset link
+                reset_path = reverse(
+                    "password_reset_confirm", kwargs={"uidb64": uid, "token": token}
+                )
+                reset_url = request.build_absolute_uri(reset_path)
+
+                # Send password reset email
+                _send_templated_email(
+                    to_email=user.email,
+                    subject="Reseteá tu contraseña en GiraLibros",
+                    template_name="emails/password_reset",
+                    context={
+                        "username": user.username,
+                        "reset_url": reset_url,
+                    },
+                )
+            except User.DoesNotExist:
+                # Don't reveal whether a user exists with this email
+                pass
+
+            # Always show confirmation page (security best practice)
+            return render(
+                request,
+                "password_reset_sent.html",
+                {"email": email},
+            )
+    else:
+        form = PasswordResetRequestForm()
+
+    return render(request, "password_reset_request.html", {"form": form})
+
+
+def password_reset_confirm(request, uidb64, token):
+    """
+    Validate password reset token and allow user to set new password.
+    """
+    if request.user.is_authenticated:
+        return redirect("home")
+
+    try:
+        # Decode the user ID
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        # Valid token - show password reset form
+        if request.method == "POST":
+            form = SetPasswordForm(user, request.POST)
+            if form.is_valid():
+                form.save()
+                # Password changed successfully, redirect to login
+                return render(request, "password_reset_complete.html")
+        else:
+            form = SetPasswordForm(user)
+
+        # Apply Bulma CSS classes to form fields
+        form.fields["new_password1"].widget.attrs.update(
+            {"class": "input", "placeholder": "••••••••"}
+        )
+        form.fields["new_password2"].widget.attrs.update(
+            {"class": "input", "placeholder": "••••••••"}
+        )
+
+        return render(request, "password_reset_confirm.html", {"form": form})
+    else:
+        # Invalid or expired token
+        return render(request, "password_reset_invalid.html")
 
 
 def logout(request):

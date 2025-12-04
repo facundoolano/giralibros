@@ -88,6 +88,22 @@ class RegistrationForm(UserCreationForm):
         return email
 
 
+class PasswordResetRequestForm(forms.Form):
+    """
+    Form for requesting a password reset via email.
+    """
+
+    email = forms.EmailField(
+        label="Email",
+        widget=forms.EmailInput(
+            attrs={
+                "class": "input",
+                "placeholder": "tu@email.com",
+            }
+        ),
+    )
+
+
 class ProfileForm(forms.Form):
     """
     Form for creating/editing user profile.
