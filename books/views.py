@@ -120,6 +120,9 @@ def verify_email(request, uidb64, token):
     """
     Verify user's email address using the token sent via email.
     On success, activate the user and log them in.
+
+    FIXME: Refactor to use Django's built-in views or mixins for token-based verification
+    instead of custom implementation.
     """
     if not settings.REGISTRATION_ENABLED:
         return redirect("login")
@@ -151,6 +154,9 @@ def password_reset_request(request):
 
     Displays a form to enter email address. If a user with that email exists,
     sends a password reset link via email.
+
+    FIXME: Refactor to use Django's built-in PasswordResetView instead of custom implementation.
+    This would provide better security, testing, and maintainability.
     """
     if request.user.is_authenticated:
         return redirect("home")
@@ -203,6 +209,9 @@ def password_reset_request(request):
 def password_reset_confirm(request, uidb64, token):
     """
     Validate password reset token and allow user to set new password.
+
+    FIXME: Refactor to use Django's built-in PasswordResetConfirmView instead of custom implementation.
+    This would provide better security, testing, and maintainability.
     """
     if request.user.is_authenticated:
         return redirect("home")
