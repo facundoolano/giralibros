@@ -30,7 +30,8 @@ class BaseTestCase(DjangoTestCase):
             {
                 "username": username,
                 "email": email,
-                "password": password,
+                "password1": password,
+                "password2": password,
             },
         )
         verify_url = self.get_verification_url_from_email(email)
@@ -98,7 +99,8 @@ class UserTest(BaseTestCase):
             {
                 "username": "testuser",
                 "email": "test@example.com",
-                "password": "testpass123",
+                "password1": "testpass123",
+                "password2": "testpass123",
             },
         )
         self.assertEqual(response.status_code, 200)
@@ -128,7 +130,8 @@ class UserTest(BaseTestCase):
             {
                 "username": "testuser",
                 "email": "test@example.com",
-                "password": "testpass123",
+                "password1": "testpass123",
+                "password2": "testpass123",
             },
         )
         self.assertEqual(response.status_code, 200)
@@ -229,7 +232,8 @@ class UserTest(BaseTestCase):
             {
                 "username": "testuser",
                 "email": "test@example.com",
-                "password": "testpass123",
+                "password1": "testpass123",
+                "password2": "testpass123",
             },
         )
         self.assertEqual(response.status_code, 200)
@@ -240,7 +244,8 @@ class UserTest(BaseTestCase):
             {
                 "username": "testuser",
                 "email": "different@example.com",
-                "password": "testpass123",
+                "password1": "testpass123",
+                "password2": "testpass123",
             },
         )
         self.assertEqual(response.status_code, 200)  # Stays on form
@@ -254,7 +259,8 @@ class UserTest(BaseTestCase):
             {
                 "username": "differentuser",
                 "email": "test@example.com",
-                "password": "testpass123",
+                "password1": "testpass123",
+                "password2": "testpass123",
             },
         )
         self.assertEqual(response.status_code, 200)  # Stays on form
@@ -268,7 +274,8 @@ class UserTest(BaseTestCase):
             {
                 "username": "testuser",
                 "email": "test@example.com",
-                "password": "short",
+                "password1": "short",
+                "password2": "short",
             },
         )
         self.assertEqual(response.status_code, 200)  # Stays on form
@@ -282,7 +289,8 @@ class UserTest(BaseTestCase):
             {
                 "username": "testuser2",
                 "email": "test2@example.com",
-                "password": "1111333777",
+                "password1": "1111333777",
+                "password2": "1111333777",
             },
         )
         self.assertEqual(response.status_code, 200)  # Stays on form
@@ -296,7 +304,8 @@ class UserTest(BaseTestCase):
             {
                 "username": "testuser3",
                 "email": "test3@example.com",
-                "password": "password",
+                "password1": "password",
+                "password2": "password",
             },
         )
         self.assertEqual(response.status_code, 200)  # Stays on form
