@@ -1,6 +1,5 @@
 from django import forms
-from django.contrib.auth import password_validation
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
 
 from books.models import LocationArea, OfferedBook, UserProfile, WantedBook
@@ -30,35 +29,48 @@ class EmailOrUsernameAuthenticationForm(AuthenticationForm):
     )
 
 
-class RegistrationForm(forms.ModelForm):
+class RegistrationForm(UserCreationForm):
     """
-    Simple registration form with username, email, and single password field.
-    Uses Django's localization for labels and error messages.
+    Registration form with username, email, and double password fields.
+    Uses Django's UserCreationForm for password validation and matching.
     """
 
-    password = forms.CharField(
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(
+            attrs={
+                "class": "input",
+                "placeholder": "tu@email.com",
+            }
+        ),
+    )
+    password1 = forms.CharField(
+        label="Contraseña",
         widget=forms.PasswordInput(
             attrs={
                 "class": "input",
                 "placeholder": "••••••••",
             }
-        )
+        ),
+    )
+    password2 = forms.CharField(
+        label="Confirmar contraseña",
+        widget=forms.PasswordInput(
+            attrs={
+                "class": "input",
+                "placeholder": "••••••••",
+            }
+        ),
     )
 
     class Meta:
         model = User
-        fields = ["username", "email", "password"]
+        fields = ["username", "email", "password1", "password2"]
         widgets = {
             "username": forms.TextInput(
                 attrs={
                     "class": "input",
                     "placeholder": "tu_usuario",
-                }
-            ),
-            "email": forms.EmailInput(
-                attrs={
-                    "class": "input",
-                    "placeholder": "tu@email.com",
                 }
             ),
         }
@@ -75,30 +87,21 @@ class RegistrationForm(forms.ModelForm):
             raise forms.ValidationError("Este email ya está registrado")
         return email
 
-    def clean_password(self):
-        password = self.cleaned_data.get("password")
-        if password:
-            # FIXME this seems like it's manually doing validations that should be already
-            # provided by the django auth forms
 
-            # Create a temporary user with submitted data for validation
-            # This allows validators to check password similarity with username/email
-            user = User(
-                username=self.cleaned_data.get("username"),
-                email=self.cleaned_data.get("email"),
-            )
-            # Validate password using Django's configured validators
-            # This will use AUTH_PASSWORD_VALIDATORS from settings
-            # (which is empty in dev but enforced in production/test)
-            password_validation.validate_password(password, user)
-        return password
+class PasswordResetRequestForm(forms.Form):
+    """
+    Form for requesting a password reset via email.
+    """
 
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.set_password(self.cleaned_data["password"])
-        if commit:
-            user.save()
-        return user
+    email = forms.EmailField(
+        label="Email",
+        widget=forms.EmailInput(
+            attrs={
+                "class": "input",
+                "placeholder": "tu@email.com",
+            }
+        ),
+    )
 
 
 class ProfileForm(forms.Form):
