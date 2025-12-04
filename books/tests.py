@@ -479,19 +479,12 @@ class UserTest(BaseTestCase):
         )  # Error message
 
     def test_password_reset_invalid_token(self):
-        """Test that password is not reset if the token is not valid."""
+        """Test that password is not reset if the token format is invalid."""
         # Register and verify user
         self.register_and_verify_user()
         self.client.logout()
 
-        # Request password reset
-        response = self.client.post(
-            reverse("password_reset_request"),
-            {"email": "test@example.com"},
-        )
-        self.assertEqual(response.status_code, 200)
-
-        # Try to use an invalid token
+        # Try to use a malformed token
         invalid_url = "/password-reset/MQ/invalid-token-12345/"
         response = self.client.get(invalid_url)
         self.assertEqual(response.status_code, 200)
@@ -514,6 +507,72 @@ class UserTest(BaseTestCase):
             {
                 "username": "testuser",
                 "password": "testpass123",  # Old password
+            },
+        )
+        self.assertEqual(response.status_code, 302)  # Login succeeds
+
+    def test_password_reset_wrong_user_token(self):
+        """Test that password is not reset when using another user's valid token."""
+        # Register and verify first user
+        self.register_and_verify_user()
+        self.client.logout()
+
+        # Register second user
+        self.register_and_verify_user(
+            username="testuser2",
+            email="test2@example.com",
+            password="testpass456",
+        )
+        self.client.logout()
+
+        # Request password reset for user 1
+        response = self.client.post(
+            reverse("password_reset_request"),
+            {"email": "test@example.com"},
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # Request password reset for user 2
+        response = self.client.post(
+            reverse("password_reset_request"),
+            {"email": "test2@example.com"},
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # Get reset URLs from emails
+        reset_url_user1 = self.get_password_reset_url_from_email("test@example.com")
+        reset_url_user2 = self.get_password_reset_url_from_email("test2@example.com")
+
+        # Parse URLs to extract uidb64 and token
+        # URL format: http://testserver/password-reset/{uidb64}/{token}/
+        parts_user1 = reset_url_user1.rstrip("/").split("/")
+        uidb64_user1 = parts_user1[-2]
+        token_user1 = parts_user1[-1]
+
+        parts_user2 = reset_url_user2.rstrip("/").split("/")
+        uidb64_user2 = parts_user2[-2]
+        token_user2 = parts_user2[-1]
+
+        # Construct mismatched URL: user 2's uidb64 with user 1's token
+        wrong_user_url = f"/password-reset/{uidb64_user2}/{token_user1}/"
+
+        # Try to reset user 2's password with user 1's token
+        response = self.client.post(
+            wrong_user_url,
+            {
+                "new_password1": "hackedpassword123",
+                "new_password2": "hackedpassword123",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "inválido")  # Invalid token message
+
+        # User 2's original password should still work
+        response = self.client.post(
+            reverse("login"),
+            {
+                "username": "testuser2",
+                "password": "testpass456",  # Original password
             },
         )
         self.assertEqual(response.status_code, 302)  # Login succeeds
