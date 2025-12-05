@@ -4,9 +4,9 @@ from django.conf import settings
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetView
 from django.core.mail import EmailMultiAlternatives
 from django.core.paginator import Paginator
 from django.db import transaction
@@ -14,11 +14,12 @@ from django.forms import modelformset_factory
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 
 from books.forms import (
+    CustomSetPasswordForm,
     EmailOrUsernameAuthenticationForm,
     OfferedBookForm,
     PasswordResetRequestForm,
@@ -148,104 +149,39 @@ def verify_email(request, uidb64, token):
         return render(request, "verification_failed.html")
 
 
-def password_reset_request(request):
+class CustomPasswordResetView(PasswordResetView):
     """
-    Handle password reset request.
-
-    Displays a form to enter email address. If a user with that email exists,
-    sends a password reset link via email.
-
-    FIXME: Refactor to use Django's built-in PasswordResetView instead of custom implementation.
-    This would provide better security, testing, and maintainability.
+    Password reset request using Django's built-in view.
+    Configured to use our existing templates and email system.
     """
-    if request.user.is_authenticated:
-        return redirect("home")
 
-    if request.method == "POST":
-        form = PasswordResetRequestForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data["email"]
-
-            # Look up user by email
-            try:
-                user = User.objects.get(email=email)
-
-                # Generate password reset token and URL
-                token = default_token_generator.make_token(user)
-                uid = urlsafe_base64_encode(force_bytes(user.pk))
-
-                # Build absolute URL for password reset link
-                reset_path = reverse(
-                    "password_reset_confirm", kwargs={"uidb64": uid, "token": token}
-                )
-                reset_url = request.build_absolute_uri(reset_path)
-
-                # Send password reset email
-                _send_templated_email(
-                    to_email=user.email,
-                    subject="Reseteá tu contraseña en GiraLibros",
-                    template_name="emails/password_reset",
-                    context={
-                        "username": user.username,
-                        "reset_url": reset_url,
-                    },
-                )
-            except User.DoesNotExist:
-                # Don't reveal whether a user exists with this email
-                pass
-
-            # Always show confirmation page (security best practice)
-            return render(
-                request,
-                "password_reset_sent.html",
-                {"email": email},
-            )
-    else:
-        form = PasswordResetRequestForm()
-
-    return render(request, "password_reset_request.html", {"form": form})
+    template_name = "password_reset_request.html"
+    form_class = PasswordResetRequestForm
+    email_template_name = "emails/password_reset.txt"
+    html_email_template_name = "emails/password_reset.html"
+    success_url = reverse_lazy("password_reset_done")
+    from_email = settings.DEFAULT_FROM_EMAIL
 
 
-def password_reset_confirm(request, uidb64, token):
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     """
-    Validate password reset token and allow user to set new password.
-
-    FIXME: Refactor to use Django's built-in PasswordResetConfirmView instead of custom implementation.
-    This would provide better security, testing, and maintainability.
+    Password reset confirmation using Django's built-in view.
+    Configured to use our existing templates and Bulma-styled form.
     """
-    if request.user.is_authenticated:
-        return redirect("home")
 
-    try:
-        # Decode the user ID
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        user = None
+    template_name = "password_reset_confirm.html"
+    form_class = CustomSetPasswordForm
+    success_url = reverse_lazy("password_reset_complete")
 
-    if user is not None and default_token_generator.check_token(user, token):
-        # Valid token - show password reset form
-        if request.method == "POST":
-            form = SetPasswordForm(user, request.POST)
-            if form.is_valid():
-                form.save()
-                # Password changed successfully, redirect to login
-                return render(request, "password_reset_complete.html")
-        else:
-            form = SetPasswordForm(user)
 
-        # Apply Bulma CSS classes to form fields
-        form.fields["new_password1"].widget.attrs.update(
-            {"class": "input", "placeholder": "••••••••"}
-        )
-        form.fields["new_password2"].widget.attrs.update(
-            {"class": "input", "placeholder": "••••••••"}
-        )
+def password_reset_done(request):
+    """Show confirmation that password reset email was sent."""
+    return render(request, "password_reset_sent.html")
 
-        return render(request, "password_reset_confirm.html", {"form": form})
-    else:
-        # Invalid or expired token
-        return render(request, "password_reset_invalid.html")
+
+def password_reset_complete(request):
+    """Show confirmation that password was successfully reset."""
+    return render(request, "password_reset_complete.html")
 
 
 def logout(request):
