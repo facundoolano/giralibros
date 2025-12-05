@@ -5,31 +5,47 @@ from django.contrib.auth.models import User
 from books.models import LocationArea, OfferedBook, UserProfile, WantedBook
 
 
-class EmailOrUsernameAuthenticationForm(AuthenticationForm):
+class BulmaFormMixin:
+    """
+    Mixin that automatically applies Bulma CSS classes to form widgets.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            widget_class = field.widget.__class__.__name__
+
+            # Determine the appropriate Bulma class
+            if widget_class in ["TextInput", "EmailInput", "PasswordInput", "NumberInput", "URLInput"]:
+                css_class = "input"
+            elif widget_class == "Textarea":
+                css_class = "textarea"
+            elif widget_class in ["Select", "SelectMultiple"]:
+                css_class = "select"
+            else:
+                continue
+
+            # Add the class to existing attrs
+            existing_class = field.widget.attrs.get("class", "")
+            if css_class not in existing_class:
+                field.widget.attrs["class"] = f"{existing_class} {css_class}".strip()
+
+
+class EmailOrUsernameAuthenticationForm(BulmaFormMixin, AuthenticationForm):
     """
     Custom authentication form that accepts email or username.
     Uses Django's localization for labels and error messages.
     """
 
     username = forms.CharField(
-        widget=forms.TextInput(
-            attrs={
-                "class": "input",
-                "placeholder": "tu@email.com o tu_usuario",
-            }
-        )
+        widget=forms.TextInput(attrs={"placeholder": "tu@email.com o tu_usuario"})
     )
     password = forms.CharField(
-        widget=forms.PasswordInput(
-            attrs={
-                "class": "input",
-                "placeholder": "••••••••",
-            }
-        )
+        widget=forms.PasswordInput(attrs={"placeholder": "••••••••"})
     )
 
 
-class RegistrationForm(UserCreationForm):
+class RegistrationForm(BulmaFormMixin, UserCreationForm):
     """
     Registration form with username, email, and double password fields.
     Uses Django's UserCreationForm for password validation and matching.
@@ -37,42 +53,22 @@ class RegistrationForm(UserCreationForm):
 
     email = forms.EmailField(
         required=True,
-        widget=forms.EmailInput(
-            attrs={
-                "class": "input",
-                "placeholder": "tu@email.com",
-            }
-        ),
+        widget=forms.EmailInput(attrs={"placeholder": "tu@email.com"}),
     )
     password1 = forms.CharField(
         label="Contraseña",
-        widget=forms.PasswordInput(
-            attrs={
-                "class": "input",
-                "placeholder": "••••••••",
-            }
-        ),
+        widget=forms.PasswordInput(attrs={"placeholder": "••••••••"}),
     )
     password2 = forms.CharField(
         label="Confirmar contraseña",
-        widget=forms.PasswordInput(
-            attrs={
-                "class": "input",
-                "placeholder": "••••••••",
-            }
-        ),
+        widget=forms.PasswordInput(attrs={"placeholder": "••••••••"}),
     )
 
     class Meta:
         model = User
         fields = ["username", "email", "password1", "password2"]
         widgets = {
-            "username": forms.TextInput(
-                attrs={
-                    "class": "input",
-                    "placeholder": "tu_usuario",
-                }
-            ),
+            "username": forms.TextInput(attrs={"placeholder": "tu_usuario"}),
         }
 
     def clean_username(self):
@@ -88,37 +84,28 @@ class RegistrationForm(UserCreationForm):
         return email
 
 
-class PasswordResetRequestForm(PasswordResetForm):
+class PasswordResetRequestForm(BulmaFormMixin, PasswordResetForm):
     """
     PasswordResetForm with Bulma CSS styling.
     """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["email"].widget.attrs.update({
-            "class": "input",
-            "placeholder": "tu@email.com",
-        })
+        self.fields["email"].widget.attrs["placeholder"] = "tu@email.com"
 
 
-class CustomSetPasswordForm(SetPasswordForm):
+class CustomSetPasswordForm(BulmaFormMixin, SetPasswordForm):
     """
     SetPasswordForm with Bulma CSS styling.
     """
 
     def __init__(self, user, *args, **kwargs):
         super().__init__(user, *args, **kwargs)
-        self.fields["new_password1"].widget.attrs.update({
-            "class": "input",
-            "placeholder": "••••••••",
-        })
-        self.fields["new_password2"].widget.attrs.update({
-            "class": "input",
-            "placeholder": "••••••••",
-        })
+        self.fields["new_password1"].widget.attrs["placeholder"] = "••••••••"
+        self.fields["new_password2"].widget.attrs["placeholder"] = "••••••••"
 
 
-class ProfileForm(forms.Form):
+class ProfileForm(BulmaFormMixin, forms.Form):
     """
     Form for creating/editing user profile.
     Handles User.first_name, UserProfile fields, and UserLocation selections.
@@ -126,30 +113,15 @@ class ProfileForm(forms.Form):
 
     first_name = forms.CharField(
         max_length=150,
-        widget=forms.TextInput(
-            attrs={
-                "class": "input",
-                "placeholder": "Tu nombre",
-            }
-        ),
+        widget=forms.TextInput(attrs={"placeholder": "Tu nombre"}),
     )
     email = forms.EmailField(
-        widget=forms.EmailInput(
-            attrs={
-                "class": "input",
-                "placeholder": "tu@email.com",
-            }
-        )
+        widget=forms.EmailInput(attrs={"placeholder": "tu@email.com"})
     )
     alternate_contact = forms.CharField(
         required=False,
         max_length=200,
-        widget=forms.TextInput(
-            attrs={
-                "class": "input",
-                "placeholder": "@usuario, teléfono, etc.",
-            }
-        ),
+        widget=forms.TextInput(attrs={"placeholder": "@usuario, teléfono, etc."}),
     )
     locations = forms.MultipleChoiceField(
         choices=LocationArea.choices,
@@ -160,7 +132,6 @@ class ProfileForm(forms.Form):
         required=False,
         widget=forms.Textarea(
             attrs={
-                "class": "textarea",
                 "rows": 4,
                 "placeholder": "Lo que quieras que se vea en tu perfil público.",
             }
@@ -168,7 +139,7 @@ class ProfileForm(forms.Form):
     )
 
 
-class OfferedBookForm(forms.ModelForm):
+class OfferedBookForm(BulmaFormMixin, forms.ModelForm):
     """
     Form for creating/editing an offered book.
     """
@@ -177,29 +148,15 @@ class OfferedBookForm(forms.ModelForm):
         model = OfferedBook
         fields = ["title", "author", "notes"]
         widgets = {
-            "title": forms.TextInput(
-                attrs={
-                    "class": "input",
-                    "placeholder": "Título del libro",
-                }
-            ),
-            "author": forms.TextInput(
-                attrs={
-                    "class": "input",
-                    "placeholder": "Autor",
-                }
-            ),
+            "title": forms.TextInput(attrs={"placeholder": "Título del libro"}),
+            "author": forms.TextInput(attrs={"placeholder": "Autor"}),
             "notes": forms.Textarea(
-                attrs={
-                    "class": "textarea",
-                    "rows": 4,
-                    "placeholder": "Observaciones (opcional)",
-                }
+                attrs={"rows": 4, "placeholder": "Observaciones (opcional)"}
             ),
         }
 
 
-class WantedBookForm(forms.ModelForm):
+class WantedBookForm(BulmaFormMixin, forms.ModelForm):
     """
     Form for creating/editing a wanted book.
     """
@@ -208,16 +165,6 @@ class WantedBookForm(forms.ModelForm):
         model = WantedBook
         fields = ["title", "author"]
         widgets = {
-            "title": forms.TextInput(
-                attrs={
-                    "class": "input",
-                    "placeholder": "Título del libro",
-                }
-            ),
-            "author": forms.TextInput(
-                attrs={
-                    "class": "input",
-                    "placeholder": "Autor",
-                }
-            ),
+            "title": forms.TextInput(attrs={"placeholder": "Título del libro"}),
+            "author": forms.TextInput(attrs={"placeholder": "Autor"}),
         }
