@@ -256,6 +256,12 @@ def logout(request):
 
 
 @login_required
+def contact(request):
+    """Display contact information."""
+    return render(request, "contact.html")
+
+
+@login_required
 def list_books(request):
     """
     List books with pagination support for infinite scroll.

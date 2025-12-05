@@ -24,6 +24,7 @@ urlpatterns = [
     path('my/offered/', views.my_offered_books, name='my_offered'),
     path('my/wanted/', views.my_wanted_books, name='my_wanted'),
     path('books/<int:book_id>/request-exchange/', views.request_exchange, name='request_exchange'),
+    path('contact/', views.contact, name='contact'),
     path('login/', views.login, name='login'),
     path('register/', views.register, name='register'),
     path('verify/<str:uidb64>/<str:token>/', views.verify_email, name='verify_email'),
