@@ -1,8 +1,13 @@
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm, SetPasswordForm, UserCreationForm
+from django.contrib.auth.forms import (
+    AuthenticationForm,
+    PasswordResetForm,
+    SetPasswordForm,
+    UserCreationForm,
+)
 from django.contrib.auth.models import User
 
-from books.models import LocationArea, OfferedBook, UserProfile, WantedBook
+from books.models import LocationArea, OfferedBook, WantedBook
 
 
 class BulmaFormMixin:
@@ -16,7 +21,13 @@ class BulmaFormMixin:
             widget_class = field.widget.__class__.__name__
 
             # Determine the appropriate Bulma class
-            if widget_class in ["TextInput", "EmailInput", "PasswordInput", "NumberInput", "URLInput"]:
+            if widget_class in [
+                "TextInput",
+                "EmailInput",
+                "PasswordInput",
+                "NumberInput",
+                "URLInput",
+            ]:
                 css_class = "input"
             elif widget_class == "Textarea":
                 css_class = "textarea"
@@ -37,12 +48,7 @@ class EmailOrUsernameAuthenticationForm(BulmaFormMixin, AuthenticationForm):
     Uses Django's localization for labels and error messages.
     """
 
-    username = forms.CharField(
-        widget=forms.TextInput(attrs={"placeholder": "tu@email.com o tu_usuario"})
-    )
-    password = forms.CharField(
-        widget=forms.PasswordInput(attrs={"placeholder": "••••••••"})
-    )
+    username = forms.CharField(label="Usuario o email")
 
 
 class RegistrationForm(BulmaFormMixin, UserCreationForm):
@@ -51,25 +57,15 @@ class RegistrationForm(BulmaFormMixin, UserCreationForm):
     Uses Django's UserCreationForm for password validation and matching.
     """
 
-    email = forms.EmailField(
-        required=True,
-        widget=forms.EmailInput(attrs={"placeholder": "tu@email.com"}),
-    )
-    password1 = forms.CharField(
-        label="Contraseña",
-        widget=forms.PasswordInput(attrs={"placeholder": "••••••••"}),
-    )
+    email = forms.EmailField(required=True)
+    password1 = forms.CharField(label="Contraseña", widget=forms.PasswordInput())
     password2 = forms.CharField(
-        label="Confirmar contraseña",
-        widget=forms.PasswordInput(attrs={"placeholder": "••••••••"}),
+        label="Confirmar contraseña", widget=forms.PasswordInput()
     )
 
     class Meta:
         model = User
         fields = ["username", "email", "password1", "password2"]
-        widgets = {
-            "username": forms.TextInput(attrs={"placeholder": "tu_usuario"}),
-        }
 
     def clean_username(self):
         username = self.cleaned_data.get("username")
@@ -89,9 +85,7 @@ class PasswordResetRequestForm(BulmaFormMixin, PasswordResetForm):
     PasswordResetForm with Bulma CSS styling.
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["email"].widget.attrs["placeholder"] = "tu@email.com"
+    pass
 
 
 class CustomSetPasswordForm(BulmaFormMixin, SetPasswordForm):
@@ -99,10 +93,7 @@ class CustomSetPasswordForm(BulmaFormMixin, SetPasswordForm):
     SetPasswordForm with Bulma CSS styling.
     """
 
-    def __init__(self, user, *args, **kwargs):
-        super().__init__(user, *args, **kwargs)
-        self.fields["new_password1"].widget.attrs["placeholder"] = "••••••••"
-        self.fields["new_password2"].widget.attrs["placeholder"] = "••••••••"
+    pass
 
 
 class ProfileForm(BulmaFormMixin, forms.Form):
@@ -111,13 +102,8 @@ class ProfileForm(BulmaFormMixin, forms.Form):
     Handles User.first_name, UserProfile fields, and UserLocation selections.
     """
 
-    first_name = forms.CharField(
-        max_length=150,
-        widget=forms.TextInput(attrs={"placeholder": "Tu nombre"}),
-    )
-    email = forms.EmailField(
-        widget=forms.EmailInput(attrs={"placeholder": "tu@email.com"})
-    )
+    first_name = forms.CharField(max_length=150)
+    email = forms.EmailField()
     alternate_contact = forms.CharField(
         required=False,
         max_length=200,
