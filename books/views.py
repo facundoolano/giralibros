@@ -19,6 +19,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 
 from books.forms import (
+    CustomSetPasswordForm,
     EmailOrUsernameAuthenticationForm,
     OfferedBookForm,
     PasswordResetRequestForm,
@@ -155,6 +156,7 @@ class CustomPasswordResetView(PasswordResetView):
     """
 
     template_name = "password_reset_request.html"
+    form_class = PasswordResetRequestForm
     email_template_name = "emails/password_reset.txt"
     html_email_template_name = "emails/password_reset.html"
     success_url = reverse_lazy("password_reset_done")
@@ -164,10 +166,11 @@ class CustomPasswordResetView(PasswordResetView):
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     """
     Password reset confirmation using Django's built-in view.
-    Configured to use our existing templates.
+    Configured to use our existing templates and Bulma-styled form.
     """
 
     template_name = "password_reset_confirm.html"
+    form_class = CustomSetPasswordForm
     success_url = reverse_lazy("password_reset_complete")
 
 

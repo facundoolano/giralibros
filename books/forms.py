@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm, SetPasswordForm, UserCreationForm
 from django.contrib.auth.models import User
 
 from books.models import LocationArea, OfferedBook, UserProfile, WantedBook
@@ -88,20 +88,34 @@ class RegistrationForm(UserCreationForm):
         return email
 
 
-class PasswordResetRequestForm(forms.Form):
+class PasswordResetRequestForm(PasswordResetForm):
     """
-    Form for requesting a password reset via email.
+    PasswordResetForm with Bulma CSS styling.
     """
 
-    email = forms.EmailField(
-        label="Email",
-        widget=forms.EmailInput(
-            attrs={
-                "class": "input",
-                "placeholder": "tu@email.com",
-            }
-        ),
-    )
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["email"].widget.attrs.update({
+            "class": "input",
+            "placeholder": "tu@email.com",
+        })
+
+
+class CustomSetPasswordForm(SetPasswordForm):
+    """
+    SetPasswordForm with Bulma CSS styling.
+    """
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(user, *args, **kwargs)
+        self.fields["new_password1"].widget.attrs.update({
+            "class": "input",
+            "placeholder": "••••••••",
+        })
+        self.fields["new_password2"].widget.attrs.update({
+            "class": "input",
+            "placeholder": "••••••••",
+        })
 
 
 class ProfileForm(forms.Form):
