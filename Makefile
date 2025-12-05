@@ -12,11 +12,11 @@ deploy:
 		git fetch &&\
 		git checkout $(BRANCH) &&\
 		git pull origin $(BRANCH) --ff-only &&\
-		sudo -u libros bash -c \"cd ~/giralibros && uv sync && make collectstatic\" &&\
+		sudo su libros -l -c \"cd ~/giralibros && uv sync && make collectstatic\" &&\
 		sudo systemctl restart gunicorn"
 
 collectstatic:
-	set -a && source /etc/giralibros/env && uv run python manage.py collectstatic --settings=giralibros.settings.production --noinput
+	set -a && . /etc/giralibros/env && uv run python manage.py collectstatic --settings=giralibros.settings.production --noinput
 
 
 
