@@ -531,6 +531,83 @@ def _manage_books(request, book_model, book_form, template_name):
     return render(request, template_name, {"formset": formset})
 
 
+@login_required
+def upload_book_photo(request, book_id):
+    """
+    Handle book cover photo upload with thumbnail generation.
+    """
+    from io import BytesIO
+
+    from PIL import Image
+
+    from django.core.files.uploadedfile import InMemoryUploadedFile
+    from django.http import Http404, HttpResponseBadRequest
+
+    # Get the book and verify ownership
+    try:
+        book = OfferedBook.objects.get(id=book_id, user=request.user)
+    except OfferedBook.DoesNotExist:
+        raise Http404("Book not found")
+
+    if request.method == "POST":
+        # Validate file was uploaded
+        if "cover_image" not in request.FILES:
+            return HttpResponseBadRequest("No image file provided")
+
+        uploaded_file = request.FILES["cover_image"]
+
+        # Validate file size (max 5MB)
+        max_size = 5 * 1024 * 1024  # 5MB in bytes
+        if uploaded_file.size > max_size:
+            return HttpResponseBadRequest("Image file too large (max 5MB)")
+
+        # Validate file type
+        allowed_types = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
+        if uploaded_file.content_type not in allowed_types:
+            return HttpResponseBadRequest("Invalid image format")
+
+        try:
+            # Open and process image with Pillow
+            image = Image.open(uploaded_file)
+
+            # Convert to RGB if necessary (handles PNG with transparency, etc.)
+            if image.mode in ("RGBA", "P"):
+                image = image.convert("RGB")
+
+            # Calculate thumbnail size maintaining aspect ratio
+            # Max dimensions: 400x600
+            max_width = 400
+            max_height = 600
+            image.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
+
+            # Save to BytesIO with optimization
+            output = BytesIO()
+            image.save(output, format="JPEG", quality=85, optimize=True)
+            output.seek(0)
+
+            # Create new InMemoryUploadedFile
+            thumbnail = InMemoryUploadedFile(
+                output,
+                "ImageField",
+                f"{uploaded_file.name.split('.')[0]}_thumb.jpg",
+                "image/jpeg",
+                output.getbuffer().nbytes,
+                None,
+            )
+
+            # Save to model
+            book.cover_image.save(thumbnail.name, thumbnail, save=True)
+
+            return redirect("profile", username=request.user.username)
+
+        except Exception as e:
+            logger.error(f"Error processing image upload: {e}")
+            return HttpResponseBadRequest("Error processing image")
+
+    # GET request - show upload form
+    return render(request, "upload_photo.html", {"book": book})
+
+
 def _send_templated_email(to_email, subject, template_name, context=None):
     """
     Send multipart email with HTML and plain text versions.
