@@ -13,3 +13,6 @@ db.sqlite3
 /.pyc
 __pycache__/
 .env
+
+# User-uploaded media files
+/media/
