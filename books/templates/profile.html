@@ -120,20 +120,25 @@
       {% if offered_books %}
       <ul class="mb-5 nested-content">
         {% for book in offered_books %}
-        <li class="mb-2">
+        <li class="mb-4">
           <div class="is-flex" style="gap: 1rem;">
-            <div class="is-flex-shrink-0">
+            <div class="is-flex-shrink-0 is-flex is-align-items-center" style="width: 60px; height: 90px;">
               {% if book.cover_image %}
                 <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" style="max-width: 60px; max-height: 90px; border-radius: 4px;">
               {% else %}
                 <div style="width: 60px; height: 90px; background-color: #f5f5f5; border: 1px solid #dbdbdb; border-radius: 4px;"></div>
               {% endif %}
             </div>
-            <div class="is-flex-grow-1">
+            <div class="is-flex-grow-1 is-flex is-flex-direction-column is-justify-content-space-between" style="min-height: 90px;">
               <div>
-                <strong>{{ book.title }}</strong>, {{ book.author }}{% if book.notes %} · <span class="has-text-grey is-size-7">{{ book.notes }}</span>{% endif %}
+                <div>
+                  <strong>{{ book.title }}</strong>, {{ book.author }}
+                </div>
+                {% if book.notes %}
+                  <div class="has-text-grey is-size-7 mt-1">{{ book.notes }}</div>
+                {% endif %}
               </div>
-              <div class="mt-2">
+              <div>
                 {% if is_own_profile %}
                   <a href="{% url 'upload_book_photo' book_id=book.id %}" class="button is-info is-small is-light">
                     <span class="icon is-small">
