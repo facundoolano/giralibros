@@ -129,6 +129,16 @@
           <div class="is-flex is-justify-content-space-between is-align-items-center book-item-mobile">
             <div>
               <strong>{{ book.title }}</strong>, {{ book.author }}{% if book.notes %} · <span class="has-text-grey is-size-7">{{ book.notes }}</span>{% endif %}
+              {% if is_own_profile %}
+                <div class="mt-1">
+                  <a href="{% url 'upload_book_photo' book_id=book.id %}" class="is-size-7">
+                    <span class="icon is-small">
+                      <i class="fas fa-camera"></i>
+                    </span>
+                    <span>{% if book.cover_image %}Cambiar foto{% else %}Agregar foto{% endif %}</span>
+                  </a>
+                </div>
+              {% endif %}
             </div>
             {% if not is_own_profile %}
               {% include '_exchange_button.html' with button_classes='is-small button-fixed-width' icon_classes='is-small' %}
