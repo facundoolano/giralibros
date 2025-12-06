@@ -26,6 +26,7 @@ urlpatterns = [
     path('my/offered/', views.my_offered_books, name='my_offered'),
     path('my/wanted/', views.my_wanted_books, name='my_wanted'),
     path('books/<int:book_id>/request-exchange/', views.request_exchange, name='request_exchange'),
+    path('books/<int:book_id>/upload-photo/', views.upload_book_photo, name='upload_book_photo'),
     path('contact/', views.contact, name='contact'),
     path('login/', views.login, name='login'),
     path('register/', views.register, name='register'),

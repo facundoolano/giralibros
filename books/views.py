@@ -1,4 +1,7 @@
 import logging
+from io import BytesIO
+
+from PIL import Image
 
 from django.conf import settings
 from django.contrib.auth import login as auth_login
@@ -7,12 +10,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetView
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.mail import EmailMultiAlternatives
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.forms import modelformset_factory
-from django.http import JsonResponse
-from django.shortcuts import redirect, render
+from django.http import HttpResponseBadRequest, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.utils.encoding import force_bytes, force_str
@@ -536,18 +540,8 @@ def upload_book_photo(request, book_id):
     """
     Handle book cover photo upload with thumbnail generation.
     """
-    from io import BytesIO
-
-    from PIL import Image
-
-    from django.core.files.uploadedfile import InMemoryUploadedFile
-    from django.http import Http404, HttpResponseBadRequest
-
     # Get the book and verify ownership
-    try:
-        book = OfferedBook.objects.get(id=book_id, user=request.user)
-    except OfferedBook.DoesNotExist:
-        raise Http404("Book not found")
+    book = get_object_or_404(OfferedBook, id=book_id, user=request.user)
 
     if request.method == "POST":
         # Validate file was uploaded
@@ -556,13 +550,14 @@ def upload_book_photo(request, book_id):
 
         uploaded_file = request.FILES["cover_image"]
 
-        # Validate file size (max 5MB)
-        max_size = 5 * 1024 * 1024  # 5MB in bytes
+        # Validate file size
+        max_size = settings.BOOK_COVER_MAX_SIZE
         if uploaded_file.size > max_size:
-            return HttpResponseBadRequest("Image file too large (max 5MB)")
+            max_size_mb = max_size / (1024 * 1024)
+            return HttpResponseBadRequest(f"Image file too large (max {max_size_mb:.0f}MB)")
 
         # Validate file type
-        allowed_types = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
+        allowed_types = settings.BOOK_COVER_ALLOWED_TYPES
         if uploaded_file.content_type not in allowed_types:
             return HttpResponseBadRequest("Invalid image format")
 
@@ -575,14 +570,14 @@ def upload_book_photo(request, book_id):
                 image = image.convert("RGB")
 
             # Calculate thumbnail size maintaining aspect ratio
-            # Max dimensions: 400x600
-            max_width = 400
-            max_height = 600
+            max_width = settings.BOOK_COVER_THUMBNAIL_MAX_WIDTH
+            max_height = settings.BOOK_COVER_THUMBNAIL_MAX_HEIGHT
             image.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
 
             # Save to BytesIO with optimization
             output = BytesIO()
-            image.save(output, format="JPEG", quality=85, optimize=True)
+            quality = settings.BOOK_COVER_JPEG_QUALITY
+            image.save(output, format="JPEG", quality=quality, optimize=True)
             output.seek(0)
 
             # Create new InMemoryUploadedFile
@@ -605,7 +600,15 @@ def upload_book_photo(request, book_id):
             return HttpResponseBadRequest("Error processing image")
 
     # GET request - show upload form
-    return render(request, "upload_photo.html", {"book": book})
+    max_size_mb = settings.BOOK_COVER_MAX_SIZE / (1024 * 1024)
+    return render(
+        request,
+        "upload_photo.html",
+        {
+            "book": book,
+            "max_size_mb": int(max_size_mb),
+        },
+    )
 
 
 def _send_templated_email(to_email, subject, template_name, context=None):
