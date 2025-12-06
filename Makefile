@@ -12,7 +12,7 @@ deploy:
 		git fetch &&\
 		git checkout $(BRANCH) &&\
 		git pull origin $(BRANCH) --ff-only &&\
-		sudo su libros -l -c \"cd ~/giralibros && uv sync && make collectstatic\" &&\
+		sudo su libros -l -c \"cd ~/giralibros && uv sync && make collectstatic && uv run manage.py migrate\" &&\
 		sudo systemctl restart gunicorn"
 
 collectstatic:
