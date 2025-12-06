@@ -1,8 +1,15 @@
 {% load static %}
 {% load book_filters %}
+<style>
+  @media screen and (max-width: 768px) {
+    .pb-0-mobile {
+      padding-bottom: 0.75rem !important;
+    }
+  }
+</style>
 {% for book in offered_books %}
 <div class="card mb-4">
-  <div class="card-content">
+  <div class="card-content pb-0-mobile">
     <article class="media">
       <div class="media-left is-flex is-align-items-center" style="width: 100px; height: 150px;">
         {% if book.cover_image %}
@@ -50,7 +57,7 @@
                 </a>
                 <a href="{% url 'profile' username=book.user.username %}" class="mr-2" title="Ver el perfil de {{ book.user.username }}">{{ book.user.username }}</a>
               </span>
-              <span class="location-tags">
+              <span class="location-tags is-hidden-mobile">
                 {% for location in book.user.locations.all %}
                 <span class="tag is-light mr-1"
                   >{{ location.get_area_display }}</span
@@ -64,6 +71,13 @@
     </article>
   </div>
   <div class="card-content pt-0 is-hidden-tablet">
+    <div class="location-tags mb-3">
+      {% for location in book.user.locations.all %}
+      <span class="tag is-light mr-1"
+        >{{ location.get_area_display }}</span
+      >
+      {% endfor %}
+    </div>
     <div class="has-text-centered">
       {% include '_exchange_button.html' %}
     </div>
