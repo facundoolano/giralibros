@@ -121,32 +121,31 @@
       <ul class="mb-5 nested-content">
         {% for book in offered_books %}
         <li class="mb-2">
-          <div class="is-flex is-justify-content-space-between is-align-items-center book-item-mobile">
-            <div class="is-flex" style="gap: 1rem;">
-              <div class="is-flex-shrink-0">
-                {% if book.cover_image %}
-                  <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" style="max-width: 60px; max-height: 90px; border-radius: 4px;">
-                {% else %}
-                  <div style="width: 60px; height: 90px; background-color: #f5f5f5; border: 1px solid #dbdbdb; border-radius: 4px;"></div>
-                {% endif %}
-              </div>
+          <div class="is-flex" style="gap: 1rem;">
+            <div class="is-flex-shrink-0">
+              {% if book.cover_image %}
+                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" style="max-width: 60px; max-height: 90px; border-radius: 4px;">
+              {% else %}
+                <div style="width: 60px; height: 90px; background-color: #f5f5f5; border: 1px solid #dbdbdb; border-radius: 4px;"></div>
+              {% endif %}
+            </div>
+            <div class="is-flex-grow-1">
               <div>
                 <strong>{{ book.title }}</strong>, {{ book.author }}{% if book.notes %} · <span class="has-text-grey is-size-7">{{ book.notes }}</span>{% endif %}
+              </div>
+              <div class="mt-2">
                 {% if is_own_profile %}
-                  <div class="mt-1">
-                    <a href="{% url 'upload_book_photo' book_id=book.id %}" class="is-size-7">
-                      <span class="icon is-small">
-                        <i class="fas fa-camera"></i>
-                      </span>
-                      <span>{% if book.cover_image %}Cambiar foto{% else %}Agregar foto{% endif %}</span>
-                    </a>
-                  </div>
+                  <a href="{% url 'upload_book_photo' book_id=book.id %}" class="button is-info is-small is-light">
+                    <span class="icon is-small">
+                      <i class="fas fa-camera"></i>
+                    </span>
+                    <span>{% if book.cover_image %}Cambiar foto{% else %}Agregar foto{% endif %}</span>
+                  </a>
+                {% else %}
+                  {% include '_exchange_button.html' with button_classes='is-small' icon_classes='is-small' %}
                 {% endif %}
               </div>
             </div>
-            {% if not is_own_profile %}
-              {% include '_exchange_button.html' with button_classes='is-small button-fixed-width' icon_classes='is-small' %}
-            {% endif %}
           </div>
         </li>
         {% endfor %}
