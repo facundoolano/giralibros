@@ -118,9 +118,9 @@
       </div>
 
       {% if offered_books %}
-      <ul class="mb-5 nested-content">
+      <div class="columns is-multiline mb-5">
         {% for book in offered_books %}
-        <li class="mb-4">
+        <div class="column is-12-mobile is-6-tablet">
           <div class="is-flex" style="gap: 1rem;">
             <div class="is-flex-shrink-0 is-flex is-align-items-center" style="width: 60px; height: 90px;">
               {% if book.cover_image %}
@@ -152,9 +152,9 @@
               </div>
             </div>
           </div>
-        </li>
+        </div>
         {% endfor %}
-      </ul>
+      </div>
       {% else %}
       <div class="mb-5 nested-content">
         <p class="has-text-grey-light has-text-centered">Sin libros para mostrar</p>
