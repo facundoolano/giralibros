@@ -121,17 +121,8 @@ class OfferedBookManager(models.Manager):
 
         - If viewing own profile: returns all books without annotation
         - If viewing another user's profile: annotates with 'already_requested' flag
-        - Orders by most recent activity (max of created_at and cover_uploaded_at)
         """
-        queryset = (
-            self.filter(user=profile_user)
-            .order_by(
-                Greatest(
-                    "created_at",
-                    Coalesce("cover_uploaded_at", "created_at")
-                ).desc()
-            )
-        )
+        queryset = self.filter(user=profile_user)
 
         if viewing_user != profile_user:
             queryset = self._annotate_already_requested(queryset, viewing_user)
