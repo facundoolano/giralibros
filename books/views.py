@@ -573,6 +573,23 @@ def upload_book_photo(request, book_id):
             if image.mode in ("RGBA", "P"):
                 image = image.convert("RGB")
 
+            # Center crop to book aspect ratio (2:3 - typical paperback)
+            # This removes surroundings and focuses on the book
+            target_aspect = 2 / 3  # width / height
+            img_width, img_height = image.size
+            img_aspect = img_width / img_height
+
+            if img_aspect > target_aspect:
+                # Image is too wide, crop sides
+                new_width = int(img_height * target_aspect)
+                left = (img_width - new_width) // 2
+                image = image.crop((left, 0, left + new_width, img_height))
+            else:
+                # Image is too tall, crop top/bottom
+                new_height = int(img_width / target_aspect)
+                top = (img_height - new_height) // 2
+                image = image.crop((0, top, img_width, top + new_height))
+
             # Calculate thumbnail size maintaining aspect ratio
             max_width = settings.BOOK_COVER_THUMBNAIL_MAX_WIDTH
             max_height = settings.BOOK_COVER_THUMBNAIL_MAX_HEIGHT
