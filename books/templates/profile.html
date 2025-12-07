@@ -122,7 +122,7 @@
         {% for book in offered_books %}
         <div class="column is-12-mobile is-6-tablet">
           <div class="is-flex" style="gap: 1rem;">
-            <div class="is-flex-shrink-0 is-flex is-align-items-center" style="width: 60px; height: 90px;">
+            <div class="is-flex-shrink-0 is-flex is-align-items-center{% if is_own_profile %} cover-clickable{% endif %}" style="width: 60px; height: 90px;{% if is_own_profile %} cursor: pointer;{% endif %}" {% if is_own_profile %}data-input-id="photo-input-{{ book.id }}"{% endif %}>
               {% if book.cover_image %}
                 <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" style="max-width: 60px; max-height: 90px; border-radius: 4px;">
               {% else %}
@@ -286,10 +286,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Photo upload handling
+  // Photo upload handling - button clicks
   document.querySelectorAll('.upload-trigger').forEach(button => {
     button.addEventListener('click', () => {
       const inputId = button.dataset.inputId;
+      const input = document.getElementById(inputId);
+      input.click();
+    });
+  });
+
+  // Photo upload handling - cover image clicks
+  document.querySelectorAll('.cover-clickable').forEach(cover => {
+    cover.addEventListener('click', () => {
+      const inputId = cover.dataset.inputId;
       const input = document.getElementById(inputId);
       input.click();
     });
