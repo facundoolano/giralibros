@@ -1,7 +1,7 @@
 import logging
 from io import BytesIO
 
-from PIL import Image
+from PIL import Image, ImageOps
 
 from django.conf import settings
 from django.contrib.auth import login as auth_login
@@ -565,6 +565,10 @@ def upload_book_photo(request, book_id):
             # Open and process image with Pillow
             image = Image.open(uploaded_file)
 
+            # Apply EXIF orientation (fixes rotated mobile photos)
+            # exif_transpose returns None if no transposing is needed
+            image = ImageOps.exif_transpose(image) or image
+
             # Convert to RGB if necessary (handles PNG with transparency, etc.)
             if image.mode in ("RGBA", "P"):
                 image = image.convert("RGB")
@@ -592,6 +596,11 @@ def upload_book_photo(request, book_id):
 
             # Save to model
             book.cover_image.save(thumbnail.name, thumbnail, save=True)
+
+            # Handle AJAX requests
+            is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+            if is_ajax:
+                return JsonResponse({"success": True, "image_url": book.cover_image.url})
 
             return redirect("profile", username=request.user.username)
 

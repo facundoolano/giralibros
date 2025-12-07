@@ -140,12 +140,16 @@
               </div>
               <div>
                 {% if is_own_profile %}
-                  <a href="{% url 'upload_book_photo' book_id=book.id %}" class="button is-info is-small is-light">
-                    <span class="icon is-small">
-                      <i class="fas fa-camera"></i>
-                    </span>
-                    <span>{% if book.cover_image %}Cambiar foto{% else %}Agregar foto{% endif %}</span>
-                  </a>
+                  <form method="post" action="{% url 'upload_book_photo' book_id=book.id %}" enctype="multipart/form-data" class="photo-upload-form" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="file" name="cover_image" accept="image/*" capture="environment" style="display: none;" class="photo-input" id="photo-input-{{ book.id }}">
+                    <button type="button" class="button is-info is-small is-light upload-trigger" data-input-id="photo-input-{{ book.id }}">
+                      <span class="icon is-small">
+                        <i class="fas fa-camera"></i>
+                      </span>
+                      <span class="upload-text">{% if book.cover_image %}Cambiar foto{% else %}Agregar foto{% endif %}</span>
+                    </button>
+                  </form>
                 {% else %}
                   {% include '_exchange_button.html' with button_classes='is-small' icon_classes='is-small' %}
                 {% endif %}
@@ -266,6 +270,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  // Timeago tooltips
   document.querySelectorAll('.timeago-tooltip').forEach(element => {
     const timestamp = element.dataset.timestamp;
     if (timestamp) {
@@ -279,6 +284,67 @@ document.addEventListener('DOMContentLoaded', () => {
         second: '2-digit'
       });
     }
+  });
+
+  // Photo upload handling
+  document.querySelectorAll('.upload-trigger').forEach(button => {
+    button.addEventListener('click', () => {
+      const inputId = button.dataset.inputId;
+      const input = document.getElementById(inputId);
+      input.click();
+    });
+  });
+
+  document.querySelectorAll('.photo-input').forEach(input => {
+    input.addEventListener('change', async (event) => {
+      if (!event.target.files || event.target.files.length === 0) {
+        return;
+      }
+
+      const form = event.target.closest('.photo-upload-form');
+      const button = form.querySelector('.upload-trigger');
+      const icon = button.querySelector('i');
+      const text = button.querySelector('.upload-text');
+
+      // Show loading state
+      const originalIcon = icon.className;
+      const originalText = text.textContent;
+      icon.className = 'fas fa-spinner fa-pulse';
+      text.textContent = 'Subiendo...';
+      button.disabled = true;
+
+      try {
+        const formData = new FormData(form);
+        const response = await fetch(form.action, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+
+        if (response.ok) {
+          // Success - reload the page to show the new image
+          // We could update the DOM directly, but reloading is simpler and ensures everything is in sync
+          window.location.reload();
+        } else {
+          // Error - show message and restore button
+          const errorText = await response.text();
+          alert('Error al subir la foto: ' + (errorText || 'Intentá de nuevo'));
+          icon.className = originalIcon;
+          text.textContent = originalText;
+          button.disabled = false;
+        }
+      } catch (error) {
+        alert('Error al subir la foto. Verificá tu conexión e intentá de nuevo.');
+        icon.className = originalIcon;
+        text.textContent = originalText;
+        button.disabled = false;
+      }
+
+      // Reset the file input so the same file can be selected again if needed
+      event.target.value = '';
+    });
   });
 });
 </script>
