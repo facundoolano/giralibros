@@ -85,6 +85,15 @@ class BaseBook(models.Model):
 
 
 class OfferedBookManager(models.Manager):
+    def _annotate_last_activity(self, queryset):
+        """Add last_activity_date annotation (max of created_at and cover_uploaded_at)."""
+        return queryset.annotate(
+            last_activity_date=Greatest(
+                "created_at",
+                Coalesce("cover_uploaded_at", "created_at")
+            )
+        )
+
     def for_user(self, user):
         """
         Return books available in the user's locations, annotated with whether
@@ -93,7 +102,8 @@ class OfferedBookManager(models.Manager):
         This query:
         - Filters books by user's location areas
         - Excludes the user's own books
-        - Orders by most recent activity (max of created_at and cover_uploaded_at)
+        - Annotates with last_activity_date (max of created_at and cover_uploaded_at)
+        - Orders by most recent activity
         - Annotates with 'already_requested' flag via Exists subquery
         - Optimizes with select_related and prefetch_related to avoid N+1 queries
         """
@@ -105,13 +115,10 @@ class OfferedBookManager(models.Manager):
             .select_related("user")
             .prefetch_related("user__locations")
             .distinct()
-            .order_by(
-                Greatest(
-                    "created_at",
-                    Coalesce("cover_uploaded_at", "created_at")
-                ).desc()
-            )
         )
+
+        queryset = self._annotate_last_activity(queryset)
+        queryset = queryset.order_by("-last_activity_date")
 
         return self._annotate_already_requested(queryset, user)
 
