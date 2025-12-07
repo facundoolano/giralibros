@@ -270,6 +270,13 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  // Restore scroll position after photo upload reload
+  const savedScroll = sessionStorage.getItem('scrollPosition');
+  if (savedScroll) {
+    window.scrollTo(0, parseInt(savedScroll));
+    sessionStorage.removeItem('scrollPosition');
+  }
+
   // Timeago tooltips
   document.querySelectorAll('.timeago-tooltip').forEach(element => {
     const timestamp = element.dataset.timestamp;
@@ -333,8 +340,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (response.ok) {
-          // Success - reload the page to show the new image
-          // We could update the DOM directly, but reloading is simpler and ensures everything is in sync
+          // Save scroll position before reload to restore it after
+          sessionStorage.setItem('scrollPosition', window.scrollY);
           window.location.reload();
         } else {
           // Error - show message and restore button
