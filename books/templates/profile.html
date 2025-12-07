@@ -333,9 +333,29 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (response.ok) {
-          // Success - reload the page to show the new image
-          // We could update the DOM directly, but reloading is simpler and ensures everything is in sync
-          window.location.reload();
+          const data = await response.json();
+
+          // Find the cover image container for this book
+          const coverContainer = form.closest('.column').querySelector('.cover-clickable');
+
+          // Update the image - either update src or replace placeholder
+          if (data.image_url) {
+            const existingImg = coverContainer.querySelector('img');
+            if (existingImg) {
+              // Just update the src attribute
+              existingImg.src = data.image_url;
+            } else {
+              // Replace placeholder div with img
+              coverContainer.innerHTML = `<img src="${data.image_url}" alt="Book cover" style="max-width: 60px; max-height: 90px; border-radius: 4px;">`;
+            }
+          }
+
+          // Update button text to "Cambiar foto"
+          text.textContent = 'Cambiar foto';
+
+          // Restore button state
+          icon.className = originalIcon;
+          button.disabled = false;
         } else {
           // Error - show message and restore button
           const errorText = await response.text();
