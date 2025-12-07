@@ -3,6 +3,7 @@ import re
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Q
+from django.db.models.functions import Coalesce, Greatest
 
 
 class UserProfile(models.Model):
@@ -92,6 +93,7 @@ class OfferedBookManager(models.Manager):
         This query:
         - Filters books by user's location areas
         - Excludes the user's own books
+        - Orders by most recent activity (max of created_at and cover_uploaded_at)
         - Annotates with 'already_requested' flag via Exists subquery
         - Optimizes with select_related and prefetch_related to avoid N+1 queries
         """
@@ -103,7 +105,12 @@ class OfferedBookManager(models.Manager):
             .select_related("user")
             .prefetch_related("user__locations")
             .distinct()
-            .order_by("-created_at")
+            .order_by(
+                Greatest(
+                    "created_at",
+                    Coalesce("cover_uploaded_at", "created_at")
+                ).desc()
+            )
         )
 
         return self._annotate_already_requested(queryset, user)
@@ -114,8 +121,17 @@ class OfferedBookManager(models.Manager):
 
         - If viewing own profile: returns all books without annotation
         - If viewing another user's profile: annotates with 'already_requested' flag
+        - Orders by most recent activity (max of created_at and cover_uploaded_at)
         """
-        queryset = self.filter(user=profile_user)
+        queryset = (
+            self.filter(user=profile_user)
+            .order_by(
+                Greatest(
+                    "created_at",
+                    Coalesce("cover_uploaded_at", "created_at")
+                ).desc()
+            )
+        )
 
         if viewing_user != profile_user:
             queryset = self._annotate_already_requested(queryset, viewing_user)
@@ -211,6 +227,11 @@ class OfferedBook(BaseBook):
         blank=True,
         null=True,
         help_text="User-uploaded photo of the physical book",
+    )
+    cover_uploaded_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the cover photo was last uploaded",
     )
 
     objects = OfferedBookManager()

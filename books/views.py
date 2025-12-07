@@ -19,6 +19,7 @@ from django.http import HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 
@@ -612,7 +613,9 @@ def upload_book_photo(request, book_id):
             )
 
             # Save to model
-            book.cover_image.save(thumbnail.name, thumbnail, save=True)
+            book.cover_image.save(thumbnail.name, thumbnail, save=False)
+            book.cover_uploaded_at = timezone.now()
+            book.save()
 
             # Handle AJAX requests
             is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
