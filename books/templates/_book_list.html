@@ -57,7 +57,7 @@
               </span>
               <span class="location-tags is-hidden-mobile">
                 {% for location in book.user.locations.all %}
-                <span class="tag is-light mr-1"
+                <span class="tag location-badge mr-1"
                   >{{ location.get_area_display }}</span
                 >
                 {% endfor %}
@@ -71,7 +71,7 @@
   <div class="card-content pt-0 is-hidden-tablet">
     <div class="location-tags mb-3">
       {% for location in book.user.locations.all %}
-      <span class="tag is-light mr-1"
+      <span class="tag location-badge mr-1"
         >{{ location.get_area_display }}</span
       >
       {% endfor %}

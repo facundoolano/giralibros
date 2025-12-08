@@ -50,7 +50,7 @@
           </h1>
           <div class="tags">
             {% for location in profile_user.locations.all %}
-            <span class="tag is-light">{{ location.get_area_display }}</span>
+            <span class="tag location-badge">{{ location.get_area_display }}</span>
             {% endfor %}
           </div>
         </div>
