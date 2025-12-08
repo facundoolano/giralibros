@@ -90,6 +90,25 @@ class BaseTestCase(DjangoTestCase):
 
         raise AssertionError(f"No URL with pattern '{url_pattern}' found in email body")
 
+    def add_books(self, books, wanted=False):
+        """
+        Add books for the currently logged-in user.
+
+        Args:
+            books: List of (title, author) tuples
+            wanted: If True, adds wanted books; otherwise adds offered books
+        """
+        form_data = {
+            "form-TOTAL_FORMS": str(len(books)),
+            "form-INITIAL_FORMS": "0",
+        }
+        for i, (title, author) in enumerate(books):
+            form_data[f"form-{i}-title"] = title
+            form_data[f"form-{i}-author"] = author
+
+        url = reverse("my_wanted") if wanted else reverse("my_offered")
+        self.client.post(url, form_data)
+
 
 # Create your tests here.
 class UserTest(BaseTestCase):
@@ -1185,25 +1204,6 @@ class BooksTest(BaseTestCase):
         self.assertContains(response, "1984")
         self.assertContains(response, "George Orwell")
 
-    def add_books(self, books, wanted=False):
-        """
-        Add books for the currently logged-in user.
-
-        Args:
-            books: List of (title, author) tuples
-            wanted: If True, adds wanted books; otherwise adds offered books
-        """
-        form_data = {
-            "form-TOTAL_FORMS": str(len(books)),
-            "form-INITIAL_FORMS": "0",
-        }
-        for i, (title, author) in enumerate(books):
-            form_data[f"form-{i}-title"] = title
-            form_data[f"form-{i}-author"] = author
-
-        url = reverse("my_wanted") if wanted else reverse("my_offered")
-        self.client.post(url, form_data)
-
 
 class BooksPaginationTest(BaseTestCase):
     def test_pagination_limits_results(self):
@@ -1413,25 +1413,6 @@ class BooksPaginationTest(BaseTestCase):
         self.assertEqual(response.status_code, 200)
         offered_books = response.context["offered_books"]
         self.assertEqual(len(offered_books), 5)
-
-    def add_books(self, books, wanted=False):
-        """
-        Add books for the currently logged-in user.
-
-        Args:
-            books: List of (title, author) tuples
-            wanted: If True, adds wanted books; otherwise adds offered books
-        """
-        form_data = {
-            "form-TOTAL_FORMS": str(len(books)),
-            "form-INITIAL_FORMS": "0",
-        }
-        for i, (title, author) in enumerate(books):
-            form_data[f"form-{i}-title"] = title
-            form_data[f"form-{i}-author"] = author
-
-        url = reverse("my_wanted") if wanted else reverse("my_offered")
-        self.client.post(url, form_data)
 
 
 class BookCoverTest(BaseTestCase):
