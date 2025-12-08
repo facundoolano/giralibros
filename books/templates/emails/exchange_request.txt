@@ -8,9 +8,9 @@
 - "{{ requester_book.title }}" de {{ requester_book.author }}{% if requester_book.notes %} ({{ requester_book.notes }}){% endif %}
 {% endfor %}
 
-Ponete en contacto con {{ requester.first_name }} en {{ requester.profile.contact_email }}{% if requester.profile.alternate_contact %}o {{ requester.profile.alternate_contact }}<br>{% endif %} para coordinar el intercambio.
+Para coordinar el intercambio, ponete en contacto con {{ requester.first_name }} en {{ requester.profile.contact_email }}{% if requester.profile.alternate_contact %}o {{ requester.profile.alternate_contact }}{% endif %} o directamente respondiendo a este correo.
 
-Podés ver su perfil completo en {{ requester_profile_url }}
+Podés ver su perfil completo en {{ requester_profile_url }}.
 
 --
 GiraLibros

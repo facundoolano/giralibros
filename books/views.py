@@ -481,6 +481,7 @@ def request_exchange(request, book_id):
                     "exchange_request": exchange_request,
                     "requester_profile_url": requester_profile_url,
                 },
+                reply_to=request.user.profile.contact_email,
             )
     except Exception:
         # If email fails, transaction is rolled back automatically
@@ -643,7 +644,7 @@ def upload_book_photo(request, book_id):
     )
 
 
-def _send_templated_email(to_email, subject, template_name, context=None):
+def _send_templated_email(to_email, subject, template_name, context=None, reply_to=None):
     """
     Send multipart email with HTML and plain text versions.
 
@@ -656,6 +657,9 @@ def _send_templated_email(to_email, subject, template_name, context=None):
     if isinstance(to_email, str):
         to_email = [to_email]
 
+    if isinstance(reply_to, str):
+        reply_to = [reply_to]
+
     text_message = render_to_string(f"{template_name}.txt", context)
     html_message = render_to_string(f"{template_name}.html", context)
 
@@ -664,6 +668,7 @@ def _send_templated_email(to_email, subject, template_name, context=None):
         body=text_message,
         from_email=settings.DEFAULT_FROM_EMAIL,
         to=to_email,
+        reply_to=reply_to,
     )
     email.attach_alternative(html_message, "text/html")
 
