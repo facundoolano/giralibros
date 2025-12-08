@@ -1414,6 +1414,27 @@ class BooksPaginationTest(BaseTestCase):
         offered_books = response.context["offered_books"]
         self.assertEqual(len(offered_books), 5)
 
+    def add_books(self, books, wanted=False):
+        """
+        Add books for the currently logged-in user.
+
+        Args:
+            books: List of (title, author) tuples
+            wanted: If True, adds wanted books; otherwise adds offered books
+        """
+        form_data = {
+            "form-TOTAL_FORMS": str(len(books)),
+            "form-INITIAL_FORMS": "0",
+        }
+        for i, (title, author) in enumerate(books):
+            form_data[f"form-{i}-title"] = title
+            form_data[f"form-{i}-author"] = author
+
+        url = reverse("my_wanted") if wanted else reverse("my_offered")
+        self.client.post(url, form_data)
+
+
+class BookCoverTest(BaseTestCase):
     def tetest_cover_upload(self):
         # register and verify user
         # add a book
@@ -1449,22 +1470,3 @@ class BooksPaginationTest(BaseTestCase):
         # upload a cover image for the book with a non image file
         # request fails
         pass
-
-    def add_books(self, books, wanted=False):
-        """
-        Add books for the currently logged-in user.
-
-        Args:
-            books: List of (title, author) tuples
-            wanted: If True, adds wanted books; otherwise adds offered books
-        """
-        form_data = {
-            "form-TOTAL_FORMS": str(len(books)),
-            "form-INITIAL_FORMS": "0",
-        }
-        for i, (title, author) in enumerate(books):
-            form_data[f"form-{i}-title"] = title
-            form_data[f"form-{i}-author"] = author
-
-        url = reverse("my_wanted") if wanted else reverse("my_offered")
-        self.client.post(url, form_data)
