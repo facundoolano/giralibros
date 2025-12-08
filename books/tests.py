@@ -1453,14 +1453,44 @@ class BookCoverTest(BaseTestCase):
         # Verify the cover image file exists on disk
         self.assertTrue(self.file_exists(image_url))
 
-    def tetest_cover_display_in_list(self):
-        # register and verify user
-        # add a book
-        # upload a cover image for the book, save image url
+    def test_cover_display_in_list(self):
+        """Test that cover images uploaded by one user are displayed in other users' book listings."""
+        # Register and verify first user
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
 
-        # register and verify another user (same location)
-        # verify that the other's user book displayed in home list includes the image url
-        pass
+        # Add a book
+        self.add_books([("Test Book", "Test Author")])
+
+        # Get the book ID and upload a cover
+        response = self.client.get(reverse("profile", kwargs={"username": "user1"}))
+        offered_books = response.context["offered_books"]
+        book = offered_books[0]
+
+        image_file = self.create_test_image()
+        response = self.client.post(
+            reverse("upload_book_photo", kwargs={"book_id": book.id}),
+            {"cover_image": image_file},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(response.status_code, 200)
+
+        response_data = response.json()
+        image_url = response_data["image_url"]
+
+        self.client.logout()
+
+        # Register and verify second user in same location
+        self.register_and_verify_user(
+            username="user2", email="user2@example.com", fill_profile=True
+        )
+
+        # Verify user1's book with cover appears in user2's home listing
+        response = self.client.get(reverse("home"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Test Book")
+        self.assertContains(response, image_url)
 
     def tetest_cleanup_after_cover_update(self):
         # register and verify user
