@@ -10,6 +10,7 @@ import os
 from .base import *  # noqa: F403, F401
 
 STATIC_ROOT = os.environ.get("STATIC_ROOT", "/var/www/giralibros/static")
+MEDIA_ROOT = os.environ.get("MEDIA_ROOT", "/var/www/giralibros/media")
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")

@@ -3,6 +3,7 @@ import re
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Q
+from django.db.models.functions import Coalesce, Greatest
 
 
 class UserProfile(models.Model):
@@ -84,6 +85,15 @@ class BaseBook(models.Model):
 
 
 class OfferedBookManager(models.Manager):
+    def _annotate_last_activity(self, queryset):
+        """Add last_activity_date annotation (max of created_at and cover_uploaded_at)."""
+        return queryset.annotate(
+            last_activity_date=Greatest(
+                "created_at",
+                Coalesce("cover_uploaded_at", "created_at")
+            )
+        )
+
     def for_user(self, user):
         """
         Return books available in the user's locations, annotated with whether
@@ -92,6 +102,8 @@ class OfferedBookManager(models.Manager):
         This query:
         - Filters books by user's location areas
         - Excludes the user's own books
+        - Annotates with last_activity_date (max of created_at and cover_uploaded_at)
+        - Orders by most recent activity
         - Annotates with 'already_requested' flag via Exists subquery
         - Optimizes with select_related and prefetch_related to avoid N+1 queries
         """
@@ -103,8 +115,10 @@ class OfferedBookManager(models.Manager):
             .select_related("user")
             .prefetch_related("user__locations")
             .distinct()
-            .order_by("-created_at")
         )
+
+        queryset = self._annotate_last_activity(queryset)
+        queryset = queryset.order_by("-last_activity_date")
 
         return self._annotate_already_requested(queryset, user)
 
@@ -206,19 +220,19 @@ class OfferedBook(BaseBook):
         default=False,
         help_text="Used to mark that this book is reserved for a not yet fulfilled exchange.",
     )
+    cover_image = models.ImageField(
+        upload_to="book_covers/%Y/%m/",
+        blank=True,
+        null=True,
+        help_text="User-uploaded photo of the physical book",
+    )
+    cover_uploaded_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the cover photo was last uploaded",
+    )
 
     objects = OfferedBookManager()
-
-    @property
-    def cover_image(self) -> str:
-        """
-        Return a consistent book cover image filename based on book ID.
-        Uses modulo to cycle through available book images.
-        """
-        # Number of available book images
-        NUM_BOOK_IMAGES = 4
-        image_num = ((self.id - 1) % NUM_BOOK_IMAGES) + 1
-        return f"img/book{image_num}.webp"
 
 
 class WantedBook(BaseBook):

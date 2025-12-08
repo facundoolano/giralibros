@@ -1,4 +1,5 @@
 import logging
+from io import BytesIO
 
 from django.conf import settings
 from django.contrib.auth import login as auth_login
@@ -7,16 +8,19 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetView
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.mail import EmailMultiAlternatives
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.forms import modelformset_factory
-from django.http import JsonResponse
-from django.shortcuts import redirect, render
+from django.http import HttpResponseBadRequest, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from PIL import Image, ImageOps
 
 from books.forms import (
     CustomSetPasswordForm,
@@ -529,6 +533,114 @@ def _manage_books(request, book_model, book_form, template_name):
         formset = BookFormSet(queryset=queryset)
 
     return render(request, template_name, {"formset": formset})
+
+
+@login_required
+def upload_book_photo(request, book_id):
+    """
+    Handle book cover photo upload with thumbnail generation.
+    """
+    # Get the book and verify ownership
+    book = get_object_or_404(OfferedBook, id=book_id, user=request.user)
+
+    if request.method == "POST":
+        # Validate file was uploaded
+        if "cover_image" not in request.FILES:
+            return HttpResponseBadRequest("No image file provided")
+
+        uploaded_file = request.FILES["cover_image"]
+
+        # Validate file size
+        max_size = settings.BOOK_COVER_MAX_SIZE
+        if uploaded_file.size > max_size:
+            max_size_mb = max_size / (1024 * 1024)
+            return HttpResponseBadRequest(
+                f"Image file too large (max {max_size_mb:.0f}MB)"
+            )
+
+        # Validate file type
+        allowed_types = settings.BOOK_COVER_ALLOWED_TYPES
+        if uploaded_file.content_type not in allowed_types:
+            return HttpResponseBadRequest("Invalid image format")
+
+        try:
+            # Open and process image with Pillow
+            image = Image.open(uploaded_file)
+
+            # Apply EXIF orientation (fixes rotated mobile photos)
+            # exif_transpose returns None if no transposing is needed
+            image = ImageOps.exif_transpose(image) or image
+
+            # Convert to RGB if necessary (handles PNG with transparency, etc.)
+            if image.mode in ("RGBA", "P"):
+                image = image.convert("RGB")
+
+            # Center crop to book aspect ratio (2:3 - typical paperback)
+            # This removes surroundings and focuses on the book
+            target_aspect = 2 / 3  # width / height
+            img_width, img_height = image.size
+            img_aspect = img_width / img_height
+
+            if img_aspect > target_aspect:
+                # Image is too wide, crop sides
+                new_width = int(img_height * target_aspect)
+                left = (img_width - new_width) // 2
+                image = image.crop((left, 0, left + new_width, img_height))
+            else:
+                # Image is too tall, crop top/bottom
+                new_height = int(img_width / target_aspect)
+                top = (img_height - new_height) // 2
+                image = image.crop((0, top, img_width, top + new_height))
+
+            # Calculate thumbnail size maintaining aspect ratio
+            max_width = settings.BOOK_COVER_THUMBNAIL_MAX_WIDTH
+            max_height = settings.BOOK_COVER_THUMBNAIL_MAX_HEIGHT
+            image.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
+
+            # Save to BytesIO with optimization
+            output = BytesIO()
+            quality = settings.BOOK_COVER_JPEG_QUALITY
+            image.save(output, format="JPEG", quality=quality, optimize=True)
+            output.seek(0)
+
+            # Create new InMemoryUploadedFile
+            thumbnail = InMemoryUploadedFile(
+                output,
+                "ImageField",
+                f"{uploaded_file.name.split('.')[0]}_thumb.jpg",
+                "image/jpeg",
+                output.getbuffer().nbytes,
+                None,
+            )
+
+            # Save to model
+            book.cover_image.save(thumbnail.name, thumbnail, save=False)
+            book.cover_uploaded_at = timezone.now()
+            book.save()
+
+            # Handle AJAX requests
+            is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+            if is_ajax:
+                return JsonResponse(
+                    {"success": True, "image_url": book.cover_image.url}
+                )
+
+            return redirect("profile", username=request.user.username)
+
+        except Exception as e:
+            logger.error(f"Error processing image upload: {e}")
+            return HttpResponseBadRequest("Error processing image")
+
+    # GET request - show upload form
+    max_size_mb = settings.BOOK_COVER_MAX_SIZE / (1024 * 1024)
+    return render(
+        request,
+        "upload_photo.html",
+        {
+            "book": book,
+            "max_size_mb": int(max_size_mb),
+        },
+    )
 
 
 def _send_templated_email(to_email, subject, template_name, context=None):

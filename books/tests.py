@@ -1,12 +1,12 @@
 from unittest.mock import patch
 
 from django.core import mail
-from django.test import Client, override_settings
-from django.test import TestCase as DjangoTestCase
+from django.test import Client, TestCase, TransactionTestCase, override_settings
 from django.urls import reverse
 
 
-class BaseTestCase(DjangoTestCase):
+class BookTestMixin:
+    """Mixin with common test helpers for book-related tests. Use with TestCase or TransactionTestCase."""
     def setUp(self):
         # Every test needs a client.
         self.client = Client()
@@ -90,9 +90,28 @@ class BaseTestCase(DjangoTestCase):
 
         raise AssertionError(f"No URL with pattern '{url_pattern}' found in email body")
 
+    def add_books(self, books, wanted=False):
+        """
+        Add books for the currently logged-in user.
+
+        Args:
+            books: List of (title, author) tuples
+            wanted: If True, adds wanted books; otherwise adds offered books
+        """
+        form_data = {
+            "form-TOTAL_FORMS": str(len(books)),
+            "form-INITIAL_FORMS": "0",
+        }
+        for i, (title, author) in enumerate(books):
+            form_data[f"form-{i}-title"] = title
+            form_data[f"form-{i}-author"] = author
+
+        url = reverse("my_wanted") if wanted else reverse("my_offered")
+        self.client.post(url, form_data)
+
 
 # Create your tests here.
-class UserTest(BaseTestCase):
+class UserTest(BookTestMixin, TestCase):
     def test_login_register(self):
         """Test that users must register and verify email before logging in."""
         # Test login with nonexistent user fails
@@ -709,7 +728,7 @@ class UserTest(BaseTestCase):
         self.assertContains(response, "La contraseña tiene un valor demasiado común")
 
 
-class BooksTest(BaseTestCase):
+class BooksTest(BookTestMixin, TestCase):
     def test_own_books_excluded(self):
         """Test that users do not see their own books in the book listing."""
         # Register first user with profile and books
@@ -1185,27 +1204,8 @@ class BooksTest(BaseTestCase):
         self.assertContains(response, "1984")
         self.assertContains(response, "George Orwell")
 
-    def add_books(self, books, wanted=False):
-        """
-        Add books for the currently logged-in user.
 
-        Args:
-            books: List of (title, author) tuples
-            wanted: If True, adds wanted books; otherwise adds offered books
-        """
-        form_data = {
-            "form-TOTAL_FORMS": str(len(books)),
-            "form-INITIAL_FORMS": "0",
-        }
-        for i, (title, author) in enumerate(books):
-            form_data[f"form-{i}-title"] = title
-            form_data[f"form-{i}-author"] = author
-
-        url = reverse("my_wanted") if wanted else reverse("my_offered")
-        self.client.post(url, form_data)
-
-
-class BooksPaginationTest(BaseTestCase):
+class BooksPaginationTest(BookTestMixin, TestCase):
     def test_pagination_limits_results(self):
         """Test that book listing is paginated at 20 items per page."""
         # Register user1 with 25 books
@@ -1414,21 +1414,267 @@ class BooksPaginationTest(BaseTestCase):
         offered_books = response.context["offered_books"]
         self.assertEqual(len(offered_books), 5)
 
-    def add_books(self, books, wanted=False):
+
+class BookCoverTest(BookTestMixin, TransactionTestCase):
+    """
+    Tests for book cover upload and cleanup functionality.
+
+    Note: Uses TransactionTestCase instead of TestCase because django-cleanup
+    requires actual transaction commits to trigger file cleanup callbacks.
+    """
+
+    def test_cover_upload(self):
+        """Test that users can upload a cover image for their book and it displays in their profile."""
+        # Register and verify user
+        self.register_and_verify_user(fill_profile=True)
+
+        # Add a book
+        self.add_books([("Test Book", "Test Author")])
+
+        # Get the book ID from the profile page
+        response = self.client.get(reverse("profile", kwargs={"username": "testuser"}))
+        offered_books = response.context["offered_books"]
+        book = offered_books[0]
+
+        # Create a test image file
+        image_file = self.create_test_image()
+
+        # Upload the cover image via AJAX
+        response = self.client.post(
+            reverse("upload_book_photo", kwargs={"book_id": book.id}),
+            {"cover_image": image_file},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # Get the image URL from the JSON response
+        response_data = response.json()
+        self.assertIn("image_url", response_data)
+        image_url = response_data["image_url"]
+
+        # Request own profile, verify the image URL is in the HTML
+        response = self.client.get(reverse("profile", kwargs={"username": "testuser"}))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, image_url)
+
+        # Verify the cover image file exists on disk
+        self.assertTrue(self.file_exists(image_url))
+
+    def test_cover_display_in_list(self):
+        """Test that cover images uploaded by one user are displayed in other users' book listings."""
+        # Register and verify first user
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
+
+        # Add a book
+        self.add_books([("Test Book", "Test Author")])
+
+        # Get the book ID and upload a cover
+        response = self.client.get(reverse("profile", kwargs={"username": "user1"}))
+        offered_books = response.context["offered_books"]
+        book = offered_books[0]
+
+        image_file = self.create_test_image()
+        response = self.client.post(
+            reverse("upload_book_photo", kwargs={"book_id": book.id}),
+            {"cover_image": image_file},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(response.status_code, 200)
+
+        response_data = response.json()
+        image_url = response_data["image_url"]
+
+        self.client.logout()
+
+        # Register and verify second user in same location
+        self.register_and_verify_user(
+            username="user2", email="user2@example.com", fill_profile=True
+        )
+
+        # Verify user1's book with cover appears in user2's home listing
+        response = self.client.get(reverse("home"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Test Book")
+        self.assertContains(response, image_url)
+
+    def test_cleanup_after_cover_update(self):
+        """Test that old cover images are deleted when replaced with new ones."""
+        # Register and verify user
+        self.register_and_verify_user(fill_profile=True)
+
+        # Add a book
+        self.add_books([("Test Book", "Test Author")])
+
+        # Get the book ID from profile
+        response = self.client.get(reverse("profile", kwargs={"username": "testuser"}))
+        offered_books = response.context["offered_books"]
+        book = offered_books[0]
+
+        # Upload first cover image
+        image_file = self.create_test_image("first_cover.jpg")
+        response = self.client.post(
+            reverse("upload_book_photo", kwargs={"book_id": book.id}),
+            {"cover_image": image_file},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(response.status_code, 200)
+
+        response_data = response.json()
+        old_image_url = response_data["image_url"]
+
+        # Verify first image exists
+        self.assertTrue(self.file_exists(old_image_url))
+
+        # Upload second cover image to replace the first
+        image_file = self.create_test_image("second_cover.jpg")
+        response = self.client.post(
+            reverse("upload_book_photo", kwargs={"book_id": book.id}),
+            {"cover_image": image_file},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(response.status_code, 200)
+
+        response_data = response.json()
+        new_image_url = response_data["image_url"]
+
+        # Verify we got a different URL
+        self.assertNotEqual(old_image_url, new_image_url)
+
+        # Verify new image exists
+        self.assertTrue(self.file_exists(new_image_url))
+
+        # Verify old image was cleaned up by django-cleanup
+        self.assertFalse(self.file_exists(old_image_url))
+
+        # Verify profile shows the new image URL
+        response = self.client.get(reverse("profile", kwargs={"username": "testuser"}))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, new_image_url)
+        self.assertNotContains(response, old_image_url)
+
+    def test_cleanup_after_book_removal(self):
+        """Test that cover images are deleted when their associated book is removed."""
+        # Register and verify user
+        self.register_and_verify_user(fill_profile=True)
+
+        # Add a book
+        self.add_books([("Test Book", "Test Author")])
+
+        # Get the book ID and upload a cover
+        response = self.client.get(reverse("profile", kwargs={"username": "testuser"}))
+        offered_books = response.context["offered_books"]
+        book = offered_books[0]
+
+        image_file = self.create_test_image()
+        response = self.client.post(
+            reverse("upload_book_photo", kwargs={"book_id": book.id}),
+            {"cover_image": image_file},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(response.status_code, 200)
+
+        response_data = response.json()
+        image_url = response_data["image_url"]
+
+        # Verify image exists
+        self.assertTrue(self.file_exists(image_url))
+
+        # Remove the book by marking it for deletion in formset
+        form_data = {
+            "form-TOTAL_FORMS": "1",
+            "form-INITIAL_FORMS": "1",
+            "form-0-id": str(book.id),
+            "form-0-DELETE": "on",
+        }
+        response = self.client.post(reverse("my_offered"), form_data)
+        self.assertEqual(response.status_code, 302)
+
+        # Verify profile no longer shows the book in offered books section
+        response = self.client.get(reverse("profile", kwargs={"username": "testuser"}))
+        self.assertEqual(response.status_code, 200)
+        offered_books = response.context["offered_books"]
+        self.assertEqual(len(offered_books), 0)
+        self.assertNotContains(response, image_url)
+
+        # Verify image file was cleaned up
+        self.assertFalse(self.file_exists(image_url))
+
+    def test_cover_upload_fails_on_non_image_file(self):
+        """Test that uploading a non-image file is rejected with an error."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        # Register and verify user
+        self.register_and_verify_user(fill_profile=True)
+
+        # Add a book
+        self.add_books([("Test Book", "Test Author")])
+
+        # Get the book ID
+        response = self.client.get(reverse("profile", kwargs={"username": "testuser"}))
+        offered_books = response.context["offered_books"]
+        book = offered_books[0]
+
+        # Create a text file instead of an image
+        text_file = SimpleUploadedFile(
+            "test.txt", b"This is not an image", content_type="text/plain"
+        )
+
+        # Attempt to upload the text file as a cover
+        response = self.client.post(
+            reverse("upload_book_photo", kwargs={"book_id": book.id}),
+            {"cover_image": text_file},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+
+        # Should fail with bad request
+        self.assertEqual(response.status_code, 400)
+
+    def create_test_image(self, filename="test_cover.jpg"):
         """
-        Add books for the currently logged-in user.
+        Create a minimal test image file for upload testing.
 
         Args:
-            books: List of (title, author) tuples
-            wanted: If True, adds wanted books; otherwise adds offered books
-        """
-        form_data = {
-            "form-TOTAL_FORMS": str(len(books)),
-            "form-INITIAL_FORMS": "0",
-        }
-        for i, (title, author) in enumerate(books):
-            form_data[f"form-{i}-title"] = title
-            form_data[f"form-{i}-author"] = author
+            filename: Name for the uploaded file
 
-        url = reverse("my_wanted") if wanted else reverse("my_offered")
-        self.client.post(url, form_data)
+        Returns:
+            SimpleUploadedFile with a minimal JPEG image
+        """
+        from io import BytesIO
+
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from PIL import Image
+
+        # Create a minimal test image (10x10 red square)
+        image = Image.new("RGB", (10, 10), color="red")
+        image_io = BytesIO()
+        image.save(image_io, format="JPEG")
+        image_io.seek(0)
+
+        return SimpleUploadedFile(
+            filename, image_io.getvalue(), content_type="image/jpeg"
+        )
+
+    def file_exists(self, image_url):
+        """
+        Check if a cover image file exists on disk given its URL.
+
+        Note: Ideally we wouldn't access the filesystem directly or make assumptions
+        about storage, but Django's test client doesn't serve media files by default,
+        so we verify file existence on disk to test cleanup behavior.
+
+        Args:
+            image_url: The URL path to the image (e.g., /media/book_covers/...)
+
+        Returns:
+            True if the file exists on disk, False otherwise
+        """
+        import os
+
+        from django.conf import settings
+
+        # Extract relative path from URL and check filesystem
+        image_path = image_url.replace(settings.MEDIA_URL, "")
+        full_path = os.path.join(settings.MEDIA_ROOT, image_path)
+        return os.path.exists(full_path)
