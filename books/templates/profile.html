@@ -6,6 +6,10 @@
   .button-fixed-width {
     min-width: 110px;
   }
+  .book-placeholder {
+    background-color: var(--bulma-scheme-main-bis);
+    border: 1px solid var(--bulma-border);
+  }
   @media screen and (max-width: 768px) {
     .box {
       box-shadow: none;
@@ -126,7 +130,7 @@
               {% if book.cover_image %}
                 <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" style="max-width: 60px; max-height: 90px; border-radius: 4px;">
               {% else %}
-                <div style="width: 60px; height: 90px; background-color: #f5f5f5; border: 1px solid #dbdbdb; border-radius: 4px;"></div>
+                <div class="book-placeholder" style="width: 60px; height: 90px; border-radius: 4px;"></div>
               {% endif %}
             </div>
             <div class="is-flex-grow-1 is-flex is-flex-direction-column is-justify-content-space-between" style="min-height: 90px;">

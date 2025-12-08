@@ -2,6 +2,9 @@
 
 {% block extra_css %}
 <style>
+  .navbar {
+    background-color: var(--bulma-primary-soft);
+  }
   .js-requested-btn:disabled {
     cursor: default;
   }
@@ -21,7 +24,7 @@
 
 {% block content %}
     {% if user.profile %}
-    <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation" style="background-color: #e8f5e9;">
+    <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
         <div class="container py-1" style="position: relative;">
             <div class="navbar-brand">
                 <a class="navbar-item has-text-weight-bold is-size-4" href="{% url 'home' %}">
@@ -35,7 +38,7 @@
                 </a>
             </div>
 
-            <div id="navbarMenu" class="navbar-menu" style="background-color: #e8f5e9;">
+            <div id="navbarMenu" class="navbar-menu">
                 <div class="navbar-start">
                     <div class="navbar-item is-hidden-desktop">
                         <form action="{% url 'home' %}" method="get" style="width: 100%;">
