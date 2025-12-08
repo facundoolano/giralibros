@@ -1,26 +1,7 @@
 {% extends "base_logged.html" %}
 {% load book_filters %}
 
-{% block extra_css %}
-<style>
-  .button-fixed-width {
-    min-width: 110px;
-  }
-  @media screen and (max-width: 768px) {
-    .box {
-      box-shadow: none;
-      border: none;
-      border-radius: 0;
-      padding: 1rem 0;
-    }
-    .book-item-mobile {
-      flex-direction: column;
-      align-items: flex-start !important;
-      gap: 0.5rem;
-    }
-  }
-</style>
-{% endblock %}
+{% block extra_css %}{% endblock %}
 
 {% block logged_content %}
 <div class="columns is-centered">
@@ -34,7 +15,7 @@
       </a>
     </div>
 
-    <div class="box">
+    <div class="box box-mobile-flat">
       {# Header with username and info #}
       <div class="is-flex is-justify-content-space-between is-align-items-start mb-3">
         <div class="is-flex is-align-items-center is-flex-wrap-wrap" style="gap: 0.5rem;">
@@ -122,11 +103,11 @@
         {% for book in offered_books %}
         <div class="column is-12-mobile is-6-tablet">
           <div class="is-flex" style="gap: 1rem;">
-            <div class="is-flex-shrink-0 is-flex is-align-items-center{% if is_own_profile %} cover-clickable{% endif %}" style="width: 60px; height: 90px;{% if is_own_profile %} cursor: pointer;{% endif %}" {% if is_own_profile %}data-input-id="photo-input-{{ book.id }}"{% endif %}>
+            <div class="is-flex-shrink-0 is-flex is-align-items-center book-cover-container-small{% if is_own_profile %} cover-clickable{% endif %}"{% if is_own_profile %} style="cursor: pointer;"{% endif %} {% if is_own_profile %}data-input-id="photo-input-{{ book.id }}"{% endif %}>
               {% if book.cover_image %}
-                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" style="max-width: 60px; max-height: 90px; border-radius: 4px;">
+                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover-small">
               {% else %}
-                <div class="book-placeholder" style="width: 60px; height: 90px; border-radius: 4px;"></div>
+                <div class="book-placeholder book-cover-container-small"></div>
               {% endif %}
             </div>
             <div class="is-flex-grow-1 is-flex is-flex-direction-column is-justify-content-space-between" style="min-height: 90px;">
