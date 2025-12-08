@@ -1,0 +1,43 @@
+/* Site-wide custom styles for GiraLibros */
+
+/* Base layout */
+body {
+  padding-top: 3.25rem;
+}
+
+/* Navbar with adaptive color */
+.navbar {
+  background-color: var(--bulma-primary-soft);
+}
+
+.navbar-item:hover,
+.navbar-link:hover {
+  background-color: transparent !important;
+}
+
+/* Location badges with dark mode support */
+.location-badge {
+  background-color: var(--bulma-scheme-main-bis);
+  color: var(--bulma-text);
+}
+
+/* Location tag hover (for profile edit checkboxes) */
+.location-tag {
+  transition: all 0.15s;
+}
+
+.location-tag.is-light:hover:not(.is-info) {
+  background-color: hsl(0, 0%, 90%) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .location-tag.is-light:hover:not(.is-info) {
+    background-color: hsl(0, 0%, 20%) !important;
+  }
+}
+
+/* Book cover placeholder with dark mode support */
+.book-placeholder {
+  background-color: var(--bulma-scheme-main-bis);
+  border: 1px solid var(--bulma-border);
+}
