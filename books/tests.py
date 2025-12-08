@@ -1416,12 +1416,59 @@ class BooksPaginationTest(BaseTestCase):
 
 
 class BookCoverTest(BaseTestCase):
-    def tetest_cover_upload(self):
+    @override_settings(DEBUG=True)
+    def test_cover_upload(self):
+        """Test that users can upload a cover image for their book and it displays in their profile."""
+        # Register and verify user
+        self.register_and_verify_user(fill_profile=True)
+
+        # Add a book
+        self.add_books([("Test Book", "Test Author")])
+
+        # Get the book ID from the profile page
+        response = self.client.get(reverse("profile", kwargs={"username": "testuser"}))
+        offered_books = response.context["offered_books"]
+        book = offered_books[0]
+
+        # Create a test image file
+        image_file = self.create_test_image()
+
+        # Upload the cover image via AJAX
+        response = self.client.post(
+            reverse("upload_book_photo", kwargs={"book_id": book.id}),
+            {"cover_image": image_file},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # Get the image URL from the JSON response
+        response_data = response.json()
+        self.assertIn("image_url", response_data)
+        image_url = response_data["image_url"]
+
+        # Request own profile, verify the image URL is in the HTML
+        response = self.client.get(reverse("profile", kwargs={"username": "testuser"}))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, image_url)
+
+        # Verify the cover image file exists on disk
+        import os
+
+        from django.conf import settings
+
+        image_path = image_url.replace(settings.MEDIA_URL, "")
+        full_path = os.path.join(settings.MEDIA_ROOT, image_path)
+        self.assertTrue(
+            os.path.exists(full_path), f"Cover image file not found at {full_path}"
+        )
+
+    def tetest_cover_display_in_list(self):
         # register and verify user
         # add a book
-        # upload a cover image for the book
-        # request own profile, verify the book html has a cover image attached to it
-        # request the cover image url, returns 200
+        # upload a cover image for the book, save image url
+
+        # register and verify another user (same location)
+        # verify that the other's user book displayed in home list includes the image url
         pass
 
     def tetest_cleanup_after_cover_update(self):
@@ -1451,3 +1498,28 @@ class BookCoverTest(BaseTestCase):
         # upload a cover image for the book with a non image file
         # request fails
         pass
+
+    def create_test_image(self, filename="test_cover.jpg"):
+        """
+        Create a minimal test image file for upload testing.
+
+        Args:
+            filename: Name for the uploaded file
+
+        Returns:
+            SimpleUploadedFile with a minimal JPEG image
+        """
+        from io import BytesIO
+
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from PIL import Image
+
+        # Create a minimal test image (10x10 red square)
+        image = Image.new("RGB", (10, 10), color="red")
+        image_io = BytesIO()
+        image.save(image_io, format="JPEG")
+        image_io.seek(0)
+
+        return SimpleUploadedFile(
+            filename, image_io.getvalue(), content_type="image/jpeg"
+        )

@@ -10,8 +10,8 @@ from .base import *  # noqa: F403, F401
 # Use the same development secret key for tests
 SECRET_KEY = "django-insecure-y654p_bqy%2%r+k6j&nz_g-13s)-yddz7kp73#ip42ngwprs$z"
 
-# Debug should be False in tests to catch issues that would occur in production
-DEBUG = False
+# Enable debug mode for full testing including media file serving
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
