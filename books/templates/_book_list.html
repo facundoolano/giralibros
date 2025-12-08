@@ -1,25 +1,15 @@
 {% load static %}
 {% load book_filters %}
-<style>
-  @media screen and (max-width: 768px) {
-    .pb-0-mobile {
-      padding-bottom: 0.75rem !important;
-    }
-  }
-</style>
 {% for book in offered_books %}
 <div class="card mb-4">
   <div class="card-content pb-0-mobile">
     <article class="media">
       {% if book.cover_image %}
-      <div class="media-left is-flex is-align-items-center" style="width: 100px; height: 150px;">
-        <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" style="max-width: 100px; max-height: 150px; border-radius: 4px;">
+      <div class="media-left is-flex is-align-items-center book-cover-container">
+        <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover-image">
       </div>
       {% endif %}
-      <div
-        class="media-content"
-        style="display: flex; flex-direction: column; min-height: 150px;"
-      >
+      <div class="media-content flex-column-min-height">
         <div class="mb-4">
           <div class="is-flex is-justify-content-space-between is-align-items-center mb-1">
             <p class="is-size-5">
@@ -36,12 +26,12 @@
           </p>
           {% endif %}
         </div>
-        <div class="content" style="margin-top: auto">
+        <div class="content flex-auto-margin-top">
           <div
             class="is-flex is-justify-content-space-between is-align-items-center"
           >
             <div class="is-size-6 book-meta">
-              <span class="has-text-grey timeago-tooltip" style="white-space: nowrap; margin-right: 0.5rem;" data-timestamp="{{ book.last_activity_date|date:'c' }}">
+              <span class="has-text-grey timeago-tooltip mr-2" style="white-space: nowrap;" data-timestamp="{{ book.last_activity_date|date:'c' }}">
                 <span class="icon is-small">
                   <i class="fas fa-clock"></i>
                 </span>
@@ -57,7 +47,7 @@
               </span>
               <span class="location-tags is-hidden-mobile">
                 {% for location in book.user.locations.all %}
-                <span class="tag is-light mr-1"
+                <span class="tag location-badge mr-1"
                   >{{ location.get_area_display }}</span
                 >
                 {% endfor %}
@@ -71,7 +61,7 @@
   <div class="card-content pt-0 is-hidden-tablet">
     <div class="location-tags mb-3">
       {% for location in book.user.locations.all %}
-      <span class="tag is-light mr-1"
+      <span class="tag location-badge mr-1"
         >{{ location.get_area_display }}</span
       >
       {% endfor %}

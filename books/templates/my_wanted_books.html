@@ -1,25 +1,7 @@
 {% extends "base_logged.html" %}
 {% load static %}
 
-{% block extra_css %}
-<style>
-  /* Position delete button in top-right corner */
-  .book-entry {
-    position: relative;
-    padding-right: 3rem; /* Make room for delete button */
-  }
-  .book-entry .delete {
-    position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
-  }
-
-  /* Hide deleted entries but keep in DOM for form submission */
-  .book-entry.is-deleted {
-    display: none;
-  }
-</style>
-{% endblock %}
+{% block extra_css %}{% endblock %}
 
 {% block logged_content %}
 <div class="columns is-centered">

@@ -1,28 +1,11 @@
 {% extends "base.html" %}
 
-{% block extra_css %}
-<style>
-  .js-requested-btn:disabled {
-    cursor: default;
-  }
-  @media screen and (max-width: 768px) {
-    .book-meta {
-      display: flex;
-      flex-wrap: wrap;
-    }
-    .location-tags {
-      display: block;
-      width: 100%;
-      margin-top: 0.25rem;
-    }
-  }
-</style>
-{% endblock %}
+{% block extra_css %}{% endblock %}
 
 {% block content %}
     {% if user.profile %}
-    <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation" style="background-color: #e8f5e9;">
-        <div class="container py-1" style="position: relative;">
+    <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
+        <div class="container py-1 navbar-container">
             <div class="navbar-brand">
                 <a class="navbar-item has-text-weight-bold is-size-4" href="{% url 'home' %}">
                     📚 GiraLibros
@@ -35,13 +18,13 @@
                 </a>
             </div>
 
-            <div id="navbarMenu" class="navbar-menu" style="background-color: #e8f5e9;">
+            <div id="navbarMenu" class="navbar-menu">
                 <div class="navbar-start">
                     <div class="navbar-item is-hidden-desktop">
-                        <form action="{% url 'home' %}" method="get" style="width: 100%;">
-                            <div class="control has-icons-right" style="width: 100%;">
+                        <form action="{% url 'home' %}" method="get" class="full-width">
+                            <div class="control has-icons-right full-width">
                                 <input class="input" type="search" name="search" placeholder="Buscar Libro o Autor" value="{{ search_query }}">
-                                <button type="submit" class="icon is-right" title="Buscar" style="cursor: pointer; pointer-events: auto; background: none; border: none; padding: 0;">
+                                <button type="submit" class="icon is-right search-icon-button" title="Buscar">
                                     <i class="fas fa-search"></i>
                                 </button>
                             </div>
@@ -87,11 +70,11 @@
                 </div>
             </div>
 
-            <div class="is-hidden-touch" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 100%; max-width: 500px; pointer-events: none;">
-                <form action="{% url 'home' %}" method="get" style="pointer-events: auto;">
+            <div class="is-hidden-touch navbar-search-centered">
+                <form action="{% url 'home' %}" method="get">
                     <div class="control has-icons-right">
                         <input class="input" type="search" name="search" placeholder="Buscar Libro o Autor" value="{{ search_query }}">
-                        <button type="submit" class="icon is-right" title="Buscar" style="cursor: pointer; pointer-events: auto; background: none; border: none; padding: 0;">
+                        <button type="submit" class="icon is-right search-icon-button" title="Buscar">
                             <i class="fas fa-search"></i>
                         </button>
                     </div>

@@ -1,0 +1,217 @@
+/* Site-wide custom styles for GiraLibros */
+
+/* Base layout */
+body {
+    padding-top: 3.25rem;
+}
+
+/* Navbar with adaptive color */
+.navbar {
+    background-color: var(--bulma-primary-soft);
+}
+
+.navbar-item:hover,
+.navbar-link:hover {
+    background-color: transparent !important;
+}
+
+/* Location badges with dark mode support */
+.location-badge {
+    background-color: var(--bulma-light);
+    color: var(--bulma-light-invert);
+}
+
+@media (prefers-color-scheme: dark) {
+    .location-badge {
+        background-color: var(--bulma-dark);
+        color: var(--bulma-dark-invert);
+    }
+}
+
+/* Location tag hover (for profile edit checkboxes) */
+.location-tag {
+    transition: all 0.15s;
+}
+
+.location-tag.is-light:hover:not(.is-info) {
+    background-color: hsl(0, 0%, 90%) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    .location-tag.is-light:hover:not(.is-info) {
+        background-color: hsl(0, 0%, 20%) !important;
+    }
+}
+
+/* Book cover placeholder with dark mode support */
+.book-placeholder {
+    background-color: var(--bulma-scheme-main-bis);
+    border: 1px solid var(--bulma-border);
+}
+
+/* =============================================================================
+   Book Components
+   ============================================================================= */
+
+/* Book cover images - consistent sizing */
+.book-cover-image {
+    max-width: 100px;
+    max-height: 150px;
+    border-radius: 4px;
+}
+
+.book-cover-small {
+    max-width: 60px;
+    max-height: 90px;
+    border-radius: 4px;
+}
+
+/* Book cover container */
+.book-cover-container {
+    width: 100px;
+    height: 150px;
+}
+
+.book-cover-container-small {
+    width: 60px;
+    height: 90px;
+}
+
+/* Book entry form styles */
+.book-entry {
+    position: relative;
+    padding-right: 3rem; /* Make room for delete button */
+}
+
+.book-entry .delete {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+}
+
+.book-entry.is-deleted {
+    display: none;
+}
+
+/* =============================================================================
+   Buttons
+   ============================================================================= */
+
+.button-fixed-width {
+    min-width: 110px;
+}
+
+.js-requested-btn:disabled {
+    cursor: default;
+}
+
+/* Search icon button reset */
+.search-icon-button {
+    cursor: pointer;
+    pointer-events: auto;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+/* =============================================================================
+   Forms & Inputs
+   ============================================================================= */
+
+/* Location selection grid (profile edit) */
+.location-grid {
+    display: grid;
+    gap: 0.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
+@media screen and (min-width: 769px) {
+    .location-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.location-tag-checkbox {
+    cursor: pointer;
+}
+
+.location-tag-checkbox input[type="checkbox"] {
+    margin-right: 0.5rem;
+}
+
+/* Full width form controls */
+.full-width {
+    width: 100%;
+}
+
+/* =============================================================================
+   Layout Utilities
+   ============================================================================= */
+
+/* Centered search form in navbar */
+.navbar-search-centered {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    max-width: 500px;
+    pointer-events: none;
+}
+
+.navbar-search-centered form {
+    pointer-events: auto;
+}
+
+/* Navbar container with relative positioning */
+.navbar-container {
+    position: relative;
+}
+
+/* Flexbox utilities for book cards */
+.flex-column-min-height {
+    display: flex;
+    flex-direction: column;
+    min-height: 150px;
+}
+
+.flex-auto-margin-top {
+    margin-top: auto;
+}
+
+/* =============================================================================
+   Mobile Responsive
+   ============================================================================= */
+
+@media screen and (max-width: 768px) {
+    /* Book metadata layout on mobile */
+    .book-meta {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .location-tags {
+        display: block;
+        width: 100%;
+        margin-top: 0.25rem;
+    }
+
+    /* Reduce padding on mobile for book cards */
+    .pb-0-mobile {
+        padding-bottom: 0.75rem !important;
+    }
+
+    /* Profile page mobile adjustments */
+    .box-mobile-flat {
+        box-shadow: none;
+        border: none;
+        border-radius: 0;
+        padding: 1rem 0;
+    }
+
+    .book-item-mobile {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 0.5rem;
+    }
+}

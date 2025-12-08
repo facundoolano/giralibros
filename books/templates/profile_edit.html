@@ -24,28 +24,28 @@
         </p>
         <div class="control">
           <div class="location-grid">
-            <label class="tag is-medium is-light location-tag" style="cursor: pointer">
-              <input type="checkbox" name="locations" value="CABA_NORTE" {% if 'CABA_NORTE' in form.locations.value|default:'' %}checked{% endif %} style="margin-right: 0.5rem" />
+            <label class="tag is-medium is-light location-tag location-tag-checkbox">
+              <input type="checkbox" name="locations" value="CABA_NORTE" {% if 'CABA_NORTE' in form.locations.value|default:'' %}checked{% endif %} />
               CABA Norte
             </label>
-            <label class="tag is-medium is-light location-tag" style="cursor: pointer">
-              <input type="checkbox" name="locations" value="CABA_CENTRO" {% if 'CABA_CENTRO' in form.locations.value|default:'' %}checked{% endif %} style="margin-right: 0.5rem" />
+            <label class="tag is-medium is-light location-tag location-tag-checkbox">
+              <input type="checkbox" name="locations" value="CABA_CENTRO" {% if 'CABA_CENTRO' in form.locations.value|default:'' %}checked{% endif %} />
               CABA Centro
             </label>
-            <label class="tag is-medium is-light location-tag" style="cursor: pointer">
-              <input type="checkbox" name="locations" value="CABA_SUR" {% if 'CABA_SUR' in form.locations.value|default:'' %}checked{% endif %} style="margin-right: 0.5rem" />
+            <label class="tag is-medium is-light location-tag location-tag-checkbox">
+              <input type="checkbox" name="locations" value="CABA_SUR" {% if 'CABA_SUR' in form.locations.value|default:'' %}checked{% endif %} />
               CABA Sur
             </label>
-            <label class="tag is-medium is-light location-tag" style="cursor: pointer">
-              <input type="checkbox" name="locations" value="GBA_NORTE" {% if 'GBA_NORTE' in form.locations.value|default:'' %}checked{% endif %} style="margin-right: 0.5rem" />
+            <label class="tag is-medium is-light location-tag location-tag-checkbox">
+              <input type="checkbox" name="locations" value="GBA_NORTE" {% if 'GBA_NORTE' in form.locations.value|default:'' %}checked{% endif %} />
               GBA Norte
             </label>
-            <label class="tag is-medium is-light location-tag" style="cursor: pointer">
-              <input type="checkbox" name="locations" value="GBA_OESTE" {% if 'GBA_OESTE' in form.locations.value|default:'' %}checked{% endif %} style="margin-right: 0.5rem" />
+            <label class="tag is-medium is-light location-tag location-tag-checkbox">
+              <input type="checkbox" name="locations" value="GBA_OESTE" {% if 'GBA_OESTE' in form.locations.value|default:'' %}checked{% endif %} />
               GBA Oeste
             </label>
-            <label class="tag is-medium is-light location-tag" style="cursor: pointer">
-              <input type="checkbox" name="locations" value="GBA_SUR" {% if 'GBA_SUR' in form.locations.value|default:'' %}checked{% endif %} style="margin-right: 0.5rem" />
+            <label class="tag is-medium is-light location-tag location-tag-checkbox">
+              <input type="checkbox" name="locations" value="GBA_SUR" {% if 'GBA_SUR' in form.locations.value|default:'' %}checked{% endif %} />
               GBA Sur
             </label>
           </div>
@@ -117,24 +117,6 @@
   </div>
 </div>
 
-<style>
-  .location-grid {
-    display: grid;
-    gap: 0.5rem;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  }
-  @media screen and (min-width: 769px) {
-    .location-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-  .location-tag {
-    transition: all 0.15s;
-  }
-  .location-tag.is-light:hover:not(.is-info) {
-    background-color: hsl(0, 0%, 90%) !important;
-  }
-</style>
 
 <script>
   // Update tag styling based on checkbox state

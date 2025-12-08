@@ -6,24 +6,24 @@
   {% if search_query %}
   <span class="mr-2">Mostrando resultados para "<strong>{{ search_query }}</strong>" en</span>
   {% for location in user.locations.all %}
-  <span class="tag is-light mr-1">{{ location.get_area_display }}</span>
+  <span class="tag location-badge mr-1">{{ location.get_area_display }}</span>
   {% endfor %}
   <div class="mt-2">
     <a href="{% url 'home' %}">Ver todos</a>
   </div>
   {% elif filter_wanted %}
-  <span class="mr-2">Mostrando los libros de</span>{% for location in user.locations.all %}<span class="tag is-light mr-1">{{ location.get_area_display }}</span>{% endfor %} que coinciden con tus <a href="{% url 'my_wanted' %}">libros deseados</a>.
+  <span class="mr-2">Mostrando los libros de</span>{% for location in user.locations.all %}<span class="tag location-badge mr-1">{{ location.get_area_display }}</span>{% endfor %} que coinciden con tus <a href="{% url 'my_wanted' %}">libros deseados</a>.
   <div class="mt-2">
     <a href="{% url 'home' %}">Ver todos</a>
   </div>
   {% else %}
   <span class="mr-2">Mostrando los últimos libros disponibles en</span>
   {% for location in user.locations.all %}
-  <span class="tag is-light mr-1">{{ location.get_area_display }}</span>
+  <span class="tag location-badge mr-1">{{ location.get_area_display }}</span>
   {% endfor %}
   {% if user.wanted.exists %}
   <div class="mt-2">
-    <a href="{% url 'home' %}?wanted">Buscar mis libros deseados</a>
+    <a href="{% url 'home' %}?wanted">Mostrar solo mis libros deseados</a>
   </div>
   {% endif %}
   {% endif %}
