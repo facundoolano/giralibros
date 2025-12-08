@@ -1414,6 +1414,42 @@ class BooksPaginationTest(BaseTestCase):
         offered_books = response.context["offered_books"]
         self.assertEqual(len(offered_books), 5)
 
+    def tetest_cover_upload(self):
+        # register and verify user
+        # add a book
+        # upload a cover image for the book
+        # request own profile, verify the book html has a cover image attached to it
+        # request the cover image url, returns 200
+        pass
+
+    def tetest_cleanup_after_cover_update(self):
+        # register and verify user
+        # add a book
+        # upload a cover image for the book
+        # request own profile, save the url for the image
+        # upload a different cover for the book (can reuse same test image)
+        # request own profile again, verify there's a new image url for same book
+        # request new image URL, returns 200
+        # request old image URL, returns 404
+        pass
+
+    def tetest_cleanup_after_book_removal(self):
+        # register and verify user
+        # add a book
+        # upload a cover image for the book
+        # request own profile, save the url for the image
+        # submit the offered books again with an empty list of books (removing the old one)
+        # request own profile, verify the image url not present in the html
+        # request the url for the image, returns 404
+        pass
+
+    def test_cover_upload_fails_on_non_image_file(self):
+        # register and verify user
+        # add a book
+        # upload a cover image for the book with a non image file
+        # request fails
+        pass
+
     def add_books(self, books, wanted=False):
         """
         Add books for the currently logged-in user.
