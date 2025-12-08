@@ -1416,7 +1416,6 @@ class BooksPaginationTest(BaseTestCase):
 
 
 class BookCoverTest(BaseTestCase):
-    @override_settings(DEBUG=True)
     def test_cover_upload(self):
         """Test that users can upload a cover image for their book and it displays in their profile."""
         # Register and verify user
@@ -1452,15 +1451,7 @@ class BookCoverTest(BaseTestCase):
         self.assertContains(response, image_url)
 
         # Verify the cover image file exists on disk
-        import os
-
-        from django.conf import settings
-
-        image_path = image_url.replace(settings.MEDIA_URL, "")
-        full_path = os.path.join(settings.MEDIA_ROOT, image_path)
-        self.assertTrue(
-            os.path.exists(full_path), f"Cover image file not found at {full_path}"
-        )
+        self.assertTrue(self.file_exists(image_url))
 
     def tetest_cover_display_in_list(self):
         # register and verify user
@@ -1523,3 +1514,26 @@ class BookCoverTest(BaseTestCase):
         return SimpleUploadedFile(
             filename, image_io.getvalue(), content_type="image/jpeg"
         )
+
+    def file_exists(self, image_url):
+        """
+        Check if a cover image file exists on disk given its URL.
+
+        Note: Ideally we wouldn't access the filesystem directly or make assumptions
+        about storage, but Django's test client doesn't serve media files by default,
+        so we verify file existence on disk to test cleanup behavior.
+
+        Args:
+            image_url: The URL path to the image (e.g., /media/book_covers/...)
+
+        Returns:
+            True if the file exists on disk, False otherwise
+        """
+        import os
+
+        from django.conf import settings
+
+        # Extract relative path from URL and check filesystem
+        image_path = image_url.replace(settings.MEDIA_URL, "")
+        full_path = os.path.join(settings.MEDIA_ROOT, image_path)
+        return os.path.exists(full_path)
