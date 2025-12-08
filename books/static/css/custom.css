@@ -2,42 +2,49 @@
 
 /* Base layout */
 body {
-  padding-top: 3.25rem;
+    padding-top: 3.25rem;
 }
 
 /* Navbar with adaptive color */
 .navbar {
-  background-color: var(--bulma-primary-soft);
+    background-color: var(--bulma-primary-soft);
 }
 
 .navbar-item:hover,
 .navbar-link:hover {
-  background-color: transparent !important;
+    background-color: transparent !important;
 }
 
 /* Location badges with dark mode support */
 .location-badge {
-  background-color: var(--bulma-scheme-main-bis);
-  color: var(--bulma-text);
+    background-color: var(--bulma-light);
+    color: var(--bulma-light-invert);
+}
+
+@media (prefers-color-scheme: dark) {
+    .location-badge {
+        background-color: var(--bulma-dark);
+        color: var(--bulma-dark-invert);
+    }
 }
 
 /* Location tag hover (for profile edit checkboxes) */
 .location-tag {
-  transition: all 0.15s;
+    transition: all 0.15s;
 }
 
 .location-tag.is-light:hover:not(.is-info) {
-  background-color: hsl(0, 0%, 90%) !important;
+    background-color: hsl(0, 0%, 90%) !important;
 }
 
 @media (prefers-color-scheme: dark) {
-  .location-tag.is-light:hover:not(.is-info) {
-    background-color: hsl(0, 0%, 20%) !important;
-  }
+    .location-tag.is-light:hover:not(.is-info) {
+        background-color: hsl(0, 0%, 20%) !important;
+    }
 }
 
 /* Book cover placeholder with dark mode support */
 .book-placeholder {
-  background-color: var(--bulma-scheme-main-bis);
-  border: 1px solid var(--bulma-border);
+    background-color: var(--bulma-scheme-main-bis);
+    border: 1px solid var(--bulma-border);
 }
