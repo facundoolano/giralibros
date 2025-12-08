@@ -1,12 +1,12 @@
 from unittest.mock import patch
 
 from django.core import mail
-from django.test import Client, override_settings
-from django.test import TestCase as DjangoTestCase
+from django.test import Client, TestCase, TransactionTestCase, override_settings
 from django.urls import reverse
 
 
-class BaseTestCase(DjangoTestCase):
+class BookTestMixin:
+    """Mixin with common test helpers for book-related tests. Use with TestCase or TransactionTestCase."""
     def setUp(self):
         # Every test needs a client.
         self.client = Client()
@@ -111,7 +111,7 @@ class BaseTestCase(DjangoTestCase):
 
 
 # Create your tests here.
-class UserTest(BaseTestCase):
+class UserTest(BookTestMixin, TestCase):
     def test_login_register(self):
         """Test that users must register and verify email before logging in."""
         # Test login with nonexistent user fails
@@ -728,7 +728,7 @@ class UserTest(BaseTestCase):
         self.assertContains(response, "La contraseña tiene un valor demasiado común")
 
 
-class BooksTest(BaseTestCase):
+class BooksTest(BookTestMixin, TestCase):
     def test_own_books_excluded(self):
         """Test that users do not see their own books in the book listing."""
         # Register first user with profile and books
@@ -1205,7 +1205,7 @@ class BooksTest(BaseTestCase):
         self.assertContains(response, "George Orwell")
 
 
-class BooksPaginationTest(BaseTestCase):
+class BooksPaginationTest(BookTestMixin, TestCase):
     def test_pagination_limits_results(self):
         """Test that book listing is paginated at 20 items per page."""
         # Register user1 with 25 books
@@ -1415,7 +1415,14 @@ class BooksPaginationTest(BaseTestCase):
         self.assertEqual(len(offered_books), 5)
 
 
-class BookCoverTest(BaseTestCase):
+class BookCoverTest(BookTestMixin, TransactionTestCase):
+    """
+    Tests for book cover upload and cleanup functionality.
+
+    Note: Uses TransactionTestCase instead of TestCase because django-cleanup
+    requires actual transaction commits to trigger file cleanup callbacks.
+    """
+
     def test_cover_upload(self):
         """Test that users can upload a cover image for their book and it displays in their profile."""
         # Register and verify user
@@ -1492,16 +1499,60 @@ class BookCoverTest(BaseTestCase):
         self.assertContains(response, "Test Book")
         self.assertContains(response, image_url)
 
-    def tetest_cleanup_after_cover_update(self):
-        # register and verify user
-        # add a book
-        # upload a cover image for the book
-        # request own profile, save the url for the image
-        # upload a different cover for the book (can reuse same test image)
-        # request own profile again, verify there's a new image url for same book
-        # request new image URL, returns 200
-        # request old image URL, returns 404
-        pass
+    def test_cleanup_after_cover_update(self):
+        """Test that old cover images are deleted when replaced with new ones."""
+        # Register and verify user
+        self.register_and_verify_user(fill_profile=True)
+
+        # Add a book
+        self.add_books([("Test Book", "Test Author")])
+
+        # Get the book ID from profile
+        response = self.client.get(reverse("profile", kwargs={"username": "testuser"}))
+        offered_books = response.context["offered_books"]
+        book = offered_books[0]
+
+        # Upload first cover image
+        image_file = self.create_test_image("first_cover.jpg")
+        response = self.client.post(
+            reverse("upload_book_photo", kwargs={"book_id": book.id}),
+            {"cover_image": image_file},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(response.status_code, 200)
+
+        response_data = response.json()
+        old_image_url = response_data["image_url"]
+
+        # Verify first image exists
+        self.assertTrue(self.file_exists(old_image_url))
+
+        # Upload second cover image to replace the first
+        image_file = self.create_test_image("second_cover.jpg")
+        response = self.client.post(
+            reverse("upload_book_photo", kwargs={"book_id": book.id}),
+            {"cover_image": image_file},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(response.status_code, 200)
+
+        response_data = response.json()
+        new_image_url = response_data["image_url"]
+
+        # Verify we got a different URL
+        self.assertNotEqual(old_image_url, new_image_url)
+
+        # Verify new image exists
+        self.assertTrue(self.file_exists(new_image_url))
+
+        # Verify old image was cleaned up by django-cleanup
+        self.assertFalse(self.file_exists(old_image_url))
+
+        # Verify profile shows the new image URL
+        response = self.client.get(reverse("profile", kwargs={"username": "testuser"}))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, new_image_url)
+        self.assertNotContains(response, old_image_url)
 
     def tetest_cleanup_after_book_removal(self):
         # register and verify user
