@@ -1,8 +1,6 @@
 import logging
 from io import BytesIO
 
-from PIL import Image, ImageOps
-
 from django.conf import settings
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
@@ -22,6 +20,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from PIL import Image, ImageOps
 
 from books.forms import (
     CustomSetPasswordForm,
@@ -555,7 +554,9 @@ def upload_book_photo(request, book_id):
         max_size = settings.BOOK_COVER_MAX_SIZE
         if uploaded_file.size > max_size:
             max_size_mb = max_size / (1024 * 1024)
-            return HttpResponseBadRequest(f"Image file too large (max {max_size_mb:.0f}MB)")
+            return HttpResponseBadRequest(
+                f"Image file too large (max {max_size_mb:.0f}MB)"
+            )
 
         # Validate file type
         allowed_types = settings.BOOK_COVER_ALLOWED_TYPES
@@ -620,7 +621,9 @@ def upload_book_photo(request, book_id):
             # Handle AJAX requests
             is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
             if is_ajax:
-                return JsonResponse({"success": True, "image_url": book.cover_image.url})
+                return JsonResponse(
+                    {"success": True, "image_url": book.cover_image.url}
+                )
 
             return redirect("profile", username=request.user.username)
 
