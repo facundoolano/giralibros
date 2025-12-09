@@ -34,6 +34,7 @@ from books.forms import (
 from books.models import (
     ExchangeRequest,
     OfferedBook,
+    TempBookCover,
     UserLocation,
     UserProfile,
     WantedBook,
@@ -376,23 +377,89 @@ def profile(request, username):
 @login_required
 def my_offered_books(request):
     """Manage user's offered books (bulk add/edit/delete)."""
-    return _manage_books(
-        request,
-        book_model=OfferedBook,
-        book_form=OfferedBookForm,
-        template_name="my_offered_books.html",
+    BookFormSet = modelformset_factory(
+        OfferedBook,
+        form=OfferedBookForm,
+        extra=1,
+        can_delete=True,
     )
+
+    queryset = OfferedBook.objects.filter(user=request.user).order_by("created_at")
+
+    if request.method == "POST":
+        formset = BookFormSet(request.POST, queryset=queryset)
+        if formset.is_valid():
+            with transaction.atomic():
+                instances = formset.save(commit=False)
+
+                # Process each instance and its corresponding form
+                for instance, form in zip(instances, formset.forms):
+                    # Skip deleted forms
+                    if form in formset.deleted_forms:
+                        continue
+
+                    if not instance.pk:
+                        instance.user = request.user
+
+                    # Handle temp cover photo if present
+                    temp_cover_id = form.cleaned_data.get("temp_cover_id")
+                    if temp_cover_id:
+                        try:
+                            temp_cover = TempBookCover.objects.get(
+                                id=temp_cover_id, user=request.user
+                            )
+                            # Copy temp image to book's cover_image field
+                            instance.cover_image = temp_cover.image
+                            instance.cover_uploaded_at = timezone.now()
+                            temp_cover.delete()
+                        except TempBookCover.DoesNotExist:
+                            # Temp file missing - ignore gracefully
+                            logger.warning(
+                                f"TempBookCover {temp_cover_id} not found for user {request.user.id}"
+                            )
+
+                    instance.save()
+
+                for obj in formset.deleted_objects:
+                    obj.delete()
+
+            return redirect("profile", username=request.user.username)
+    else:
+        formset = BookFormSet(queryset=queryset)
+
+    return render(request, "my_offered_books.html", {"formset": formset})
 
 
 @login_required
 def my_wanted_books(request):
     """Manage user's wanted books (bulk add/edit/delete)."""
-    return _manage_books(
-        request,
-        book_model=WantedBook,
-        book_form=WantedBookForm,
-        template_name="my_wanted_books.html",
+    BookFormSet = modelformset_factory(
+        WantedBook,
+        form=WantedBookForm,
+        extra=1,
+        can_delete=True,
     )
+
+    queryset = WantedBook.objects.filter(user=request.user).order_by("created_at")
+
+    if request.method == "POST":
+        formset = BookFormSet(request.POST, queryset=queryset)
+        if formset.is_valid():
+            instances = formset.save(commit=False)
+
+            for instance in instances:
+                if not instance.pk:
+                    instance.user = request.user
+                instance.save()
+
+            for obj in formset.deleted_objects:
+                obj.delete()
+
+            return redirect("profile", username=request.user.username)
+    else:
+        formset = BookFormSet(queryset=queryset)
+
+    return render(request, "my_wanted_books.html", {"formset": formset})
 
 
 @login_required
@@ -501,39 +568,61 @@ def request_exchange(request, book_id):
     )
 
 
-def _manage_books(request, book_model, book_form, template_name):
+def _process_book_cover_image(uploaded_file):
     """
-    Generic view for managing user's books (offered or wanted).
+    Process uploaded book cover image: apply EXIF orientation, crop to 2:3 aspect ratio,
+    resize to thumbnail, and return InMemoryUploadedFile ready to save.
+    """
+    # Open and process image with Pillow
+    image = Image.open(uploaded_file)
 
-    Handles bulk add/edit/delete operations via formsets.
-    """
-    BookFormSet = modelformset_factory(
-        book_model,
-        form=book_form,
-        extra=1,
-        can_delete=True,
+    # Apply EXIF orientation (fixes rotated mobile photos)
+    # exif_transpose returns None if no transposing is needed
+    image = ImageOps.exif_transpose(image) or image
+
+    # Convert to RGB if necessary (handles PNG with transparency, etc.)
+    if image.mode in ("RGBA", "P"):
+        image = image.convert("RGB")
+
+    # Center crop to book aspect ratio (2:3 - typical paperback)
+    # This removes surroundings and focuses on the book
+    target_aspect = 2 / 3  # width / height
+    img_width, img_height = image.size
+    img_aspect = img_width / img_height
+
+    if img_aspect > target_aspect:
+        # Image is too wide, crop sides
+        new_width = int(img_height * target_aspect)
+        left = (img_width - new_width) // 2
+        image = image.crop((left, 0, left + new_width, img_height))
+    else:
+        # Image is too tall, crop top/bottom
+        new_height = int(img_width / target_aspect)
+        top = (img_height - new_height) // 2
+        image = image.crop((0, top, img_width, top + new_height))
+
+    # Calculate thumbnail size maintaining aspect ratio
+    max_width = settings.BOOK_COVER_THUMBNAIL_MAX_WIDTH
+    max_height = settings.BOOK_COVER_THUMBNAIL_MAX_HEIGHT
+    image.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
+
+    # Save to BytesIO with optimization
+    output = BytesIO()
+    quality = settings.BOOK_COVER_JPEG_QUALITY
+    image.save(output, format="JPEG", quality=quality, optimize=True)
+    output.seek(0)
+
+    # Create new InMemoryUploadedFile
+    thumbnail = InMemoryUploadedFile(
+        output,
+        "ImageField",
+        f"{uploaded_file.name.split('.')[0]}_thumb.jpg",
+        "image/jpeg",
+        output.getbuffer().nbytes,
+        None,
     )
 
-    queryset = book_model.objects.filter(user=request.user).order_by("created_at")
-
-    if request.method == "POST":
-        formset = BookFormSet(request.POST, queryset=queryset)
-        if formset.is_valid():
-            instances = formset.save(commit=False)
-
-            for instance in instances:
-                if not instance.pk:
-                    instance.user = request.user
-                instance.save()
-
-            for obj in formset.deleted_objects:
-                obj.delete()
-
-            return redirect("profile", username=request.user.username)
-    else:
-        formset = BookFormSet(queryset=queryset)
-
-    return render(request, template_name, {"formset": formset})
+    return thumbnail
 
 
 @login_required
@@ -565,54 +654,8 @@ def upload_book_photo(request, book_id):
             return HttpResponseBadRequest("Invalid image format")
 
         try:
-            # Open and process image with Pillow
-            image = Image.open(uploaded_file)
-
-            # Apply EXIF orientation (fixes rotated mobile photos)
-            # exif_transpose returns None if no transposing is needed
-            image = ImageOps.exif_transpose(image) or image
-
-            # Convert to RGB if necessary (handles PNG with transparency, etc.)
-            if image.mode in ("RGBA", "P"):
-                image = image.convert("RGB")
-
-            # Center crop to book aspect ratio (2:3 - typical paperback)
-            # This removes surroundings and focuses on the book
-            target_aspect = 2 / 3  # width / height
-            img_width, img_height = image.size
-            img_aspect = img_width / img_height
-
-            if img_aspect > target_aspect:
-                # Image is too wide, crop sides
-                new_width = int(img_height * target_aspect)
-                left = (img_width - new_width) // 2
-                image = image.crop((left, 0, left + new_width, img_height))
-            else:
-                # Image is too tall, crop top/bottom
-                new_height = int(img_width / target_aspect)
-                top = (img_height - new_height) // 2
-                image = image.crop((0, top, img_width, top + new_height))
-
-            # Calculate thumbnail size maintaining aspect ratio
-            max_width = settings.BOOK_COVER_THUMBNAIL_MAX_WIDTH
-            max_height = settings.BOOK_COVER_THUMBNAIL_MAX_HEIGHT
-            image.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
-
-            # Save to BytesIO with optimization
-            output = BytesIO()
-            quality = settings.BOOK_COVER_JPEG_QUALITY
-            image.save(output, format="JPEG", quality=quality, optimize=True)
-            output.seek(0)
-
-            # Create new InMemoryUploadedFile
-            thumbnail = InMemoryUploadedFile(
-                output,
-                "ImageField",
-                f"{uploaded_file.name.split('.')[0]}_thumb.jpg",
-                "image/jpeg",
-                output.getbuffer().nbytes,
-                None,
-            )
+            # Process the uploaded image
+            thumbnail = _process_book_cover_image(uploaded_file)
 
             # Save to model
             book.cover_image.save(thumbnail.name, thumbnail, save=False)
@@ -632,6 +675,8 @@ def upload_book_photo(request, book_id):
             logger.error(f"Error processing image upload: {e}")
             return HttpResponseBadRequest("Error processing image")
 
+    # FIXME I don't think this is used anymore (all uploads are ajax without intermediate form)
+    # confirm and remove
     # GET request - show upload form
     max_size_mb = settings.BOOK_COVER_MAX_SIZE / (1024 * 1024)
     return render(
@@ -644,7 +689,55 @@ def upload_book_photo(request, book_id):
     )
 
 
-def _send_templated_email(to_email, subject, template_name, context=None, reply_to=None):
+@login_required
+def upload_temp_book_photo(request):
+    """
+    Handle temporary book cover upload for books not yet created.
+    Returns temp cover ID for client to store in formset hidden field.
+    """
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    if "cover_image" not in request.FILES:
+        return HttpResponseBadRequest("No image file provided")
+
+    uploaded_file = request.FILES["cover_image"]
+
+    # Validate file size
+    max_size = settings.BOOK_COVER_MAX_SIZE
+    if uploaded_file.size > max_size:
+        max_size_mb = max_size / (1024 * 1024)
+        return HttpResponseBadRequest(f"Image file too large (max {max_size_mb:.0f}MB)")
+
+    # Validate file type
+    allowed_types = settings.BOOK_COVER_ALLOWED_TYPES
+    if uploaded_file.content_type not in allowed_types:
+        return HttpResponseBadRequest("Invalid image format")
+
+    try:
+        # Process the uploaded image
+        thumbnail = _process_book_cover_image(uploaded_file)
+
+        # Save to TempBookCover
+        temp_cover = TempBookCover(user=request.user)
+        temp_cover.image.save(thumbnail.name, thumbnail, save=True)
+
+        return JsonResponse(
+            {
+                "success": True,
+                "temp_cover_id": temp_cover.id,
+                "image_url": temp_cover.image.url,
+            }
+        )
+
+    except Exception as e:
+        logger.error(f"Error processing temp image upload: {e}")
+        return HttpResponseBadRequest("Error processing image")
+
+
+def _send_templated_email(
+    to_email, subject, template_name, context=None, reply_to=None
+):
     """
     Send multipart email with HTML and plain text versions.
 
