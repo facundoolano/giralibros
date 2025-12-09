@@ -391,14 +391,15 @@ def my_offered_books(request):
         formset = BookFormSet(request.POST, queryset=queryset)
         if formset.is_valid():
             with transaction.atomic():
-                instances = formset.save(commit=False)
+                formset.save(commit=False)
 
                 # Process each instance and its corresponding form
-                for instance, form in zip(instances, formset.forms):
-                    # Skip deleted forms
-                    if form in formset.deleted_forms:
+                for form in formset.forms:
+                    # Skip deleted forms or unchanged forms
+                    if form in formset.deleted_forms or not form.has_changed():
                         continue
 
+                    instance = form.instance
                     if not instance.pk:
                         instance.user = request.user
 
