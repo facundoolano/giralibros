@@ -35,6 +35,18 @@ wheels = [
 ]
 
 [[package]]
+name = "django-formset"
+version = "2.1.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4c/dd/6300abfe4e6e6778bb62edd131d41cb66d8bbcb6b2b03b378fffe84ecc69/django_formset-2.1.4.tar.gz", hash = "sha256:97e93705cb7a30ef169d8db62435642c938ed3ead890fc541d6842f8086374fd", size = 1004539, upload-time = "2025-10-29T14:54:43.732Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d1/9e/5f33d54457d7c55a628a4585937b01c062fee7b46b49839aa0ecc80072d9/django_formset-2.1.4-py3-none-any.whl", hash = "sha256:db0d5c41548f9ae673d3e3b1aa7edbdb0ca728d4c0ff392c568ed2efc1dd2ce6", size = 1332387, upload-time = "2025-10-29T14:54:42.117Z" },
+]
+
+[[package]]
 name = "django-stubs"
 version = "5.2.7"
 source = { registry = "https://pypi.org/simple" }
@@ -74,6 +86,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "django" },
     { name = "django-cleanup" },
+    { name = "django-formset" },
     { name = "gunicorn" },
     { name = "pillow" },
 ]
@@ -87,6 +100,7 @@ dev = [
 requires-dist = [
     { name = "django", specifier = ">=4.2.26" },
     { name = "django-cleanup", specifier = ">=9.0.0" },
+    { name = "django-formset", specifier = ">=2.1.4" },
     { name = "gunicorn", specifier = ">=23.0.0" },
     { name = "pillow", specifier = ">=12.0.0" },
 ]
