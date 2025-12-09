@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetView
+from django.core.files import File
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.mail import EmailMultiAlternatives
 from django.core.paginator import Paginator
@@ -408,8 +409,11 @@ def my_offered_books(request):
                             temp_cover = TempBookCover.objects.get(
                                 id=temp_cover_id, user=request.user
                             )
-                            # Copy temp image to book's cover_image field
-                            instance.cover_image = temp_cover.image
+                            # Copy temp image file content to book's cover_image field
+                            with temp_cover.image.open("rb") as f:
+                                instance.cover_image.save(
+                                    temp_cover.image.name, File(f), save=False
+                                )
                             instance.cover_uploaded_at = timezone.now()
                             temp_cover.delete()
                         except TempBookCover.DoesNotExist:
