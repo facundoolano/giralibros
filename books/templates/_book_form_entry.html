@@ -7,31 +7,9 @@
     {{ form.temp_cover_id }}
   {% endif %}
 
-  <div class="is-flex" style="gap: 1rem;">
-    {% if form.temp_cover_id %}
-    {# Left column: Image and upload button (only for offered books) #}
-    <div class="is-flex-shrink-0 is-flex is-flex-direction-column" style="gap: 0.5rem;">
-      <div class="temp-photo-container is-flex is-align-items-center book-cover-container" data-form-prefix="{{ form.prefix }}">
-        {% if form.instance.cover_image %}
-          <img src="{{ form.instance.cover_image.url }}" alt="Cover" class="book-cover-image">
-        {% else %}
-          <div class="book-placeholder book-cover-container"></div>
-        {% endif %}
-      </div>
-      <div>
-        <input type="file" name="temp_cover_image" accept="image/*" capture="environment" style="display: none;" class="temp-photo-input" data-form-prefix="{{ form.prefix }}">
-        <button type="button" class="button is-info is-small is-light temp-upload-trigger" data-form-prefix="{{ form.prefix }}">
-          <span class="icon is-small">
-            <i class="fas fa-camera"></i>
-          </span>
-          <span class="temp-upload-text">{% if form.instance.cover_image %}Cambiar foto{% else %}Agregar foto{% endif %}</span>
-        </button>
-      </div>
-    </div>
-    {% endif %}
-
-    {# Right column: Form fields #}
-    <div class="is-flex-grow-1">
+  <div class="columns">
+    {# Left column on desktop: Form fields #}
+    <div class="column">
       <div class="field">
         <input class="input" type="text" name="{{ form.title.html_name }}" id="{{ form.title.id_for_label }}" value="{{ form.title.value|default:'' }}" placeholder="Título del libro">
         {% if form.title.errors %}
@@ -53,6 +31,30 @@
       </div>
       {% endif %}
     </div>
+
+    {% if form.temp_cover_id %}
+    {# Right column on desktop: Image and upload button (only for offered books) #}
+    <div class="column is-narrow">
+      <div class="is-flex is-flex-direction-column" style="gap: 0.5rem;">
+        <div class="temp-photo-container is-flex is-align-items-center book-cover-container" data-form-prefix="{{ form.prefix }}">
+          {% if form.instance.cover_image %}
+            <img src="{{ form.instance.cover_image.url }}" alt="Cover" class="book-cover-image">
+          {% else %}
+            <div class="book-placeholder book-cover-container"></div>
+          {% endif %}
+        </div>
+        <div>
+          <input type="file" name="temp_cover_image" accept="image/*" capture="environment" style="display: none;" class="temp-photo-input" data-form-prefix="{{ form.prefix }}">
+          <button type="button" class="button is-info is-small is-light temp-upload-trigger" data-form-prefix="{{ form.prefix }}">
+            <span class="icon is-small">
+              <i class="fas fa-camera"></i>
+            </span>
+            <span class="temp-upload-text">{% if form.instance.cover_image %}Cambiar foto{% else %}Agregar foto{% endif %}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    {% endif %}
   </div>
 
   {# Hidden DELETE checkbox (we'll handle this with JavaScript) #}
