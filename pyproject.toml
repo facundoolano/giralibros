@@ -7,7 +7,6 @@ requires-python = ">=3.14"
 dependencies = [
     "django>=4.2.26",
     "django-cleanup>=9.0.0",
-    "django-formset>=2.1.4",
     "gunicorn>=23.0.0",
     "pillow>=12.0.0",
 ]
