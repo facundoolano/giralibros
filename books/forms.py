@@ -139,7 +139,7 @@ class OfferedBookForm(BulmaFormMixin, forms.ModelForm):
             "title": forms.TextInput(attrs={"placeholder": "Título del libro"}),
             "author": forms.TextInput(attrs={"placeholder": "Autor"}),
             "notes": forms.Textarea(
-                attrs={"rows": 4, "placeholder": "Observaciones (opcional)"}
+                attrs={"rows": 2, "placeholder": "Observaciones (opcional)"}
             ),
         }
 

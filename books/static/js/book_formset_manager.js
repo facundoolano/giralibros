@@ -153,8 +153,8 @@ function initBookFormset(options) {
         const button = document.querySelector(
           `.temp-upload-trigger[data-form-prefix="${formPrefix}"]`
         );
-        const preview = document.querySelector(
-          `.temp-photo-preview[data-form-prefix="${formPrefix}"]`
+        const container = document.querySelector(
+          `.temp-photo-container[data-form-prefix="${formPrefix}"]`
         );
         const icon = button.querySelector('.icon i');
         const text = button.querySelector('.temp-upload-text');
@@ -194,10 +194,17 @@ function initBookFormset(options) {
               hiddenField.value = data.temp_cover_id;
             }
 
-            // Show preview
-            const img = preview.querySelector('img');
-            img.src = data.image_url;
-            preview.style.display = 'block';
+            // Update image in left column
+            if (container) {
+              const existingImg = container.querySelector('img');
+              if (existingImg) {
+                // Update existing image
+                existingImg.src = data.image_url;
+              } else {
+                // Replace placeholder with image
+                container.innerHTML = `<img src="${data.image_url}" alt="Cover" class="book-cover-image">`;
+              }
+            }
 
             // Update button text
             text.textContent = 'Cambiar foto';
