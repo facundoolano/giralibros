@@ -1633,11 +1633,32 @@ class BookCoverTest(BookTestMixin, TransactionTestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_inline_temp_cover(self):
-        # register and verify user
-        # issue an ajax request to upload an image
-        # the image url is returned
-        # test file exist for temp image
-        pass
+        """Test that users can upload a temp cover image via AJAX before creating a book."""
+        # Register and verify user
+        self.register_and_verify_user(fill_profile=True)
+
+        # Create a test image file
+        image_file = self.create_test_image()
+
+        # Upload temp cover via AJAX
+        response = self.client.post(
+            reverse("upload_temp_book_photo"),
+            {"cover_image": image_file},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # Verify response contains temp_cover_id and image_url
+        response_data = response.json()
+        self.assertIn("temp_cover_id", response_data)
+        self.assertIn("image_url", response_data)
+        self.assertIn("success", response_data)
+        self.assertTrue(response_data["success"])
+
+        temp_image_url = response_data["image_url"]
+
+        # Verify temp image file exists on disk
+        self.assertTrue(self.file_exists(temp_image_url))
 
     def test_inline_temp_cover_replaced_on_submit(self):
         # register and verify user
