@@ -103,7 +103,6 @@ class OfferedBookManager(models.Manager):
 
         This query:
         - Filters books by user's location areas
-        - Excludes the user's own books
         - Annotates with last_activity_date (max of created_at and cover_uploaded_at)
         - Orders by most recent activity
         - Annotates with 'already_requested' flag via Exists subquery
@@ -113,7 +112,6 @@ class OfferedBookManager(models.Manager):
 
         queryset = (
             self.filter(user__locations__area__in=user_areas)
-            .exclude(user=user)
             .select_related("user")
             .prefetch_related("user__locations")
             .distinct()
@@ -184,7 +182,7 @@ class OfferedBookManager(models.Manager):
                 title_normalized__icontains=wanted.title_normalized
             ) & Q(author_normalized__icontains=wanted.author_normalized)
 
-        return queryset.filter(match_conditions).distinct()
+        return queryset.filter(match_conditions).exclude(user=user).distinct()
 
     def _annotate_already_requested(self, queryset, requesting_user):
         """
