@@ -283,3 +283,11 @@ class ExchangeRequest(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     objects = ExchangeRequestManager()
+
+
+class TempBookCover(models.Model):
+    """Temporary storage for book cover uploads before book is created."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to="temp_book_covers/")
+    created_at = models.DateTimeField(auto_now_add=True)
