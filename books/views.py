@@ -568,11 +568,112 @@ def request_exchange(request, book_id):
     )
 
 
+@login_required
+def upload_book_photo(request, book_id):
+    """
+    Handle book cover photo upload with thumbnail generation.
+    """
+    # Get the book and verify ownership
+    book = get_object_or_404(OfferedBook, id=book_id, user=request.user)
+
+    if request.method == "POST":
+        # Validate file was uploaded
+        if "cover_image" not in request.FILES:
+            return HttpResponseBadRequest("No image file provided")
+
+        uploaded_file = request.FILES["cover_image"]
+
+        try:
+            # Validate and process the uploaded image
+            thumbnail = _process_book_cover_image(uploaded_file)
+
+            # Save to model
+            book.cover_image.save(thumbnail.name, thumbnail, save=False)
+            book.cover_uploaded_at = timezone.now()
+            book.save()
+
+            # Handle AJAX requests
+            is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+            if is_ajax:
+                return JsonResponse(
+                    {"success": True, "image_url": book.cover_image.url}
+                )
+
+            return redirect("profile", username=request.user.username)
+
+        except ValueError as e:
+            return HttpResponseBadRequest(str(e))
+        except Exception as e:
+            logger.error(f"Error processing image upload: {e}")
+            return HttpResponseBadRequest("Error processing image")
+
+    # FIXME I don't think this is used anymore (all uploads are ajax without intermediate form)
+    # confirm and remove
+    # GET request - show upload form
+    max_size_mb = settings.BOOK_COVER_MAX_SIZE / (1024 * 1024)
+    return render(
+        request,
+        "upload_photo.html",
+        {
+            "book": book,
+            "max_size_mb": int(max_size_mb),
+        },
+    )
+
+
+@login_required
+def upload_temp_book_photo(request):
+    """
+    Handle temporary book cover upload for books not yet created.
+    Returns temp cover ID for client to store in formset hidden field.
+    """
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    if "cover_image" not in request.FILES:
+        return HttpResponseBadRequest("No image file provided")
+
+    uploaded_file = request.FILES["cover_image"]
+
+    try:
+        # Validate and process the uploaded image
+        thumbnail = _process_book_cover_image(uploaded_file)
+
+        # Save to TempBookCover
+        temp_cover = TempBookCover(user=request.user)
+        temp_cover.image.save(thumbnail.name, thumbnail, save=True)
+
+        return JsonResponse(
+            {
+                "success": True,
+                "temp_cover_id": temp_cover.id,
+                "image_url": temp_cover.image.url,
+            }
+        )
+
+    except ValueError as e:
+        return HttpResponseBadRequest(str(e))
+    except Exception as e:
+        logger.error(f"Error processing temp image upload: {e}")
+        return HttpResponseBadRequest("Error processing image")
+
+
 def _process_book_cover_image(uploaded_file):
     """
-    Process uploaded book cover image: apply EXIF orientation, crop to 2:3 aspect ratio,
-    resize to thumbnail, and return InMemoryUploadedFile ready to save.
+    Validate and process uploaded book cover image.
+    Returns InMemoryUploadedFile ready to save, or raises ValueError on validation errors.
     """
+    # Validate file size
+    max_size = settings.BOOK_COVER_MAX_SIZE
+    if uploaded_file.size > max_size:
+        max_size_mb = max_size / (1024 * 1024)
+        raise ValueError(f"Image file too large (max {max_size_mb:.0f}MB)")
+
+    # Validate file type
+    allowed_types = settings.BOOK_COVER_ALLOWED_TYPES
+    if uploaded_file.content_type not in allowed_types:
+        raise ValueError("Invalid image format")
+
     # Open and process image with Pillow
     image = Image.open(uploaded_file)
 
@@ -623,116 +724,6 @@ def _process_book_cover_image(uploaded_file):
     )
 
     return thumbnail
-
-
-@login_required
-def upload_book_photo(request, book_id):
-    """
-    Handle book cover photo upload with thumbnail generation.
-    """
-    # Get the book and verify ownership
-    book = get_object_or_404(OfferedBook, id=book_id, user=request.user)
-
-    if request.method == "POST":
-        # Validate file was uploaded
-        if "cover_image" not in request.FILES:
-            return HttpResponseBadRequest("No image file provided")
-
-        uploaded_file = request.FILES["cover_image"]
-
-        # Validate file size
-        max_size = settings.BOOK_COVER_MAX_SIZE
-        if uploaded_file.size > max_size:
-            max_size_mb = max_size / (1024 * 1024)
-            return HttpResponseBadRequest(
-                f"Image file too large (max {max_size_mb:.0f}MB)"
-            )
-
-        # Validate file type
-        allowed_types = settings.BOOK_COVER_ALLOWED_TYPES
-        if uploaded_file.content_type not in allowed_types:
-            return HttpResponseBadRequest("Invalid image format")
-
-        try:
-            # Process the uploaded image
-            thumbnail = _process_book_cover_image(uploaded_file)
-
-            # Save to model
-            book.cover_image.save(thumbnail.name, thumbnail, save=False)
-            book.cover_uploaded_at = timezone.now()
-            book.save()
-
-            # Handle AJAX requests
-            is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
-            if is_ajax:
-                return JsonResponse(
-                    {"success": True, "image_url": book.cover_image.url}
-                )
-
-            return redirect("profile", username=request.user.username)
-
-        except Exception as e:
-            logger.error(f"Error processing image upload: {e}")
-            return HttpResponseBadRequest("Error processing image")
-
-    # FIXME I don't think this is used anymore (all uploads are ajax without intermediate form)
-    # confirm and remove
-    # GET request - show upload form
-    max_size_mb = settings.BOOK_COVER_MAX_SIZE / (1024 * 1024)
-    return render(
-        request,
-        "upload_photo.html",
-        {
-            "book": book,
-            "max_size_mb": int(max_size_mb),
-        },
-    )
-
-
-@login_required
-def upload_temp_book_photo(request):
-    """
-    Handle temporary book cover upload for books not yet created.
-    Returns temp cover ID for client to store in formset hidden field.
-    """
-    if request.method != "POST":
-        return JsonResponse({"error": "Method not allowed"}, status=405)
-
-    if "cover_image" not in request.FILES:
-        return HttpResponseBadRequest("No image file provided")
-
-    uploaded_file = request.FILES["cover_image"]
-
-    # Validate file size
-    max_size = settings.BOOK_COVER_MAX_SIZE
-    if uploaded_file.size > max_size:
-        max_size_mb = max_size / (1024 * 1024)
-        return HttpResponseBadRequest(f"Image file too large (max {max_size_mb:.0f}MB)")
-
-    # Validate file type
-    allowed_types = settings.BOOK_COVER_ALLOWED_TYPES
-    if uploaded_file.content_type not in allowed_types:
-        return HttpResponseBadRequest("Invalid image format")
-
-    try:
-        # Process the uploaded image
-        thumbnail = _process_book_cover_image(uploaded_file)
-
-        # Save to TempBookCover
-        temp_cover = TempBookCover(user=request.user)
-        temp_cover.image.save(thumbnail.name, thumbnail, save=True)
-
-        return JsonResponse(
-            {
-                "success": True,
-                "temp_cover_id": temp_cover.id,
-                "image_url": temp_cover.image.url,
-            }
-        )
-
-    except Exception as e:
-        logger.error(f"Error processing temp image upload: {e}")
-        return HttpResponseBadRequest("Error processing image")
 
 
 def _send_templated_email(
