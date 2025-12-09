@@ -1661,15 +1661,55 @@ class BookCoverTest(BookTestMixin, TransactionTestCase):
         self.assertTrue(self.file_exists(temp_image_url))
 
     def test_inline_temp_cover_replaced_on_submit(self):
-        # register and verify user
-        # issue an ajax request to upload an image
-        # the temp image id is returned
-        # submit the book formset creating a book with the image id from the ajax response
-        # get the user profile
-        # verify the book has an image, with different url as the temp image url
-        # verify new image url file exists
-        # verify temp image url file does not exist anymore
-        pass
+        """Test that temp cover images are moved to permanent storage when the book is created."""
+        # Register and verify user
+        self.register_and_verify_user(fill_profile=True)
+
+        # Upload temp cover via AJAX
+        image_file = self.create_test_image()
+        response = self.client.post(
+            reverse("upload_temp_book_photo"),
+            {"cover_image": image_file},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(response.status_code, 200)
+
+        response_data = response.json()
+        temp_cover_id = response_data["temp_cover_id"]
+        temp_image_url = response_data["image_url"]
+
+        # Verify temp image exists
+        self.assertTrue(self.file_exists(temp_image_url))
+
+        # Submit the book formset creating a book with the temp cover ID
+        form_data = {
+            "form-TOTAL_FORMS": "1",
+            "form-INITIAL_FORMS": "0",
+            "form-0-title": "Test Book",
+            "form-0-author": "Test Author",
+            "form-0-temp_cover_id": str(temp_cover_id),
+        }
+        response = self.client.post(reverse("my_offered"), form_data)
+        self.assertEqual(response.status_code, 302)
+
+        # Get the user profile
+        response = self.client.get(reverse("profile", kwargs={"username": "testuser"}))
+        self.assertEqual(response.status_code, 200)
+        offered_books = response.context["offered_books"]
+        self.assertEqual(len(offered_books), 1)
+
+        book = offered_books[0]
+        self.assertTrue(book.cover_image)
+
+        # Verify the book has an image with different URL than the temp image URL
+        book_image_url = book.cover_image.url
+        self.assertNotEqual(book_image_url, temp_image_url)
+
+        # Verify new image file exists
+        self.assertTrue(self.file_exists(book_image_url))
+
+        # Verify temp image file was deleted
+        self.assertFalse(self.file_exists(temp_image_url))
 
     def test_inline_image_replacement(self):
         # register and verify user
