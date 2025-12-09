@@ -7,6 +7,7 @@ from django.urls import reverse
 
 class BookTestMixin:
     """Mixin with common test helpers for book-related tests. Use with TestCase or TransactionTestCase."""
+
     def setUp(self):
         # Every test needs a client.
         self.client = Client()
@@ -1630,6 +1631,39 @@ class BookCoverTest(BookTestMixin, TransactionTestCase):
 
         # Should fail with bad request
         self.assertEqual(response.status_code, 400)
+
+    def test_inline_temp_cover(self):
+        # register and verify user
+        # issue an ajax request to upload an image
+        # the image url is returned
+        # test file exist for temp image
+        pass
+
+    def test_inline_temp_cover_replaced_on_submit(self):
+        # register and verify user
+        # issue an ajax request to upload an image
+        # the temp image id is returned
+        # submit the book formset creating a book with the image id from the ajax response
+        # get the user profile
+        # verify the book has an image, with different url as the temp image url
+        # verify new image url file exists
+        # verify temp image url file does not exist anymore
+        pass
+
+    def test_inline_image_replacement(self):
+        # register and verify user
+        # issue an ajax request to upload an image
+        # submit the book formset creating a book with the image id from the ajax response
+        # get the user profile, extract the image url for the book
+        # request the formset GET, verify the non temp image url is used in the display
+        # issue an ajax request to upload an image for the same book
+        # save the temp image id
+        # submit the formset with the temp image id in that book
+        # get the user profile
+        # verify there's an image attached to the book and that it doesn't match either the older image url nor the temp one
+        # verify new image file exist
+        # verify the two older ones do not exist
+        pass
 
     def create_test_image(self, filename="test_cover.jpg"):
         """
