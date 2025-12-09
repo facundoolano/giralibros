@@ -622,3 +622,25 @@ In template:
 - Adjust cleanup schedule if needed (currently 24 hours)
 - Consider adding metrics for temp upload usage
 - Could add DB index on TempBookCover.user_id if queries are slow
+
+
+## My custom plan
+1. add the TempBookCover model and migration
+2. update the OfferedBookForm to include a hidden field that will reference the TempBookCover to be attached to a given book in the formset
+3. update the book_form_entry formset template to include the hidden field when present (since this formset is reused for wanted books, this should be done conditionally like done for the form.notes field)
+4. undo the _manage_books helper since we need wanted and offered books implementation to drift now.
+5. after replicating the logic in my_offered_books and my_wanted_books and removing the helper, check the test still pass and wait for my review before proceeding.
+6. update my_offered_books view to, after checking the form is valid abd doing instance processing, iterating over the forms and checking if the hidden field is set. if the field is set fetch the corresponding temp cover instance, copy its image data into the cover in the offered book, save and remove the original temp cover.
+   - this is preferably done in a single transaction
+   - this shouldn't erase cover fotos submitted on a previous post, but it should allow for covers to be updated while editing previously stored books
+
+7. extract the image processing logic from upload_book_photo into a helper method
+
+8. create a an upload_temp_book_photo ajax view that does similar work to upload_book_photo but creates a standalone TempBookCover instead of attaching an image field to an existing offered book
+
+9. add an Agregar/Cambiar Foto button to each formin book_form_entry, with similar style/behavior as the one in profile view:
+   - when clicked in mobile trigger taker photo
+   - when clicked in desktop trigger file upload
+   - when photo/upload is done, call the backend upload_temp_book_photo and use the result to populate the temp cover instance id in the hidden field for this form
+
+10. at this point we should stop and let me manually test. we can work later on testing the feature and displaying the covers inline to the formset but not until we verify the parts connect as expected.
