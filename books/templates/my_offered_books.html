@@ -46,7 +46,8 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   initBookFormset({
-    profileUrl: "{% url 'profile' username=request.user.username %}"
+    profileUrl: "{% url 'profile' username=request.user.username %}",
+    tempUploadUrl: "{% url 'upload_temp_book_photo' %}"
   });
 });
 </script>

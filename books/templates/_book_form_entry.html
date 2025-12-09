@@ -3,6 +3,9 @@
 
   {# Hidden fields for formset #}
   {{ form.id }}
+  {% if form.temp_cover_id %}
+    {{ form.temp_cover_id }}
+  {% endif %}
 
   <div class="columns">
     <div class="column {% if not form.notes %}is-full{% endif %}">
@@ -18,6 +21,20 @@
           <p class="help is-danger">{{ form.author.errors.0 }}</p>
         {% endif %}
       </div>
+      {% if form.temp_cover_id %}
+      <div class="field">
+        <input type="file" name="temp_cover_image" accept="image/*" capture="environment" style="display: none;" class="temp-photo-input" data-form-prefix="{{ form.prefix }}">
+        <button type="button" class="button is-info is-small is-light temp-upload-trigger" data-form-prefix="{{ form.prefix }}">
+          <span class="icon is-small">
+            <i class="fas fa-camera"></i>
+          </span>
+          <span class="temp-upload-text">Agregar foto</span>
+        </button>
+        <div class="temp-photo-preview" data-form-prefix="{{ form.prefix }}" style="display: none; margin-top: 0.5rem;">
+          <img src="" alt="Preview" style="max-width: 60px; max-height: 90px; border-radius: 4px;">
+        </div>
+      </div>
+      {% endif %}
     </div>
     {% if form.notes %}
     <div class="column">
