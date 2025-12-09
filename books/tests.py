@@ -1711,6 +1711,75 @@ class BookCoverTest(BookTestMixin, TransactionTestCase):
         # Verify temp image file was deleted
         self.assertFalse(self.file_exists(temp_image_url))
 
+    def test_inline_temp_cover_multiple_books(self):
+        """Test that temp covers work correctly when submitting multiple books at once."""
+        self.register_and_verify_user(fill_profile=True)
+        # Create a temp image via AJAX
+        image_file = self.create_test_image()
+        response = self.client.post(
+            reverse("upload_temp_book_photo"),
+            {"cover_image": image_file},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(response.status_code, 200)
+
+        response_data = response.json()
+        temp_cover_id = response_data["temp_cover_id"]
+        temp_image_url = response_data["image_url"]
+
+        # Submit a form with three books all without covers
+        form_data = {
+            "form-TOTAL_FORMS": "3",
+            "form-INITIAL_FORMS": "0",
+            "form-0-title": "Book Without Cover 1",
+            "form-0-author": "Author 1",
+            "form-0-temp_cover_id": "",
+            "form-1-title": "Book With Cover",
+            "form-1-author": "Author 2",
+            "form-1-temp_cover_id": "",
+            "form-2-title": "Book Without Cover 2",
+            "form-2-author": "Author 3",
+            "form-2-temp_cover_id": "",
+        }
+        response = self.client.post(reverse("my_offered"), form_data)
+        self.assertEqual(response.status_code, 302)
+
+        # add a cover on a second request
+        # FIXME there must be a better way to do this without coupling this much
+        response = self.client.get(reverse("my_offered"))
+        instances_ids = [form.instance.pk for form in response.context["formset"].forms]
+        form_data["form-INITIAL_FORMS"] = "3"
+        form_data["form-0-id"] = str(instances_ids[0])
+        form_data["form-1-id"] = str(instances_ids[1])
+        form_data["form-2-id"] = str(instances_ids[2])
+        form_data["form-1-temp_cover_id"] = str(temp_cover_id)
+        response = self.client.post(reverse("my_offered"), form_data)
+        self.assertEqual(response.status_code, 302)
+
+        # Get the user profile
+        response = self.client.get(reverse("profile", kwargs={"username": "testuser"}))
+        self.assertEqual(response.status_code, 200)
+        offered_books = response.context["offered_books"]
+        self.assertEqual(len(offered_books), 3)
+
+        # Verify first book has no cover
+        book1 = next(b for b in offered_books if b.title == "Book Without Cover 1")
+        self.assertFalse(book1.cover_image)
+
+        # Verify middle book has a cover with different URL than temp
+        book2 = next(b for b in offered_books if b.title == "Book With Cover")
+        self.assertTrue(book2.cover_image)
+        book2_image_url = book2.cover_image.url
+        self.assertNotEqual(book2_image_url, temp_image_url)
+        self.assertTrue(self.file_exists(book2_image_url))
+
+        # Verify third book has no cover
+        book3 = next(b for b in offered_books if b.title == "Book Without Cover 2")
+        self.assertFalse(book3.cover_image)
+
+        # Verify temp image was cleaned up
+        self.assertFalse(self.file_exists(temp_image_url))
+
     def test_inline_image_replacement(self):
         """Test that inline photo uploads can replace existing book covers and cleanup old files."""
         # Register and verify user

@@ -83,14 +83,16 @@ class BaseBook(models.Model):
     class Meta:
         abstract = True
 
+    def __str__(self):
+        return f"{self.__class__}({self.title}, {self.author})"
+
 
 class OfferedBookManager(models.Manager):
     def _annotate_last_activity(self, queryset):
         """Add last_activity_date annotation (max of created_at and cover_uploaded_at)."""
         return queryset.annotate(
             last_activity_date=Greatest(
-                "created_at",
-                Coalesce("cover_uploaded_at", "created_at")
+                "created_at", Coalesce("cover_uploaded_at", "created_at")
             )
         )
 
