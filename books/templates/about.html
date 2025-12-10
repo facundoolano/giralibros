@@ -1,0 +1,26 @@
+{% extends "base_logged.html" %}
+
+{% block logged_content %}
+<div class="columns is-centered">
+    <div class="column is-full-mobile is-10-tablet is-8-desktop">
+        <div class="box box-mobile-flat">
+            <h1 class="title is-4 mb-4">Contacto</h1>
+            <p class="mb-5">
+                Si tenés preguntas, problemas, críticas o sugerencias, escribí a
+                <a href="#" onclick="navigator.clipboard.writeText('contacto@giralibros.com'); return false;" title="Copiar email al portapapeles">contacto@giralibros.com</a>
+            </p>
+
+            <hr>
+
+            <h2 class="title is-4 mb-4">Estadísticas</h2>
+            <div class="content">
+                <ul>
+                    <li><strong>Usuarios registrados:</strong> {{ registered_users }}</li>
+                    <li><strong>Libros ofrecidos:</strong> {{ offered_books }}</li>
+                    <li><strong>Solicitudes en la última semana:</strong> {{ recent_requests }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
