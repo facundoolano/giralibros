@@ -45,7 +45,7 @@
 
       {% if profile_user.profile.about %}
       <div class="content mb-3">
-        <p class="has-text-grey-dark">{{ profile_user.profile.about }}</p>
+        <div class="has-text-grey-dark">{{ profile_user.profile.about|linebreaksbr|urlize }}</div>
       </div>
       {% endif %}
 
