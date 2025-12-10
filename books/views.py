@@ -614,14 +614,10 @@ def upload_book_photo(request, book_id):
             book.cover_uploaded_at = timezone.now()
             book.save()
 
-            # Handle AJAX requests
-            is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
-            if is_ajax:
-                return JsonResponse(
-                    {"success": True, "image_url": book.cover_image.url}
-                )
-
-            return redirect("profile", username=request.user.username)
+            # Return JSON response for AJAX request
+            return JsonResponse(
+                {"success": True, "image_url": book.cover_image.url}
+            )
 
         except ValueError as e:
             return HttpResponseBadRequest(str(e))
@@ -629,18 +625,7 @@ def upload_book_photo(request, book_id):
             logger.error(f"Error processing image upload: {e}")
             return HttpResponseBadRequest("Error processing image")
 
-    # FIXME I don't think this is used anymore (all uploads are ajax without intermediate form)
-    # confirm and remove
-    # GET request - show upload form
-    max_size_mb = settings.BOOK_COVER_MAX_SIZE / (1024 * 1024)
-    return render(
-        request,
-        "upload_photo.html",
-        {
-            "book": book,
-            "max_size_mb": int(max_size_mb),
-        },
-    )
+    return HttpResponseBadRequest("Method not allowed")
 
 
 @login_required
