@@ -5,7 +5,6 @@ test:
 run:
 	uv run python manage.py runserver
 
-# FIXME also need to collect static with --settings=giralibros.settings.test and proper env to get SECRET_KEY
 BRANCH ?= main
 deploy:
 	ssh $(SSH) "cd /home/libros/giralibros/ &&\

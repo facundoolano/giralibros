@@ -127,9 +127,6 @@ def verify_email(request, uidb64, token):
     """
     Verify user's email address using the token sent via email.
     On success, activate the user and log them in.
-
-    FIXME: Refactor to use Django's built-in views or mixins for token-based verification
-    instead of custom implementation.
     """
     if not settings.REGISTRATION_ENABLED:
         return redirect("login")
@@ -208,13 +205,19 @@ def about(request):
 
     # Requests in the last week
     one_week_ago = timezone.now() - timedelta(days=7)
-    recent_requests = ExchangeRequest.objects.filter(created_at__gte=one_week_ago).count()
+    recent_requests = ExchangeRequest.objects.filter(
+        created_at__gte=one_week_ago
+    ).count()
 
-    return render(request, "about.html", {
-        "registered_users": registered_users,
-        "offered_books": offered_books,
-        "recent_requests": recent_requests,
-    })
+    return render(
+        request,
+        "about.html",
+        {
+            "registered_users": registered_users,
+            "offered_books": offered_books,
+            "recent_requests": recent_requests,
+        },
+    )
 
 
 @login_required
