@@ -116,10 +116,12 @@ class ProfileForm(BulmaFormMixin, forms.Form):
     )
     about = forms.CharField(
         required=False,
+        max_length=200,
         widget=forms.Textarea(
             attrs={
                 "rows": 4,
                 "placeholder": "Lo que quieras que se vea en tu perfil público.",
+                "maxlength": 200,
             }
         ),
     )
@@ -139,7 +141,11 @@ class OfferedBookForm(BulmaFormMixin, forms.ModelForm):
             "title": forms.TextInput(attrs={"placeholder": "Título del libro"}),
             "author": forms.TextInput(attrs={"placeholder": "Autor"}),
             "notes": forms.Textarea(
-                attrs={"rows": 2, "placeholder": "Observaciones (opcional)"}
+                attrs={
+                    "rows": 2,
+                    "placeholder": "Observaciones (opcional)",
+                    "maxlength": 300,
+                }
             ),
         }
 

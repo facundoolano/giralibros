@@ -22,6 +22,7 @@ class UserProfile(models.Model):
 
     about = models.TextField(
         blank=True,
+        max_length=200,
         help_text="Miscelaneous notes to be displayed on the user public profile and on exchange requests.",
     )
 
@@ -215,7 +216,7 @@ class OfferedBook(BaseBook):
     """A book a user offers for exchanging."""
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="offered")
-    notes = models.TextField(blank=True)
+    notes = models.TextField(blank=True, max_length=300)
     reserved = models.BooleanField(
         default=False,
         help_text="Used to mark that this book is reserved for a not yet fulfilled exchange.",
