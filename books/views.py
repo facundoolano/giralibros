@@ -198,9 +198,23 @@ def logout(request):
 
 
 @login_required
-def contact(request):
-    """Display contact information."""
-    return render(request, "contact.html")
+def about(request):
+    """Display about page with site statistics."""
+    from datetime import timedelta
+
+    # Calculate statistics
+    registered_users = User.objects.filter(profile__isnull=False).count()
+    offered_books = OfferedBook.objects.count()
+
+    # Requests in the last week
+    one_week_ago = timezone.now() - timedelta(days=7)
+    recent_requests = ExchangeRequest.objects.filter(created_at__gte=one_week_ago).count()
+
+    return render(request, "about.html", {
+        "registered_users": registered_users,
+        "offered_books": offered_books,
+        "recent_requests": recent_requests,
+    })
 
 
 @login_required
