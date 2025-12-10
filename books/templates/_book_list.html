@@ -15,9 +15,11 @@
             <p class="is-size-5">
               <strong>{{ book.title }}</strong>
             </p>
+            {% if book.user != request.user %}
             <div class="is-hidden-mobile">
               {% include '_exchange_button.html' %}
             </div>
+            {% endif %}
           </div>
           <p class="mb-2 is-size-6"><a href="{% url 'home' %}?search={{ book.author|urlencode }}" class="has-text-grey-dark" title="Buscar libros de este autor">{{ book.author }}</a></p>
           {% if book.notes %}
@@ -66,9 +68,11 @@
       >
       {% endfor %}
     </div>
+    {% if book.user != request.user %}
     <div class="has-text-centered">
       {% include '_exchange_button.html' %}
     </div>
+    {% endif %}
   </div>
 </div>
 {% empty %}

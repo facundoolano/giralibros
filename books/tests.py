@@ -731,7 +731,7 @@ class UserTest(BookTestMixin, TestCase):
 
 class BooksTest(BookTestMixin, TestCase):
     def test_own_books_excluded(self):
-        """Test that users do not see their own books in the book listing."""
+        """Test that users see their own books in the book listing."""
         # Register first user with profile and books
         self.register_and_verify_user(
             username="user1", email="user1@example.com", fill_profile=True
@@ -745,26 +745,10 @@ class BooksTest(BookTestMixin, TestCase):
         )
         self.add_books([("Book C", "Author C"), ("Book D", "Author D")])
 
-        # User 2 should see only user 1's books (not their own)
+        # User 2 should see both their books and user 1's
         response = self.client.get(reverse("home"))
         self.assertContains(response, "Book A")
         self.assertContains(response, "Book B")
-        self.assertNotContains(response, "Book C")
-        self.assertNotContains(response, "Book D")
-
-        self.client.logout()
-
-        # Log in as user 1 and check they see only user 2's books
-        self.client.post(
-            reverse("login"),
-            {
-                "username": "user1",
-                "password": "testpass123",
-            },
-        )
-        response = self.client.get(reverse("home"))
-        self.assertNotContains(response, "Book A")
-        self.assertNotContains(response, "Book B")
         self.assertContains(response, "Book C")
         self.assertContains(response, "Book D")
 
@@ -938,7 +922,7 @@ class BooksTest(BookTestMixin, TestCase):
         # Get book ID from home page context
         response = self.client.get(reverse("home"))
         offered_books = response.context["offered_books"]
-        book = offered_books[0]
+        book = offered_books[1]
 
         # Clear email outbox and send exchange request
         mail.outbox = []
@@ -978,7 +962,7 @@ class BooksTest(BookTestMixin, TestCase):
         # Get book ID from home page context
         response = self.client.get(reverse("home"))
         offered_books = response.context["offered_books"]
-        book = offered_books[0]
+        book = offered_books[1]
 
         # Send exchange request
         response = self.client.post(
@@ -1029,7 +1013,7 @@ class BooksTest(BookTestMixin, TestCase):
 
         # Get book ID and send exchange request
         offered_books = response.context["offered_books"]
-        book = offered_books[0]
+        book = offered_books[1]
         response = self.client.post(
             reverse("request_exchange", kwargs={"book_id": book.id})
         )
@@ -1059,7 +1043,7 @@ class BooksTest(BookTestMixin, TestCase):
         # Get book ID from home page context
         response = self.client.get(reverse("home"))
         offered_books = response.context["offered_books"]
-        book = offered_books[0]
+        book = offered_books[1]
 
         # Send first request, should succeed
         response = self.client.post(
@@ -1093,7 +1077,7 @@ class BooksTest(BookTestMixin, TestCase):
         # Get book ID from home page context
         response = self.client.get(reverse("home"))
         offered_books = response.context["offered_books"]
-        book = offered_books[0]
+        book = offered_books[1]
 
         # Mock email sending to raise an exception
         with patch("django.core.mail.message.EmailMessage.send") as mock_send:
@@ -1161,23 +1145,23 @@ class BooksTest(BookTestMixin, TestCase):
         # Get all three books from home page
         response = self.client.get(reverse("home"))
         offered_books = response.context["offered_books"]
-        self.assertEqual(len(offered_books), 3)
+        self.assertEqual(len(offered_books), 4)
 
         # First request should succeed
-        response = self.client.post(
-            reverse("request_exchange", kwargs={"book_id": offered_books[0].id})
-        )
-        self.assertEqual(response.status_code, 201)
-
-        # Second request should succeed
         response = self.client.post(
             reverse("request_exchange", kwargs={"book_id": offered_books[1].id})
         )
         self.assertEqual(response.status_code, 201)
 
-        # Third request should fail due to throttling
+        # Second request should succeed
         response = self.client.post(
             reverse("request_exchange", kwargs={"book_id": offered_books[2].id})
+        )
+        self.assertEqual(response.status_code, 201)
+
+        # Third request should fail due to throttling
+        response = self.client.post(
+            reverse("request_exchange", kwargs={"book_id": offered_books[3].id})
         )
         self.assertEqual(response.status_code, 429)
         response_data = response.json()
