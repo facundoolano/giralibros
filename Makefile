@@ -1,4 +1,4 @@
-.PHONY: test
+.PHONY: test run deploy collectstatic
 test:
 	uv run manage.py test --settings=giralibros.settings.test
 
