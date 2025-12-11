@@ -334,7 +334,7 @@ def profile_edit(request):
 
             # Redirect based on whether this is first-time setup or edit
             if is_new_profile:
-                return redirect("my_offered")
+                return redirect("home")
             else:
                 return redirect("profile", username=request.user.username)
     else:
@@ -349,8 +349,9 @@ def profile_edit(request):
                 "locations": [loc.area for loc in request.user.locations.all()],
             }
         else:
-            # Default email to registration email
+            # Default email to registration email and first_name to capitalized username
             initial = {
+                "first_name": request.user.username.capitalize(),
                 "email": request.user.email,
             }
         form = ProfileForm(initial=initial)
