@@ -428,8 +428,8 @@ class UserTest(BookTestMixin, TestCase):
             },
         )
         self.assertRedirects(
-            response, reverse("my_offered")
-        )  # First-time setup redirects to my_offered
+            response, reverse("home")
+        )  # First-time setup redirects to home
 
         # Navigate to home, should now stay on home
         response = self.client.get(reverse("home"))
@@ -449,8 +449,8 @@ class UserTest(BookTestMixin, TestCase):
             },
         )
         self.assertRedirects(
-            response, reverse("my_offered")
-        )  # First-time setup redirects to my_offered
+            response, reverse("home")
+        )  # First-time setup redirects to home
 
         # Navigate to edit profile explicitly, edit again
         response = self.client.post(

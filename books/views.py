@@ -334,7 +334,7 @@ def profile_edit(request):
 
             # Redirect based on whether this is first-time setup or edit
             if is_new_profile:
-                return redirect("my_offered")
+                return redirect("home")
             else:
                 return redirect("profile", username=request.user.username)
     else:

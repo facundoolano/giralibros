@@ -29,6 +29,19 @@
   {% endif %}
 </div>
 
+{% if not user.offered.exists %}
+<div class="columns is-centered">
+  <div class="column is-full-mobile is-three-quarters-tablet is-half-desktop">
+    <article class="message is-warning">
+      <div class="message-body">
+        Todavía no agregaste libros a tu perfil.<br>
+        Antes de mandar solicitudes de cambio tenés que <a href="{% url 'my_offered' %}">cargar tus libros ofrecidos</a>.
+      </div>
+    </article>
+  </div>
+</div>
+{% endif %}
+
 <div class="columns is-centered">
   <div class="column is-full-mobile is-three-quarters-tablet is-half-desktop">
     <div id="book-list">
