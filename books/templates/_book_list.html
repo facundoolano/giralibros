@@ -11,7 +11,11 @@
           {% if book.cover_image %}
           <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover-image">
           {% else %}
-          <div class="book-placeholder" style="width: 100%; height: 100%;"></div>
+          <div class="book-placeholder is-flex is-justify-content-center is-align-items-center" style="width: 100%; height: 100%;">
+            <span class="icon is-large has-text-grey-dark">
+              <i class="fas fa-book fa-3x"></i>
+            </span>
+          </div>
           {% endif %}
         </div>
         <p class="is-size-6 mb-1">
@@ -54,7 +58,11 @@
               {% if book.cover_image %}
               <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" style="width: 100%; height: 100%; object-fit: cover; object-position: center 35%; border-radius: 4px; transform: scale(1.2);">
               {% else %}
-              <div class="book-placeholder" style="width: 100%; height: 100%;"></div>
+              <div class="book-placeholder is-flex is-justify-content-center is-align-items-center" style="width: 100%; height: 100%;">
+                <span class="icon is-medium has-text-grey-dark">
+                  <i class="fas fa-book fa-2x"></i>
+                </span>
+              </div>
               {% endif %}
             </div>
           </div>
