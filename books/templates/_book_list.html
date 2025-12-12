@@ -35,7 +35,7 @@
               <span>{{ book.user.username }}</span>
             </a>
             {% if book.notes %}
-            <span class="has-text-grey ml-2" style="cursor: pointer; text-decoration: none;" title="{{ book.notes }}">[observaciones]</span>
+            <span class="has-text-grey ml-2" style="cursor: pointer; text-decoration: none;" onclick="document.getElementById('modal-{{ book.id }}').classList.add('is-active')">[observaciones]</span>
             {% endif %}
           </div>
         </div>
@@ -94,6 +94,21 @@
           </div>
         </div>
       </div>
+
+      <!-- Modal for observations (non-mobile) -->
+      {% if book.notes %}
+      <div id="modal-{{ book.id }}" class="modal">
+        <div class="modal-background" onclick="document.getElementById('modal-{{ book.id }}').classList.remove('is-active')"></div>
+        <div class="modal-content">
+          <div class="box">
+            <button class="delete is-pulled-right" aria-label="close" onclick="document.getElementById('modal-{{ book.id }}').classList.remove('is-active')"></button>
+            <p class="title is-5">{{ book.title }}</p>
+            <p class="subtitle is-6 has-text-grey-dark">{{ book.author }}</p>
+            <div class="content">{{ book.notes|linebreaks }}</div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
 
     </div>
   </div>
