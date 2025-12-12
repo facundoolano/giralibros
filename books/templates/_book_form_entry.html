@@ -40,7 +40,11 @@
           {% if form.instance.cover_image %}
             <img src="{{ form.instance.cover_image.url }}" alt="Cover" class="book-cover-image">
           {% else %}
-            <div class="book-placeholder book-cover-container"></div>
+            <div class="book-placeholder book-cover-container is-flex is-justify-content-center is-align-items-center">
+              <span class="icon is-medium has-text-grey-dark">
+                <i class="fas fa-book fa-lg"></i>
+              </span>
+            </div>
           {% endif %}
         </div>
         <div>

@@ -107,7 +107,11 @@
               {% if book.cover_image %}
                 <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover-small">
               {% else %}
-                <div class="book-placeholder book-cover-container-small"></div>
+                <div class="book-placeholder book-cover-container-small is-flex is-justify-content-center is-align-items-center">
+                  <span class="icon is-small has-text-grey-dark">
+                    <i class="fas fa-book"></i>
+                  </span>
+                </div>
               {% endif %}
             </div>
             <div class="is-flex-grow-1 is-flex is-flex-direction-column is-justify-content-space-between" style="min-height: 90px;">
