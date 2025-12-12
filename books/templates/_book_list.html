@@ -20,22 +20,26 @@
         <p class="is-size-6 mb-2">
           <a href="{% url 'home' %}?search={{ book.author|urlencode }}" class="has-text-grey-dark" title="Buscar libros de este autor">{{ book.author }}</a>
         </p>
-        <div class="is-size-6 mb-2">
-          <div class="mb-2">
-            <span class="icon is-small has-text-grey">
-              <i class="fas fa-user"></i>
-            </span>
-            <a href="{% url 'profile' username=book.user.username %}" class="mr-2" title="Ver el perfil de {{ book.user.username }}">{{ book.user.username }}</a>
-            <span class="icon is-small has-text-grey">
-              <i class="fas fa-clock"></i>
-            </span>
-            <span class="has-text-grey timeago-tooltip mr-2" data-timestamp="{{ book.last_activity_date|date:'c' }}">{{ book.last_activity_date|timeago }}</span>
-            {% if book.notes %}
-            <span class="has-text-grey ml-2" style="cursor: pointer; text-decoration: none;" onclick="document.getElementById('modal-{{ book.id }}').classList.add('is-active')">[observaciones]</span>
-            {% endif %}
-          </div>
-        </div>
+        {% if book.notes %}
+        <p class="is-size-7 mb-2 has-text-grey" style="cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" onclick="document.getElementById('modal-{{ book.id }}').classList.add('is-active')">
+          {{ book.notes }}
+        </p>
+        {% endif %}
         <div style="margin-top: auto;">
+          <div class="mb-2 is-flex is-justify-content-space-between is-align-items-baseline">
+            <div class="is-size-6">
+              <span class="icon is-small has-text-grey">
+                <i class="fas fa-user"></i>
+              </span>
+              <a href="{% url 'profile' username=book.user.username %}" title="Ver el perfil de {{ book.user.username }}">{{ book.user.username }}</a>
+            </div>
+            <div class="is-size-7">
+              <span class="icon is-small has-text-grey">
+                <i class="fas fa-clock"></i>
+              </span>
+              <span class="has-text-grey timeago-tooltip" data-timestamp="{{ book.last_activity_date|date:'c' }}">{{ book.last_activity_date|timeago }}</span>
+            </div>
+          </div>
           {% if book.user != request.user %}
           {% include '_exchange_button.html' with button_classes='is-fullwidth' %}
           {% endif %}
@@ -61,24 +65,26 @@
             <p class="is-size-6 mb-2">
               <a href="{% url 'home' %}?search={{ book.author|urlencode }}" class="has-text-grey-dark" title="Buscar libros de este autor">{{ book.author }}</a>
             </p>
-            <div class="is-size-6 mb-2">
-              <div class="mb-1">
-                <span class="icon is-small has-text-grey">
-                  <i class="fas fa-user"></i>
-                </span>
-                <a href="{% url 'profile' username=book.user.username %}" class="mr-2" title="Ver el perfil de {{ book.user.username }}">{{ book.user.username }}</a>
-                <span class="icon is-small has-text-grey">
-                  <i class="fas fa-clock"></i>
-                </span>
-                <span class="has-text-grey timeago-tooltip" data-timestamp="{{ book.last_activity_date|date:'c' }}">{{ book.last_activity_date|timeago }}</span>
-              </div>
-              {% if book.notes %}
-              <p class="has-text-grey is-size-7">
-                {{ book.notes }}
-              </p>
-              {% endif %}
-            </div>
+            {% if book.notes %}
+            <p class="is-size-7 mb-2 has-text-grey">
+              {{ book.notes }}
+            </p>
+            {% endif %}
             <div style="margin-top: auto;">
+              <div class="mb-2 is-flex is-justify-content-space-between is-align-items-baseline">
+                <div class="is-size-6">
+                  <span class="icon is-small has-text-grey">
+                    <i class="fas fa-user"></i>
+                  </span>
+                  <a href="{% url 'profile' username=book.user.username %}" title="Ver el perfil de {{ book.user.username }}">{{ book.user.username }}</a>
+                </div>
+                <div class="is-size-7">
+                  <span class="icon is-small has-text-grey">
+                    <i class="fas fa-clock"></i>
+                  </span>
+                  <span class="has-text-grey timeago-tooltip" data-timestamp="{{ book.last_activity_date|date:'c' }}">{{ book.last_activity_date|timeago }}</span>
+                </div>
+              </div>
               {% if book.user != request.user %}
               {% include '_exchange_button.html' with button_classes='is-fullwidth' %}
               {% endif %}
