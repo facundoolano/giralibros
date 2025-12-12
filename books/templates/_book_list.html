@@ -20,20 +20,16 @@
         <p class="is-size-6 mb-2">
           <a href="{% url 'home' %}?search={{ book.author|urlencode }}" class="has-text-grey-dark" title="Buscar libros de este autor">{{ book.author }}</a>
         </p>
-        <div class="is-size-7 mb-2">
+        <div class="is-size-6 mb-2">
           <div class="mb-2">
-            <span class="has-text-grey timeago-tooltip mr-2" data-timestamp="{{ book.last_activity_date|date:'c' }}">
-              <span class="icon is-small">
-                <i class="fas fa-clock"></i>
-              </span>
-              <span>{{ book.last_activity_date|timeago }}</span>
+            <span class="icon is-small has-text-grey">
+              <i class="fas fa-user"></i>
             </span>
-            <a href="{% url 'profile' username=book.user.username %}" class="has-text-grey-dark" title="Ver el perfil de {{ book.user.username }}">
-              <span class="icon is-small">
-                <i class="fas fa-user"></i>
-              </span>
-              <span>{{ book.user.username }}</span>
-            </a>
+            <a href="{% url 'profile' username=book.user.username %}" class="mr-2" title="Ver el perfil de {{ book.user.username }}">{{ book.user.username }}</a>
+            <span class="icon is-small has-text-grey">
+              <i class="fas fa-clock"></i>
+            </span>
+            <span class="has-text-grey timeago-tooltip mr-2" data-timestamp="{{ book.last_activity_date|date:'c' }}">{{ book.last_activity_date|timeago }}</span>
             {% if book.notes %}
             <span class="has-text-grey ml-2" style="cursor: pointer; text-decoration: none;" onclick="document.getElementById('modal-{{ book.id }}').classList.add('is-active')">[observaciones]</span>
             {% endif %}
@@ -65,23 +61,19 @@
             <p class="is-size-6 mb-2">
               <a href="{% url 'home' %}?search={{ book.author|urlencode }}" class="has-text-grey-dark" title="Buscar libros de este autor">{{ book.author }}</a>
             </p>
-            <div class="is-size-7 mb-2">
+            <div class="is-size-6 mb-2">
               <div class="mb-1">
-                <span class="has-text-grey timeago-tooltip mr-2" data-timestamp="{{ book.last_activity_date|date:'c' }}">
-                  <span class="icon is-small">
-                    <i class="fas fa-clock"></i>
-                  </span>
-                  <span>{{ book.last_activity_date|timeago }}</span>
+                <span class="icon is-small has-text-grey">
+                  <i class="fas fa-user"></i>
                 </span>
-                <a href="{% url 'profile' username=book.user.username %}" class="has-text-grey-dark" title="Ver el perfil de {{ book.user.username }}">
-                  <span class="icon is-small">
-                    <i class="fas fa-user"></i>
-                  </span>
-                  <span>{{ book.user.username }}</span>
-                </a>
+                <a href="{% url 'profile' username=book.user.username %}" class="mr-2" title="Ver el perfil de {{ book.user.username }}">{{ book.user.username }}</a>
+                <span class="icon is-small has-text-grey">
+                  <i class="fas fa-clock"></i>
+                </span>
+                <span class="has-text-grey timeago-tooltip" data-timestamp="{{ book.last_activity_date|date:'c' }}">{{ book.last_activity_date|timeago }}</span>
               </div>
               {% if book.notes %}
-              <p class="has-text-grey">
+              <p class="has-text-grey is-size-7">
                 {{ book.notes }}
               </p>
               {% endif %}
