@@ -72,26 +72,27 @@ body {
 /* Book cover container */
 .book-cover-container {
     width: 100%;
-    height: 160px;
+    height: 240px;
     overflow: hidden;
     border-radius: 4px;
 }
 
 /* Equal height cards in grid */
-.columns .column {
+.columns.is-multiline > .column {
     display: flex;
 }
 
-.columns .column .card {
+.columns.is-multiline > .column > .card {
     display: flex;
     flex-direction: column;
     flex: 1;
 }
 
-.columns .column .card .card-content {
+.columns.is-multiline > .column > .card .card-content {
     display: flex;
     flex-direction: column;
     flex: 1;
+    padding: 0.75rem;
 }
 
 .book-cover-container-small {
