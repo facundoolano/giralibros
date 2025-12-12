@@ -42,6 +42,17 @@
 </div>
 {% endif %}
 
+{% if not offered_books %}
+<div class="columns is-centered">
+  <div class="column is-full-mobile is-three-quarters-tablet is-half-desktop">
+    <article class="message is-info">
+      <div class="message-body">
+        No hay libros disponibles en este momento.
+      </div>
+    </article>
+  </div>
+</div>
+{% else %}
 <div class="columns is-centered">
   <div class="column is-full">
     <div id="book-list">
@@ -55,6 +66,7 @@
     {% endif %}
   </div>
 </div>
+{% endif %}
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
