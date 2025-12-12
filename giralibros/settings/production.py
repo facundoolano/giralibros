@@ -12,6 +12,17 @@ from .base import *  # noqa: F403, F401
 STATIC_ROOT = os.environ.get("STATIC_ROOT", "/var/www/giralibros/static")
 MEDIA_ROOT = os.environ.get("MEDIA_ROOT", "/var/www/giralibros/media")
 
+# Static files storage with cache busting
+# Appends content hashes to filenames, forcing browser cache refresh on changes
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
+    },
+}
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 if not SECRET_KEY:
