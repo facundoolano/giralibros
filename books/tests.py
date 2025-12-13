@@ -1189,6 +1189,16 @@ class BooksTest(BookTestMixin, TestCase):
         self.assertContains(response, "1984")
         self.assertContains(response, "George Orwell")
 
+    def test_filter_by_wanted(self):
+        """Test filtering offered book by wanted including author-only wanted."""
+        # implement similar as previous test
+        # register and verify user
+        # add a few offered books, more than one per author
+        # register another user
+        # add wanted books, one specific title another author only
+        # filter book list by wanted, verify the wanted book and both from wanted author show up
+        pass
+
 
 class BooksPaginationTest(BookTestMixin, TestCase):
     def test_pagination_limits_results(self):
