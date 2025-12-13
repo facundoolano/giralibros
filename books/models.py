@@ -167,8 +167,9 @@ class OfferedBookManager(models.Manager):
         """
         Filter offered books that match the user's wanted books.
 
-        A book matches if both the normalized title and author from a wanted book
-        appear as substrings in the offered book (case-insensitive, accent-insensitive).
+        A book matches if:
+        - When wanted book has a title: both title and author match (case/accent-insensitive)
+        - When wanted book has no title: author matches only (for any book by that author)
         Results are aggregated across all wanted books and deduplicated.
         """
         wanted_books = user.wanted.all()
@@ -179,9 +180,14 @@ class OfferedBookManager(models.Manager):
         match_conditions = Q()
 
         for wanted in wanted_books:
-            match_conditions |= Q(
-                title_normalized__icontains=wanted.title_normalized
-            ) & Q(author_normalized__icontains=wanted.author_normalized)
+            if wanted.title:
+                # Specific book: match both title and author
+                match_conditions |= Q(
+                    title_normalized__icontains=wanted.title_normalized
+                ) & Q(author_normalized__icontains=wanted.author_normalized)
+            else:
+                # Author-only: match any book by this author
+                match_conditions |= Q(author_normalized__icontains=wanted.author_normalized)
 
         return queryset.filter(match_conditions).exclude(user=user).distinct()
 
