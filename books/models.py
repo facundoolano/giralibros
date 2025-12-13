@@ -77,7 +77,7 @@ class BaseBook(models.Model):
 
     def save(self, *args, **kwargs):
         # This runs for ALL child models
-        self.title_normalized = self.normalize_spanish(self.title)
+        self.title_normalized = self.normalize_spanish(self.title) if self.title else ""
         self.author_normalized = self.normalize_spanish(self.author)
         super().save(*args, **kwargs)
 
@@ -240,6 +240,7 @@ class WantedBook(BaseBook):
     "A book a user is interested in."
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="wanted")
+    title = models.CharField(max_length=200, blank=True)
 
 
 class ExchangeRequestManager(models.Manager):
