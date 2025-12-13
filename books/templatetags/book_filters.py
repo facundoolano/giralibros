@@ -7,21 +7,6 @@ register = template.Library()
 
 @register.filter(name="timeago")
 def humanize_date(dt):
-    SPANISH_MONTHS = {
-        1: "Enero",
-        2: "Febrero",
-        3: "Marzo",
-        4: "Abril",
-        5: "Mayo",
-        6: "Junio",
-        7: "Julio",
-        8: "Agosto",
-        9: "Septiembre",
-        10: "Octubre",
-        11: "Noviembre",
-        12: "Diciembre",
-    }
-
     delta = datetime.datetime.now(datetime.UTC) - dt
 
     if delta < datetime.timedelta(seconds=60):
@@ -33,8 +18,5 @@ def humanize_date(dt):
     elif delta < datetime.timedelta(days=8):
         return f"{delta.days}d"
     elif delta < datetime.timedelta(days=365):
-        month = SPANISH_MONTHS[dt.month]
-        return f"{dt.day} {month}"
-
-    month = SPANISH_MONTHS[dt.month]
-    return f"{dt.day} {month}, {dt.year}"
+        return f"{dt.day}/{dt.month}"
+    return f"{dt.day}/{dt.month}/{dt.year}"
