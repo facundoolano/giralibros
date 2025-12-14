@@ -1189,6 +1189,55 @@ class BooksTest(BookTestMixin, TestCase):
         self.assertContains(response, "1984")
         self.assertContains(response, "George Orwell")
 
+    def test_filter_by_wanted(self):
+        """Test filtering offered book by wanted including author-only wanted."""
+        # Register first user with several books from different authors
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
+        self.add_books(
+            [
+                ("Rayuela", "Julio Cortázar"),
+                ("Bestiario", "Julio Cortázar"),
+                ("Ficciones", "Jorge Luis Borges"),
+                ("El Aleph", "Jorge Luis Borges"),
+                ("El túnel", "Ernesto Sábato"),
+            ]
+        )
+        self.client.logout()
+
+        # Register second user with wanted books
+        self.register_and_verify_user(
+            username="user2", email="user2@example.com", fill_profile=True
+        )
+        # Add offered book (needed to see other users' books)
+        self.add_books([("Book B", "Author B")])
+        # Add wanted books: one specific title, one author-only (empty title)
+        self.add_books(
+            [
+                ("Ficciones", "Jorge Luis Borges"),  # Specific book
+                ("", "Julio Cortázar"),  # Author-only (any book by this author)
+            ],
+            wanted=True,
+        )
+
+        # Filter by wanted books
+        response = self.client.get(reverse("home"), {"wanted": ""})
+        self.assertEqual(response.status_code, 200)
+
+        # Should match the specific book "Ficciones"
+        self.assertContains(response, "Ficciones")
+
+        # Should match both books by Cortázar (author-only wanted)
+        self.assertContains(response, "Rayuela")
+        self.assertContains(response, "Bestiario")
+
+        # Should NOT match "El Aleph" (same author as Ficciones, but not wanted)
+        self.assertNotContains(response, "El Aleph")
+
+        # Should NOT match "El túnel" (different author)
+        self.assertNotContains(response, "El túnel")
+
 
 class BooksPaginationTest(BookTestMixin, TestCase):
     def test_pagination_limits_results(self):

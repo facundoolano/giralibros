@@ -190,7 +190,11 @@
       <ul class="mb-5 nested-content">
         {% for book in wanted_books %}
         <li class="mb-2">
-          <strong>{{ book.title }}</strong>, {{ book.author }}
+          {% if book.title %}
+            <strong>{{ book.title }}</strong>, {{ book.author }}
+          {% else %}
+            Cualquier libro de <strong>{{ book.author }}</strong>
+          {% endif %}
         </li>
         {% endfor %}
       </ul>
