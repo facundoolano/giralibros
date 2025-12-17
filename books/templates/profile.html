@@ -133,7 +133,7 @@
                 {% if is_own_profile %}
                   <form method="post" action="{% url 'upload_book_photo' book_id=book.id %}" enctype="multipart/form-data" class="photo-upload-form" style="display: inline;">
                     {% csrf_token %}
-                    <input type="file" name="cover_image" accept="image/*" capture="environment" style="display: none;" class="photo-input" id="photo-input-{{ book.id }}">
+                    <input type="file" name="cover_image" accept="image/*" style="display: none;" class="photo-input" id="photo-input-{{ book.id }}">
                     <button type="button" class="button is-info is-small is-light upload-trigger" data-input-id="photo-input-{{ book.id }}">
                       <span class="icon is-small">
                         <i class="fas fa-camera"></i>
