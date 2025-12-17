@@ -4,8 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#e8f4fc">
     <title>{% block title %}GiraLibros{% endblock %}</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <link rel="apple-touch-icon" href="{% static 'icons/icon-192.png' %}"">
     <link rel="stylesheet" href="{% static 'css/bulma.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/fontawesome.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/solid.min.css' %}">
@@ -14,5 +17,11 @@
 </head>
 <body>
     {% block content %}{% endblock %}
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register("{% static 'service-worker.js' %}")
+                .catch(err => console.log('Service worker registration failed:', err));
+        }
+    </script>
 </body>
 </html>
