@@ -31,7 +31,7 @@
             {% endfor %}
           </div>
         </div>
-        <div>
+        <div class="buttons">
           {% if is_own_profile %}
           <a href="{% url 'profile_edit' %}" class="button is-small is-link is-light button-fixed-width">
             <span class="icon is-small">
@@ -39,6 +39,12 @@
             </span>
             <span>Editar</span>
           </a>
+          <button id="shareProfileBtn" class="button is-small is-link is-light button-fixed-width">
+            <span class="icon is-small">
+              <i class="fas fa-arrow-up-right-from-square"></i>
+            </span>
+            <span id="shareProfileText">Compartir</span>
+          </button>
           {% endif %}
         </div>
       </div>
@@ -364,6 +370,46 @@ document.addEventListener('DOMContentLoaded', () => {
       event.target.value = '';
     });
   });
+
+  // Share profile functionality
+  const shareBtn = document.getElementById('shareProfileBtn');
+  if (shareBtn) {
+    shareBtn.addEventListener('click', async () => {
+      const profileUrl = window.location.href;
+      const username = '{{ profile_user.username }}';
+      const text = shareBtn.querySelector('#shareProfileText');
+      const icon = shareBtn.querySelector('i');
+
+      try {
+        if (navigator.share) {
+          // Mobile - use native share sheet
+          await navigator.share({
+            title: 'GiraLibros - ' + username,
+            url: profileUrl
+          });
+        } else {
+          // Desktop - copy to clipboard
+          await navigator.clipboard.writeText(profileUrl);
+
+          // Show feedback
+          const originalText = text.textContent;
+          const originalIcon = icon.className;
+          text.textContent = 'Copiado!';
+          icon.className = 'fas fa-check';
+
+          setTimeout(() => {
+            text.textContent = originalText;
+            icon.className = originalIcon;
+          }, 2000);
+        }
+      } catch (err) {
+        // Ignore if user cancelled share dialog
+        if (err.name !== 'AbortError') {
+          console.error('Error sharing:', err);
+        }
+      }
+    });
+  }
 });
 </script>
 {% endblock %}
