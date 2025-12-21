@@ -8,7 +8,10 @@
         <div class="container py-1 navbar-container">
             <div class="navbar-brand">
                 <a class="navbar-item has-text-weight-bold is-size-4" href="{% url 'home' %}">
-                    <span id="brandIcon">📚</span> GiraLibros
+                    <span id="brandIcon">
+                        <span id="brandEmoji">📚</span>
+                        <i id="brandSpinner" class="fas fa-spinner fa-spin is-hidden"></i>
+                    </span> GiraLibros
                 </a>
                 <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarMenu">
                     <span aria-hidden="true"></span>
@@ -99,12 +102,17 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const brandIcon = document.getElementById('brandIcon');
+            const brandEmoji = document.getElementById('brandEmoji');
+            const brandSpinner = document.getElementById('brandSpinner');
 
             function showLoadingSpinner() {
-                if (brandIcon) {
-                    brandIcon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                }
+                brandEmoji.classList.add('is-hidden');
+                brandSpinner.classList.remove('is-hidden');
+            }
+
+            function resetBrandIcon() {
+                brandEmoji.classList.remove('is-hidden');
+                brandSpinner.classList.add('is-hidden');
             }
 
             // Handle link clicks that navigate to new pages
@@ -136,6 +144,13 @@
             // Fallback for browser back/forward navigation
             window.addEventListener('beforeunload', () => {
                 showLoadingSpinner();
+            });
+
+            // Reset icon when page is restored from bfcache (back button)
+            window.addEventListener('pageshow', (e) => {
+                if (e.persisted) {
+                    resetBrandIcon();
+                }
             });
         });
     </script>
