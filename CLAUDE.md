@@ -85,4 +85,39 @@ When working with tests:
 - **Icons**: FontAwesome
 - **JavaScript**: Vanilla JS (no frameworks)
 
-**Important**: Leverage Bulma as much as possible for layout and styling. Do not create custom CSS components or inline styles for things already handled by Bulma. Refer to the Bulma documentation when building UI components to use the appropriate classes and modifiers.
+### Styling Rules (CRITICAL - Read Carefully)
+
+**Default to Bulma first, custom CSS as last resort.**
+
+Before adding ANY custom CSS or inline styles, you MUST:
+
+1. **Check Bulma's utility classes first**:
+   - Layout: `is-flex`, `is-justify-content-*`, `is-align-items-*`, `columns`, `is-centered`
+   - Sizing: `is-size-1` through `is-size-7` (controls font-size, which scales em-based components)
+   - Spacing: `m-*`, `p-*`, `mt-*`, `mb-*`, etc.
+   - Display: `is-hidden-*`, `is-block`, `is-inline-block`
+   - Text: `has-text-centered`, `has-text-weight-*`, `has-text-*` (colors)
+
+2. **Check Bulma's components**: Most UI patterns already exist (`.loader`, `.button`, `.card`, `.modal`, `.navbar`, `.tag`, etc.)
+
+3. **Bulma components are styled via their container's font-size**: Many Bulma elements (like `.loader`) use `em` units and scale automatically when you change the parent's `font-size` or add `is-size-*` classes. Don't reinvent animations or create custom sized versions.
+
+4. **Only add custom CSS when**:
+   - Bulma truly doesn't provide the functionality
+   - You've verified this by checking the documentation
+   - The custom style is project-specific (not a general layout/spacing concern)
+
+**Examples of what NOT to do**:
+- ❌ Creating a `.loader-large` class with custom animation when you can use `<div class="is-size-1"><span class="loader"></span></div>`
+- ❌ Adding `margin: 0 auto` when Bulma's `is-flex is-justify-content-center` exists
+- ❌ Custom width/height CSS when Bulma's spacing or sizing classes work
+- ❌ Writing custom animations that Bulma already includes
+- ❌ Adding spacing utilities (`m-*`, `p-*`, `mb-3`, etc.) to every element when Bulma components already have sensible default spacing
+
+**Spacing utility classes (m-*, p-*, etc.)**:
+- Bulma components (`.card`, `.box`, `.section`, `.navbar-item`, etc.) already include appropriate default spacing
+- Only add spacing utilities when you have a specific reason to override defaults
+- Don't pepper every tag with spacing classes for basic layouts
+- Ask yourself: "Why does this need different spacing than Bulma's default?"
+
+**When you propose a styling solution**: Always explain which Bulma classes you're using and why. If you're adding custom CSS or spacing overrides, explain why Bulma's defaults don't work.
