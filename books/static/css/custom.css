@@ -212,6 +212,14 @@ body {
     position: relative;
 }
 
+/* Brand icon - fixed width to prevent layout shift during loading */
+#brandIcon {
+    display: inline-block;
+    width: 1.5em;
+    text-align: center;
+    margin-right: -0.25em;
+}
+
 /* Flexbox utilities for book cards */
 .flex-column-min-height {
     display: flex;

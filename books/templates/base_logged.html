@@ -8,7 +8,7 @@
         <div class="container py-1 navbar-container">
             <div class="navbar-brand">
                 <a class="navbar-item has-text-weight-bold is-size-4" href="{% url 'home' %}">
-                    📚 GiraLibros
+                    <span id="brandIcon">📚</span> GiraLibros
                 </a>
                 <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarMenu">
                     <span aria-hidden="true"></span>
@@ -93,6 +93,49 @@
                     el.classList.toggle('is-active');
                     $target.classList.toggle('is-active');
                 });
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const brandIcon = document.getElementById('brandIcon');
+
+            function showLoadingSpinner() {
+                if (brandIcon) {
+                    brandIcon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                }
+            }
+
+            // Handle link clicks that navigate to new pages
+            document.addEventListener('click', (e) => {
+                const link = e.target.closest('a');
+
+                // Only show spinner for actual navigation links
+                if (link &&
+                    link.href &&
+                    !link.href.includes('#') &&
+                    !link.href.startsWith('javascript:') &&
+                    !link.classList.contains('navbar-burger') &&
+                    !link.classList.contains('navbar-link') &&
+                    link.target !== '_blank') {
+                    showLoadingSpinner();
+                }
+            });
+
+            // Handle form submissions that cause page loads
+            document.addEventListener('submit', (e) => {
+                const form = e.target;
+
+                // Only show spinner for non-AJAX forms
+                if (!e.defaultPrevented) {
+                    showLoadingSpinner();
+                }
+            });
+
+            // Fallback for browser back/forward navigation
+            window.addEventListener('beforeunload', () => {
+                showLoadingSpinner();
             });
         });
     </script>
