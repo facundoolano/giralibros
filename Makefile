@@ -1,9 +1,13 @@
 .PHONY: test run deploy collectstatic
+django=uv run manage.py
+
 test:
-	uv run manage.py test --settings=giralibros.settings.test
+	$(django) test --settings=giralibros.settings.test
 
 run:
-	uv run python manage.py runserver
+	$(django) runserver
+
+
 
 BRANCH ?= main
 deploy:
