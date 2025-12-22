@@ -825,9 +825,39 @@ class BooksTest(BookTestMixin, TestCase):
 
     def test_anonymous_user_home(self):
         """Test that a logged out user sees available books from all locations"""
-        # FIXME human to specify
-        # TODO check usernames and cambio buttons hidden
-        pass
+        # Register 3 users with books
+        for i in range(3):
+            username = f"user{i + 1}"
+            email = f"user{i + 1}@example.com"
+            self.register_and_verify_user(
+                username=username, email=email, fill_profile=True
+            )
+            self.add_books([(f"Book {i + 1}", f"Author {i + 1}")])
+            self.client.logout()
+
+        # Access home page as anonymous user
+        response = self.client.get(reverse("home"))
+
+        # Should return 200 (not redirect to login)
+        self.assertEqual(response.status_code, 200)
+
+        # Should see all books (no location filtering)
+        self.assertContains(response, "Book 1")
+        self.assertContains(response, "Book 2")
+        self.assertContains(response, "Book 3")
+
+        # Should see welcome text for anonymous users
+        self.assertContains(response, "GiraLibros")
+        self.assertContains(response, "Registrate")
+        self.assertContains(response, "Iniciá sesión")
+
+        # Should NOT see usernames
+        self.assertNotContains(response, "user1")
+        self.assertNotContains(response, "user2")
+        self.assertNotContains(response, "user3")
+
+        # Should NOT see "Cambio" button (exchange button)
+        self.assertNotContains(response, "Cambio")
 
     def test_text_search(self):
         """Test that text search filters books by normalized title and author with accent-insensitive matching."""
