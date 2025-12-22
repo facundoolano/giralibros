@@ -1414,6 +1414,48 @@ class BooksPaginationTest(BookTestMixin, TestCase):
         self.assertTrue(data["has_next"])
         self.assertEqual(data["next_page"], 2)
 
+    def test_anonymous_user_pagination(self):
+        """Test that pagination works for anonymous users."""
+        # Register user with 25 books
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
+        books = [(f"Book {i}", f"Author {i}") for i in range(25)]
+        self.add_books(books)
+        self.client.logout()
+
+        # Access home as anonymous user - first page should show 20 books
+        response = self.client.get(reverse("home"))
+        self.assertEqual(response.status_code, 200)
+        offered_books = response.context["offered_books"]
+        self.assertEqual(len(offered_books), 20)
+
+        # Should indicate more pages available
+        self.assertTrue(response.context["has_next"])
+
+        # Test AJAX pagination for page 2
+        response = self.client.get(
+            reverse("home") + "?page=2", HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/json")
+
+        data = response.json()
+        self.assertIn("html", data)
+        self.assertIn("has_next", data)
+        self.assertIn("next_page", data)
+
+        # Page 2 should show remaining 5 books, no next page
+        self.assertFalse(data["has_next"])
+        self.assertIsNone(data["next_page"])
+
+        # HTML should contain the last 5 books (0-4)
+        self.assertIn("Book 4", data["html"])
+        self.assertIn("Book 0", data["html"])
+
+        # Should NOT leak usernames
+        self.assertNotIn("user1", data["html"])
+
     def test_pagination_with_search(self):
         """Test that pagination works correctly with search filters."""
         # Register user1 with 25 books by same author
