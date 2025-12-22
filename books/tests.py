@@ -280,18 +280,18 @@ class UserTest(BookTestMixin, TestCase):
         )  # Error message
 
     def test_logout_redirects(self):
-        """Test that logout redirects to register and clears authentication."""
+        """Test that logout redirects to login and clears authentication."""
         self.register_and_verify_user()
 
-        # Logout should redirect to register
+        # Logout should redirect to login
         response = self.client.post(reverse("logout"))
-        self.assertRedirects(response, reverse("register"))
+        self.assertRedirects(response, reverse("login"))
 
-        # Try to navigate to home, should redirect to register
+        # Try to navigate to home, should redirect to login
         response = self.client.get(reverse("home"))
         self.assertRedirects(
-            response, reverse("register") + "?next=/"
-        )  # Register with next parameter
+            response, reverse("login") + "?next=/"
+        )  # Login with next parameter
 
     def test_login_username(self):
         """Test that users can log in with either username or email."""

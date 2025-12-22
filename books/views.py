@@ -189,8 +189,6 @@ def password_reset_complete(request):
 
 def logout(request):
     auth_logout(request)
-    if settings.REGISTRATION_ENABLED:
-        return redirect("register")
     return redirect("login")
 
 

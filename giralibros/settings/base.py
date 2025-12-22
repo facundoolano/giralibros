@@ -131,7 +131,7 @@ AUTHENTICATION_BACKENDS = [
     "books.backends.EmailOrUsernameBackend",
 ]
 
-LOGIN_URL = "register"
+LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "home"
 
 # Exchange requests
