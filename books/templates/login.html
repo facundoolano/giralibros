@@ -36,8 +36,9 @@
         </div>
         {% endif %}
 
-        <form method="post" action="{% url 'login' %}">
-          {% csrf_token %} {% for field in login_form %}
+        <form method="post">
+          {% csrf_token %}
+          {% for field in login_form %}
           <div class="field">
             <label class="label">{{ field.label }}</label>
             <div class="control">{{ field }}</div>

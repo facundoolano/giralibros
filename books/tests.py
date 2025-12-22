@@ -233,10 +233,8 @@ class UserTest(BookTestMixin, TestCase):
         # URL format: http://testserver/verify/{uidb64}/{token}/
         parts_user1 = verify_url_user1.rstrip("/").split("/")
         uidb64_user1 = parts_user1[-2]
-        token_user1 = parts_user1[-1]
 
         parts_user2 = verify_url_user2.rstrip("/").split("/")
-        uidb64_user2 = parts_user2[-2]
         token_user2 = parts_user2[-1]
 
         # Construct mismatched URL: user 1's uidb64 with user 2's token
@@ -290,6 +288,34 @@ class UserTest(BookTestMixin, TestCase):
         # Verify logout cleared authentication by accessing a protected view
         response = self.client.get(reverse("profile_edit"))
         self.assertRedirects(response, reverse("login") + "?next=/profile/edit/")
+
+    def test_login_next_honored(self):
+        """Test that after login, user is redirected to the ?next parameter URL."""
+        self.register_and_verify_user()
+
+        # Logout
+        self.client.logout()
+
+        # Try to navigate to own profile (requires login)
+        profile_url = reverse("profile", kwargs={"username": "testuser"})
+        response = self.client.get(profile_url)
+
+        # Should redirect to login with ?next parameter
+        expected_redirect = reverse("login") + f"?next={profile_url}"
+        self.assertRedirects(response, expected_redirect)
+
+        # Now login by posting to the login form with ?next in URL
+        # The form has no action attribute, so it posts to current URL (preserving query params)
+        response = self.client.post(
+            reverse("login") + f"?next={profile_url}",
+            {
+                "username": "testuser",
+                "password": "testpass123",
+            },
+        )
+
+        # Should redirect to the original profile URL, not home
+        self.assertRedirects(response, profile_url)
 
     def test_login_username(self):
         """Test that users can log in with either username or email."""
@@ -466,11 +492,6 @@ class UserTest(BookTestMixin, TestCase):
 
     def test_profile_edit_validations(self):
         """Test that profile form validates required fields and data format."""
-        # TODO human to specify
-        pass
-
-    def test_throttle_registration_attempts(self):
-        """Test that repeated registration attempts are rate-limited."""
         # TODO human to specify
         pass
 
