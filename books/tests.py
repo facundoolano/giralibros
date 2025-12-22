@@ -287,11 +287,9 @@ class UserTest(BookTestMixin, TestCase):
         response = self.client.post(reverse("logout"))
         self.assertRedirects(response, reverse("login"))
 
-        # Try to navigate to home, should redirect to login
-        response = self.client.get(reverse("home"))
-        self.assertRedirects(
-            response, reverse("login") + "?next=/"
-        )  # Login with next parameter
+        # Verify logout cleared authentication by accessing a protected view
+        response = self.client.get(reverse("profile_edit"))
+        self.assertRedirects(response, reverse("login") + "?next=/profile/edit/")
 
     def test_login_username(self):
         """Test that users can log in with either username or email."""
@@ -730,7 +728,7 @@ class UserTest(BookTestMixin, TestCase):
 
 
 class BooksTest(BookTestMixin, TestCase):
-    def test_own_books_excluded(self):
+    def test_own_books_not_excluded(self):
         """Test that users see their own books in the book listing."""
         # Register first user with profile and books
         self.register_and_verify_user(
@@ -803,6 +801,12 @@ class BooksTest(BookTestMixin, TestCase):
         self.assertContains(response, "Book GBA_NORTE")
         self.assertNotContains(response, "Book GBA_OESTE")
         self.assertNotContains(response, "Book GBA_SUR")
+
+    def test_anonymous_user_home(self):
+        """Test that a logged out user sees available books from all locations"""
+        # FIXME human to specify
+        # TODO check usernames and cambio buttons hidden
+        pass
 
     def test_text_search(self):
         """Test that text search filters books by normalized title and author with accent-insensitive matching."""

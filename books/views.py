@@ -218,7 +218,6 @@ def about(request):
     )
 
 
-@login_required
 def list_books(request):
     """
     List books with pagination support for infinite scroll.
@@ -228,22 +227,22 @@ def list_books(request):
     with HTML fragment and pagination metadata.
     """
 
-    # Redirect to profile completion if user hasn't set up their profile
-    if not hasattr(request.user, "profile"):
+    # Redirect to profile completion if authenticated user hasn't set up their profile
+    if request.user.is_authenticated and not hasattr(request.user, "profile"):
         return redirect("profile_edit")
 
     # Check filters (mutually exclusive)
     filter_wanted = "wanted" in request.GET
     search_query = request.GET.get("search", "").strip()
 
-    # Get books available in user's locations with already_requested annotation
+    # Get books available to the user
     offered_books = OfferedBook.objects.for_user(request.user)
 
     # Apply search filter if query is present
     if search_query:
         offered_books = OfferedBook.objects.search(offered_books, search_query)
-    # Apply wanted books filter if requested
-    elif filter_wanted:
+    # Apply wanted books filter if requested (only for authenticated users)
+    elif filter_wanted and request.user.is_authenticated:
         offered_books = OfferedBook.objects.filter_by_wanted(
             offered_books, request.user
         )
