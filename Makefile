@@ -1,4 +1,4 @@
-.PHONY: test run deploy collectstatic sql
+.PHONY: test run deploy collectstatic sql shell
 django=uv run manage.py
 
 test:
@@ -7,7 +7,8 @@ test:
 run:
 	$(django) runserver
 
-
+shell:
+	$(django) shell
 
 BRANCH ?= main
 deploy:
