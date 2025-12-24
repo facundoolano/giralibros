@@ -1,4 +1,4 @@
-.PHONY: test run deploy collectstatic
+.PHONY: test run deploy collectstatic sql
 django=uv run manage.py
 
 test:
@@ -22,6 +22,7 @@ collectstatic:
 	set -a && . /etc/giralibros/env && uv run python manage.py collectstatic --settings=giralibros.settings.production --noinput
 
 
-
+sql:
+	sqlite3 -cmd ".open db.sqlite3"
 
 

@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group, User
+from django.db.models import Count, Exists, OuterRef
 
 from .models import ExchangeRequest, OfferedBook, UserLocation, UserProfile, WantedBook
 
@@ -36,8 +37,9 @@ class UserAdmin(BaseUserAdmin):
     form = CustomUserChangeForm
     add_form = CustomUserCreationForm
     inlines = [UserProfileInline, UserLocationInline]
-    list_display = ["username", "email", "first_name", "last_name", "is_staff", "date_joined"]
+    list_display = ["username", "email", "has_profile", "offered_books_count", "date_joined"]
     list_filter = ["is_staff", "is_superuser", "is_active", "date_joined"]
+    ordering = ["-date_joined"]
 
     # Customize fieldsets to hide user permissions
     fieldsets = (
@@ -54,6 +56,25 @@ class UserAdmin(BaseUserAdmin):
             'fields': ('username', 'email', 'password1', 'password2'),
         }),
     )
+
+    def get_queryset(self, request):
+        """Optimize queryset with annotations for custom columns."""
+        qs = super().get_queryset(request)
+        qs = qs.annotate(
+            has_profile_flag=Exists(
+                UserProfile.objects.filter(user=OuterRef("pk"))
+            ),
+            offered_count=Count("offered")
+        )
+        return qs
+
+    @admin.display(boolean=True, description="Has Profile")
+    def has_profile(self, obj):
+        return obj.has_profile_flag
+
+    @admin.display(description="Offered Books")
+    def offered_books_count(self, obj):
+        return obj.offered_count
 
 
 # Unregister the default User admin and register our customized version
