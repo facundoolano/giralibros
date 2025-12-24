@@ -233,10 +233,8 @@ class UserTest(BookTestMixin, TestCase):
         # URL format: http://testserver/verify/{uidb64}/{token}/
         parts_user1 = verify_url_user1.rstrip("/").split("/")
         uidb64_user1 = parts_user1[-2]
-        token_user1 = parts_user1[-1]
 
         parts_user2 = verify_url_user2.rstrip("/").split("/")
-        uidb64_user2 = parts_user2[-2]
         token_user2 = parts_user2[-1]
 
         # Construct mismatched URL: user 1's uidb64 with user 2's token
@@ -280,18 +278,44 @@ class UserTest(BookTestMixin, TestCase):
         )  # Error message
 
     def test_logout_redirects(self):
-        """Test that logout redirects to register and clears authentication."""
+        """Test that logout redirects to login and clears authentication."""
         self.register_and_verify_user()
 
-        # Logout should redirect to register
+        # Logout should redirect to login
         response = self.client.post(reverse("logout"))
-        self.assertRedirects(response, reverse("register"))
+        self.assertRedirects(response, reverse("login"))
 
-        # Try to navigate to home, should redirect to register
-        response = self.client.get(reverse("home"))
-        self.assertRedirects(
-            response, reverse("register") + "?next=/"
-        )  # Register with next parameter
+        # Verify logout cleared authentication by accessing a protected view
+        response = self.client.get(reverse("profile_edit"))
+        self.assertRedirects(response, reverse("login") + "?next=/profile/edit/")
+
+    def test_login_next_honored(self):
+        """Test that after login, user is redirected to the ?next parameter URL."""
+        self.register_and_verify_user()
+
+        # Logout
+        self.client.logout()
+
+        # Try to navigate to own profile (requires login)
+        profile_url = reverse("profile", kwargs={"username": "testuser"})
+        response = self.client.get(profile_url)
+
+        # Should redirect to login with ?next parameter
+        expected_redirect = reverse("login") + f"?next={profile_url}"
+        self.assertRedirects(response, expected_redirect)
+
+        # Now login by posting to the login form with ?next in URL
+        # The form has no action attribute, so it posts to current URL (preserving query params)
+        response = self.client.post(
+            reverse("login") + f"?next={profile_url}",
+            {
+                "username": "testuser",
+                "password": "testpass123",
+            },
+        )
+
+        # Should redirect to the original profile URL, not home
+        self.assertRedirects(response, profile_url)
 
     def test_login_username(self):
         """Test that users can log in with either username or email."""
@@ -468,11 +492,6 @@ class UserTest(BookTestMixin, TestCase):
 
     def test_profile_edit_validations(self):
         """Test that profile form validates required fields and data format."""
-        # TODO human to specify
-        pass
-
-    def test_throttle_registration_attempts(self):
-        """Test that repeated registration attempts are rate-limited."""
         # TODO human to specify
         pass
 
@@ -730,7 +749,7 @@ class UserTest(BookTestMixin, TestCase):
 
 
 class BooksTest(BookTestMixin, TestCase):
-    def test_own_books_excluded(self):
+    def test_own_books_not_excluded(self):
         """Test that users see their own books in the book listing."""
         # Register first user with profile and books
         self.register_and_verify_user(
@@ -803,6 +822,42 @@ class BooksTest(BookTestMixin, TestCase):
         self.assertContains(response, "Book GBA_NORTE")
         self.assertNotContains(response, "Book GBA_OESTE")
         self.assertNotContains(response, "Book GBA_SUR")
+
+    def test_anonymous_user_home(self):
+        """Test that a logged out user sees available books from all locations"""
+        # Register 3 users with books
+        for i in range(3):
+            username = f"user{i + 1}"
+            email = f"user{i + 1}@example.com"
+            self.register_and_verify_user(
+                username=username, email=email, fill_profile=True
+            )
+            self.add_books([(f"Book {i + 1}", f"Author {i + 1}")])
+            self.client.logout()
+
+        # Access home page as anonymous user
+        response = self.client.get(reverse("home"))
+
+        # Should return 200 (not redirect to login)
+        self.assertEqual(response.status_code, 200)
+
+        # Should see all books (no location filtering)
+        self.assertContains(response, "Book 1")
+        self.assertContains(response, "Book 2")
+        self.assertContains(response, "Book 3")
+
+        # Should see welcome text for anonymous users
+        self.assertContains(response, "GiraLibros")
+        self.assertContains(response, "Registrate")
+        self.assertContains(response, "Iniciá sesión")
+
+        # Should NOT see usernames
+        self.assertNotContains(response, "user1")
+        self.assertNotContains(response, "user2")
+        self.assertNotContains(response, "user3")
+
+        # Should NOT see "Cambio" button (exchange button)
+        self.assertNotContains(response, "Cambio")
 
     def test_text_search(self):
         """Test that text search filters books by normalized title and author with accent-insensitive matching."""
@@ -1358,6 +1413,48 @@ class BooksPaginationTest(BookTestMixin, TestCase):
         # Page 1 should have 20 books and indicate next page
         self.assertTrue(data["has_next"])
         self.assertEqual(data["next_page"], 2)
+
+    def test_anonymous_user_pagination(self):
+        """Test that pagination works for anonymous users."""
+        # Register user with 25 books
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
+        books = [(f"Book {i}", f"Author {i}") for i in range(25)]
+        self.add_books(books)
+        self.client.logout()
+
+        # Access home as anonymous user - first page should show 20 books
+        response = self.client.get(reverse("home"))
+        self.assertEqual(response.status_code, 200)
+        offered_books = response.context["offered_books"]
+        self.assertEqual(len(offered_books), 20)
+
+        # Should indicate more pages available
+        self.assertTrue(response.context["has_next"])
+
+        # Test AJAX pagination for page 2
+        response = self.client.get(
+            reverse("home") + "?page=2", HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/json")
+
+        data = response.json()
+        self.assertIn("html", data)
+        self.assertIn("has_next", data)
+        self.assertIn("next_page", data)
+
+        # Page 2 should show remaining 5 books, no next page
+        self.assertFalse(data["has_next"])
+        self.assertIsNone(data["next_page"])
+
+        # HTML should contain the last 5 books (0-4)
+        self.assertIn("Book 4", data["html"])
+        self.assertIn("Book 0", data["html"])
+
+        # Should NOT leak usernames
+        self.assertNotIn("user1", data["html"])
 
     def test_pagination_with_search(self):
         """Test that pagination works correctly with search filters."""

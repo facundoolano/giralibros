@@ -3,7 +3,18 @@
 {% load book_filters %}
 {% block logged_content %}
 <div class="mb-5 has-text-centered" style="margin-top: -1rem">
-  {% if search_query %}
+  {% if not user.is_authenticated %}
+  <h1 class="title has-text-centered mb-3">📚 GiraLibros</h1>
+  <p class="has-text-centered has-text-grey mb-5">
+    La comunidad gratuita de intercambio de libros en Buenos Aires
+  </p>
+  <div class="buttons is-centered">
+    <a href="{% url 'register' %}" class="button is-primary">Registrate</a>
+    <a href="{% url 'login' %}" class="button is-light">Iniciá sesión</a>
+  </div>
+  <br>
+  <p>Estos son algunos de los libros ofrecidos por nuestros usuarios:</p>
+  {% elif search_query %}
   <span class="mr-2">Mostrando resultados para "<strong>{{ search_query }}</strong>" en</span>
   {% for location in user.locations.all %}
   <span class="tag location-badge mr-1">{{ location.get_area_display }}</span>
@@ -29,7 +40,7 @@
   {% endif %}
 </div>
 
-{% if not user.offered.exists %}
+{% if user.is_authenticated and not user.offered.exists %}
 <div class="columns is-centered">
   <div class="column is-full-mobile is-three-quarters-tablet is-half-desktop">
     <article class="message is-warning">

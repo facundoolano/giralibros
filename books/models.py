@@ -1,9 +1,12 @@
 import re
+from datetime import timedelta
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import Q
+from django.db.models import BooleanField, Exists, OuterRef, Q, Value
 from django.db.models.functions import Coalesce, Greatest
+from django.utils import timezone
 
 
 class UserProfile(models.Model):
@@ -99,29 +102,27 @@ class OfferedBookManager(models.Manager):
 
     def for_user(self, user):
         """
-        Return books available in the user's locations, annotated with whether
-        the user has already requested each book.
-
-        This query:
-        - Filters books by user's location areas
-        - Annotates with last_activity_date (max of created_at and cover_uploaded_at)
-        - Orders by most recent activity
-        - Annotates with 'already_requested' flag via Exists subquery
-        - Optimizes with select_related and prefetch_related to avoid N+1 queries
+        Return books available to the user.
+        For authenticated users: filter by user's locations and annotate already_requested.
+        For anonymous users: return all books with no location filtering.
         """
-        user_areas = user.locations.values_list("area", flat=True)
+        if user.is_authenticated:
+            user_areas = user.locations.values_list("area", flat=True)
+            queryset = self.filter(user__locations__area__in=user_areas).distinct()
+        else:
+            queryset = self.all()
 
-        queryset = (
-            self.filter(user__locations__area__in=user_areas)
-            .select_related("user")
-            .prefetch_related("user__locations")
-            .distinct()
-        )
+        queryset = queryset.select_related("user")
 
         queryset = self._annotate_last_activity(queryset)
         queryset = queryset.order_by("-last_activity_date")
 
-        return self._annotate_already_requested(queryset, user)
+        if user.is_authenticated:
+            return self._annotate_already_requested(queryset, user)
+        else:
+            return queryset.annotate(
+                already_requested=Value(False, output_field=BooleanField())
+            )
 
     def for_profile(self, profile_user, viewing_user):
         """
@@ -187,7 +188,9 @@ class OfferedBookManager(models.Manager):
                 ) & Q(author_normalized__icontains=wanted.author_normalized)
             else:
                 # Author-only: match any book by this author
-                match_conditions |= Q(author_normalized__icontains=wanted.author_normalized)
+                match_conditions |= Q(
+                    author_normalized__icontains=wanted.author_normalized
+                )
 
         return queryset.filter(match_conditions).exclude(user=user).distinct()
 
@@ -198,12 +201,6 @@ class OfferedBookManager(models.Manager):
         Checks if the user has a recent exchange request (within EXCHANGE_REQUEST_EXPIRY_DAYS)
         for each book. After the expiry period, requests can be retried.
         """
-        from datetime import timedelta
-
-        from django.conf import settings
-        from django.db.models import Exists, OuterRef
-        from django.utils import timezone
-
         expiry_days = getattr(settings, "EXCHANGE_REQUEST_EXPIRY_DAYS", 15)
         cutoff_date = timezone.now() - timedelta(days=expiry_days)
 
