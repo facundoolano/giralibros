@@ -128,7 +128,7 @@ class OfferedBookManager(models.Manager):
         if wanted and user.is_authenticated:
             queryset = self._filter_by_wanted(queryset, user)
         if photo:
-            queryset = queryset.filter(cover_image__isnull=False)
+            queryset = queryset.filter(cover_image__isnull=False).exclude(cover_image='')
 
         queryset = self._annotate_last_activity(queryset)
         queryset = queryset.order_by("-last_activity_date")
