@@ -14,29 +14,65 @@
   </div>
   <br>
   <p>Estos son algunos de los libros ofrecidos por nuestros usuarios:</p>
-  {% elif search_query %}
-  <span class="mr-2">Mostrando resultados para "<strong>{{ search_query }}</strong>" en</span>
-  {% for location in user.locations.all %}
-  <span class="tag location-badge mr-1">{{ location.get_area_display }}</span>
-  {% endfor %}
-  <div class="mt-2">
-    <a href="{% url 'home' %}">Ver todos</a>
-  </div>
-  {% elif filter_wanted %}
-  <span class="mr-2">Mostrando los libros de</span>{% for location in user.locations.all %}<span class="tag location-badge mr-1">{{ location.get_area_display }}</span>{% endfor %} que coinciden con tus <a href="{% url 'my_wanted' %}">libros deseados</a>.
-  <div class="mt-2">
-    <a href="{% url 'home' %}">Ver todos</a>
-  </div>
   {% else %}
-  <span class="mr-2">Mostrando los últimos libros disponibles en</span>
-  {% for location in user.locations.all %}
-  <span class="tag location-badge mr-1">{{ location.get_area_display }}</span>
-  {% endfor %}
-  {% if user.wanted.exists %}
-  <div class="mt-2">
-    <a href="{% url 'home' %}?wanted">Mostrar solo mis libros deseados</a>
-  </div>
+  {# Dynamic filter summary #}
+  <span>Mostrando libros</span>
+  {% if 'wanted' in request.GET %} <a href="{% url 'my_wanted' %}"><strong>deseados</strong></a>{% endif %}
+  {% if 'photo' in request.GET %}
+    {% if 'wanted' in request.GET %} y {% endif %}<strong>con foto</strong>
   {% endif %}
+  {% if request.GET.search %}
+    {% if 'wanted' in request.GET or 'photo' in request.GET %} que coinciden con{% else %} para{% endif %}
+    "<strong>{{ request.GET.search }}</strong>"
+  {% endif %}
+  en
+  {% if 'my_locations' in request.GET %}
+    {% for location in user.locations.all %}
+      <span class="tag location-badge mr-1">{{ location.get_area_display }}</span>
+    {% endfor %}
+  {% else %}
+    todas las ubicaciones
+  {% endif %}
+
+  {# Filter editor toggle #}
+  <div class="mt-2">
+    <a href="#" id="toggle-filters">
+      <span class="edit-text"><i class="fas fa-edit"></i> editar filtros</span>
+      <span class="hide-text is-hidden"><i class="fas fa-times"></i> ocultar filtros</span>
+    </a>
+  </div>
+
+  {# Filter form (hidden by default) #}
+  <div id="filter-form" class="mt-3 is-hidden">
+    <form method="get" action="{% url 'home' %}">
+      <div class="is-inline-block has-text-left">
+        <div class="field">
+          <label class="checkbox">
+            <input type="checkbox" name="my_locations" {% if 'my_locations' in request.GET %}checked{% endif %}>
+            Solo mis ubicaciones
+          </label>
+        </div>
+        <div class="field">
+          <label class="checkbox">
+            <input type="checkbox" name="wanted" {% if 'wanted' in request.GET %}checked{% endif %}>
+            Solo libros deseados
+          </label>
+        </div>
+        <div class="field">
+          <label class="checkbox">
+            <input type="checkbox" name="photo" {% if 'photo' in request.GET %}checked{% endif %}>
+            Solo libros con foto
+          </label>
+        </div>
+      </div>
+      {% if request.GET.search %}
+      <input type="hidden" name="search" value="{{ request.GET.search }}">
+      {% endif %}
+      <div class="field mt-3">
+        <button type="submit" class="button is-small is-primary">Aplicar</button>
+      </div>
+    </form>
+  </div>
   {% endif %}
 </div>
 
@@ -101,6 +137,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize tooltips for initial page load
   initTimeagoTooltips();
+
+  // Filter form toggle
+  const toggleFiltersLink = document.getElementById('toggle-filters');
+  const filterForm = document.getElementById('filter-form');
+
+  if (toggleFiltersLink && filterForm) {
+    toggleFiltersLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      filterForm.classList.toggle('is-hidden');
+      toggleFiltersLink.querySelectorAll('.edit-text, .hide-text').forEach(el => {
+        el.classList.toggle('is-hidden');
+      });
+    });
+  }
 
   // Infinite scroll functionality
   const sentinel = document.getElementById('infinite-scroll-sentinel');
