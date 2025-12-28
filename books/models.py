@@ -29,11 +29,6 @@ class UserProfile(models.Model):
         help_text="Miscelaneous notes to be displayed on the user public profile and on exchange requests.",
     )
 
-    # Saved filter preferences (persisted across sessions/devices)
-    filter_wanted = models.BooleanField(default=False)
-    filter_photo = models.BooleanField(default=False)
-    filter_my_locations = models.BooleanField(default=False)
-
 
 class LocationArea(models.TextChoices):
     CABA_CENTRO = "CABA_CENTRO", "CABA Centro"
