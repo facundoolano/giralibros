@@ -610,9 +610,7 @@ def upload_book_photo(request, book_id):
             book.save()
 
             # Return JSON response for AJAX request
-            return JsonResponse(
-                {"success": True, "image_url": book.cover_image.url}
-            )
+            return JsonResponse({"success": True, "image_url": book.cover_image.url})
 
         except ValueError as e:
             return HttpResponseBadRequest(str(e))
@@ -654,6 +652,7 @@ def upload_temp_book_photo(request):
         )
 
     except ValueError as e:
+        logger.warning(f"Error processing temp image upload: {e}")
         return HttpResponseBadRequest(str(e))
     except Exception as e:
         logger.error(f"Error processing temp image upload: {e}")
@@ -677,7 +676,11 @@ def _process_book_cover_image(uploaded_file):
         raise ValueError("Invalid image format")
 
     # Open and process image with Pillow
-    image = Image.open(uploaded_file)
+    try:
+        image = Image.open(uploaded_file)
+    except Exception as e:
+        logger.warning(f"PIL cannot identify image file: {uploaded_file.name} - {e}")
+        raise ValueError("The uploaded file is not a valid image or is corrupt")
 
     # Apply EXIF orientation (fixes rotated mobile photos)
     # exif_transpose returns None if no transposing is needed

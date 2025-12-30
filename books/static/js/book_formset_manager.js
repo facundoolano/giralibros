@@ -180,7 +180,8 @@ function initBookFormset(options) {
           });
 
           if (!response.ok) {
-            throw new Error('Upload failed');
+            const errorText = await response.text();
+            throw new Error(errorText || 'Upload failed');
           }
 
           const data = await response.json();
@@ -215,7 +216,7 @@ function initBookFormset(options) {
           }
         } catch (error) {
           console.error('Upload error:', error);
-          alert('Error al subir la foto. Por favor intentá de nuevo.');
+          alert('Error al subir la foto: ' + (error.message || 'Por favor intentá de nuevo.'));
         } finally {
           // Restore button state
           icon.className = originalIcon;
