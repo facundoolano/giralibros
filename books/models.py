@@ -100,19 +100,35 @@ class OfferedBookManager(models.Manager):
             )
         )
 
-    def for_user(self, user):
+    def for_user(self, user, search=None, wanted=False, photo=False, my_locations=False):
         """
-        Return books available to the user.
-        For authenticated users: filter by user's locations and annotate already_requested.
+        Return books available to the user with all filters applied.
+
+        For authenticated users: optionally filter by user's locations and annotate already_requested.
         For anonymous users: return all books with no location filtering.
+
+        Args:
+            user: User object (authenticated or anonymous)
+            search: Search query string (optional)
+            wanted: Filter to user's wanted books (boolean)
+            photo: Filter to books with uploaded photos (boolean)
+            my_locations: Filter by user's locations vs all locations (boolean)
         """
-        if user.is_authenticated:
+        if user.is_authenticated and my_locations:
             user_areas = user.locations.values_list("area", flat=True)
             queryset = self.filter(user__locations__area__in=user_areas).distinct()
         else:
             queryset = self.all()
 
         queryset = queryset.select_related("user")
+
+        # Apply filters in order
+        if search:
+            queryset = self._search(queryset, search)
+        if wanted and user.is_authenticated:
+            queryset = self._filter_by_wanted(queryset, user)
+        if photo:
+            queryset = queryset.filter(cover_image__isnull=False).exclude(cover_image='')
 
         queryset = self._annotate_last_activity(queryset)
         queryset = queryset.order_by("-last_activity_date")
@@ -138,7 +154,7 @@ class OfferedBookManager(models.Manager):
 
         return queryset
 
-    def search(self, queryset, search_query):
+    def _search(self, queryset, search_query):
         """
         Filter books by search query against normalized title and author fields.
 
@@ -164,7 +180,7 @@ class OfferedBookManager(models.Manager):
 
         return queryset
 
-    def filter_by_wanted(self, queryset, user):
+    def _filter_by_wanted(self, queryset, user):
         """
         Filter offered books that match the user's wanted books.
 

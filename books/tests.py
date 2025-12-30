@@ -771,8 +771,8 @@ class BooksTest(BookTestMixin, TestCase):
         self.assertContains(response, "Book C")
         self.assertContains(response, "Book D")
 
-    def test_filter_by_location(self):
-        """Test that book listings are filtered based on user's selected location areas."""
+    def test_default_all_locations(self):
+        """Test that by default, users see books from all locations."""
         # Register 4 users, each in a different location with one book
         locations = ["CABA_CENTRO", "GBA_NORTE", "GBA_OESTE", "GBA_SUR"]
         for i, location in enumerate(locations):
@@ -790,24 +790,8 @@ class BooksTest(BookTestMixin, TestCase):
             self.add_books([(f"Book {location}", f"Author {i + 1}")])
             self.client.logout()
 
-        # Register user 5 with all areas - should see all books
+        # Register user 5 with only 2 locations
         self.register_and_verify_user(username="user5", email="user5@example.com")
-        self.client.post(
-            reverse("profile_edit"),
-            {
-                "first_name": "User Five",
-                "email": "user5@example.com",
-                "locations": ["CABA_CENTRO", "GBA_NORTE", "GBA_OESTE", "GBA_SUR"],
-            },
-        )
-
-        response = self.client.get(reverse("home"))
-        self.assertContains(response, "Book CABA_CENTRO")
-        self.assertContains(response, "Book GBA_NORTE")
-        self.assertContains(response, "Book GBA_OESTE")
-        self.assertContains(response, "Book GBA_SUR")
-
-        # Edit to only 2 areas - should see only those 2 books
         self.client.post(
             reverse("profile_edit"),
             {
@@ -817,11 +801,66 @@ class BooksTest(BookTestMixin, TestCase):
             },
         )
 
+        # Without my_locations param, should see all books regardless of user's locations
         response = self.client.get(reverse("home"))
+        self.assertContains(response, "Book CABA_CENTRO")
+        self.assertContains(response, "Book GBA_NORTE")
+        self.assertContains(response, "Book GBA_OESTE")
+        self.assertContains(response, "Book GBA_SUR")
+
+    def test_filter_by_location(self):
+        """Test that ?my_locations filters books by user's selected location areas."""
+        # Register 4 users, each in a different location with one book
+        locations = ["CABA_CENTRO", "GBA_NORTE", "GBA_OESTE", "GBA_SUR"]
+        for i, location in enumerate(locations):
+            username = f"user{i + 1}"
+            email = f"user{i + 1}@example.com"
+            self.register_and_verify_user(username=username, email=email)
+            self.client.post(
+                reverse("profile_edit"),
+                {
+                    "first_name": f"User {i + 1}",
+                    "email": email,
+                    "locations": [location],
+                },
+            )
+            self.add_books([(f"Book {location}", f"Author {i + 1}")])
+            self.client.logout()
+
+        # Register user 5 with 2 locations
+        self.register_and_verify_user(username="user5", email="user5@example.com")
+        self.client.post(
+            reverse("profile_edit"),
+            {
+                "first_name": "User Five",
+                "email": "user5@example.com",
+                "locations": ["CABA_CENTRO", "GBA_NORTE"],
+            },
+        )
+
+        # With my_locations param, should see only books from user's locations
+        response = self.client.get(reverse("home") + "?my_locations")
         self.assertContains(response, "Book CABA_CENTRO")
         self.assertContains(response, "Book GBA_NORTE")
         self.assertNotContains(response, "Book GBA_OESTE")
         self.assertNotContains(response, "Book GBA_SUR")
+
+        # Edit user to have all 4 locations
+        self.client.post(
+            reverse("profile_edit"),
+            {
+                "first_name": "User Five",
+                "email": "user5@example.com",
+                "locations": ["CABA_CENTRO", "GBA_NORTE", "GBA_OESTE", "GBA_SUR"],
+            },
+        )
+
+        # With my_locations param and all locations, should see all books
+        response = self.client.get(reverse("home") + "?my_locations")
+        self.assertContains(response, "Book CABA_CENTRO")
+        self.assertContains(response, "Book GBA_NORTE")
+        self.assertContains(response, "Book GBA_OESTE")
+        self.assertContains(response, "Book GBA_SUR")
 
     def test_anonymous_user_home(self):
         """Test that a logged out user sees available books from all locations"""

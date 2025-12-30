@@ -231,21 +231,20 @@ def list_books(request):
     if request.user.is_authenticated and not hasattr(request.user, "profile"):
         return redirect("profile_edit")
 
-    # Check filters (mutually exclusive)
-    filter_wanted = "wanted" in request.GET
+    # Parse query params
     search_query = request.GET.get("search", "").strip()
+    wanted = "wanted" in request.GET
+    photo = "photo" in request.GET
+    my_locations = "my_locations" in request.GET
 
-    # Get books available to the user
-    offered_books = OfferedBook.objects.for_user(request.user)
-
-    # Apply search filter if query is present
-    if search_query:
-        offered_books = OfferedBook.objects.search(offered_books, search_query)
-    # Apply wanted books filter if requested (only for authenticated users)
-    elif filter_wanted and request.user.is_authenticated:
-        offered_books = OfferedBook.objects.filter_by_wanted(
-            offered_books, request.user
-        )
+    # Get books with all filters applied
+    offered_books = OfferedBook.objects.for_user(
+        request.user,
+        search=search_query or None,
+        wanted=wanted,
+        photo=photo,
+        my_locations=my_locations,
+    )
 
     # Paginate results
     page_size = getattr(settings, "BOOKS_PER_PAGE", 20)
@@ -281,8 +280,6 @@ def list_books(request):
         {
             "offered_books": page_obj,
             "user": request.user,
-            "filter_wanted": filter_wanted,
-            "search_query": search_query,
             "has_next": page_obj.has_next(),
         },
     )
