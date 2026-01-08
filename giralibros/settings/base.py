@@ -142,7 +142,7 @@ EXCHANGE_REQUEST_DAILY_LIMIT = 25  # Maximum exchange requests a user can send i
 BOOKS_PER_PAGE = 20  # Number of books to display per page in infinite scroll
 
 # Book cover image uploads
-BOOK_COVER_MAX_SIZE = 5 * 1024 * 1024  # 5MB maximum upload size
+BOOK_COVER_MAX_SIZE = 10 * 1024 * 1024  # 10MB maximum upload size
 BOOK_COVER_ALLOWED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
 BOOK_COVER_THUMBNAIL_MAX_WIDTH = 400  # Maximum thumbnail width in pixels
 BOOK_COVER_THUMBNAIL_MAX_HEIGHT = 600  # Maximum thumbnail height in pixels
