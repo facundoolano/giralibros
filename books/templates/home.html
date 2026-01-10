@@ -15,6 +15,17 @@
   <br>
   <p>Estos son algunos de los libros ofrecidos por nuestros usuarios:</p>
   {% else %}
+  {% if user.profile.is_full_user %}
+  <div class="columns is-centered mb-4">
+    <div class="column is-full-mobile is-three-quarters-tablet is-half-desktop">
+      <article class="message is-warning">
+        <div class="message-body">
+          <strong>Se buscan usuarios!</strong> GiraLibros viene funcionando muy bien pero necesitamos que se sume más gente. Si te gusta la app recomendala y compartila en redes, y si tenés ideas para promocionarla escribinos a <a href="#" onclick="navigator.clipboard.writeText('contacto@giralibros.com'); return false;" title="Copiar email al portapapeles">contacto@giralibros.com</a>
+        </div>
+      </article>
+    </div>
+  </div>
+  {% endif %}
   {# Dynamic filter summary #}
   <span>Mostrando libros</span>
   {% if 'wanted' in request.GET %} <a href="{% url 'my_wanted' %}"><strong>deseados</strong></a>{% endif %}
