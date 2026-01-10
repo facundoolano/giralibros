@@ -41,6 +41,11 @@
     .books-table tr:last-child {
       border-bottom: none;
     }
+
+    #book-form .columns .column.is-narrow {
+      display: flex;
+      justify-content: center;
+    }
   }
 </style>
 {% endblock %}
@@ -86,17 +91,6 @@
           {# Right column: Photo upload #}
           <div class="column is-narrow">
             <div class="is-flex is-flex-direction-column" style="gap: 0.5rem;">
-              <div id="photo-preview-container" class="is-flex is-align-items-center book-cover-container">
-                {% if form.instance.cover_image %}
-                  <img src="{{ form.instance.cover_image.url }}" alt="Cover" class="book-cover-image" id="photo-preview">
-                {% else %}
-                  <div class="book-placeholder book-cover-container is-flex is-justify-content-center is-align-items-center">
-                    <span class="icon is-medium has-text-grey-dark">
-                      <i class="fas fa-book fa-lg"></i>
-                    </span>
-                  </div>
-                {% endif %}
-              </div>
               <div>
                 <input type="file" name="cover_image" id="js-cover-image-input" accept="image/*" style="display: none;">
                 <button type="button" class="button is-info is-small is-light" id="js-photo-upload-btn">
@@ -107,6 +101,17 @@
                 </button>
                 {% if form.cover_image.errors %}
                   <p class="help is-danger">{{ form.cover_image.errors.0 }}</p>
+                {% endif %}
+              </div>
+              <div id="photo-preview-container" class="is-flex is-align-items-center book-cover-container">
+                {% if form.instance.cover_image %}
+                  <img src="{{ form.instance.cover_image.url }}" alt="Cover" class="book-cover-image" id="photo-preview">
+                {% else %}
+                  <div class="book-placeholder book-cover-container is-flex is-justify-content-center is-align-items-center">
+                    <span class="icon is-medium has-text-grey-dark">
+                      <i class="fas fa-book fa-lg"></i>
+                    </span>
+                  </div>
                 {% endif %}
               </div>
             </div>

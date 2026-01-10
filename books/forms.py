@@ -136,7 +136,7 @@ class OfferedBookForm(BulmaFormMixin, forms.ModelForm):
         model = OfferedBook
         fields = ["title", "author", "notes", "cover_image"]
         widgets = {
-            "title": forms.TextInput(attrs={"placeholder": "Título del libro"}),
+            "title": forms.TextInput(attrs={"placeholder": "Título del libro", "autofocus": True}),
             "author": forms.TextInput(attrs={"placeholder": "Autor"}),
             "notes": forms.Textarea(
                 attrs={
@@ -157,6 +157,6 @@ class WantedBookForm(BulmaFormMixin, forms.ModelForm):
         model = WantedBook
         fields = ["author", "title"]
         widgets = {
-            "author": forms.TextInput(attrs={"placeholder": "Autor"}),
+            "author": forms.TextInput(attrs={"placeholder": "Autor", "autofocus": True}),
             "title": forms.TextInput(attrs={"placeholder": "Título (opcional)"}),
         }

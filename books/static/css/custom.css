@@ -75,7 +75,7 @@ body {
 
 /* Book cover container - default for forms and profile */
 .book-cover-container {
-    width: 100px;
+    width: 108px;
     height: 150px;
     overflow: hidden;
     border-radius: 4px;
