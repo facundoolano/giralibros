@@ -37,7 +37,7 @@ class UserAdmin(BaseUserAdmin):
     form = CustomUserChangeForm
     add_form = CustomUserCreationForm
     inlines = [UserProfileInline, UserLocationInline]
-    list_display = ["username", "email", "has_profile", "is_full_user", "offered_books_count", "date_joined"]
+    list_display = ["username", "email", "has_profile", "is_full_user", "offered_books_count", "date_joined", "last_login"]
     list_filter = ["is_staff", "is_superuser", "is_active", "date_joined"]
     ordering = ["-date_joined"]
 
