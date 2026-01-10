@@ -37,7 +37,7 @@ class UserAdmin(BaseUserAdmin):
     form = CustomUserChangeForm
     add_form = CustomUserCreationForm
     inlines = [UserProfileInline, UserLocationInline]
-    list_display = ["username", "email", "has_profile", "offered_books_count", "date_joined"]
+    list_display = ["username", "email", "has_profile", "is_full_user", "offered_books_count", "date_joined"]
     list_filter = ["is_staff", "is_superuser", "is_active", "date_joined"]
     ordering = ["-date_joined"]
 
@@ -71,6 +71,13 @@ class UserAdmin(BaseUserAdmin):
     @admin.display(boolean=True, description="Has Profile")
     def has_profile(self, obj):
         return obj.has_profile_flag
+
+    @admin.display(boolean=True, description="Is Full User")
+    def is_full_user(self, obj):
+        try:
+            return obj.profile.is_full_user
+        except UserProfile.DoesNotExist:
+            return False
 
     @admin.display(description="Offered Books")
     def offered_books_count(self, obj):

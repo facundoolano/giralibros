@@ -29,6 +29,16 @@ class UserProfile(models.Model):
         help_text="Miscelaneous notes to be displayed on the user public profile and on exchange requests.",
     )
 
+    @property
+    def is_full_user(self):
+        """User is considered full if they have been registered for more than 7 days, have sent requests, and have received requests."""
+        registered_more_than_7_days = self.user.date_joined < timezone.now() - timedelta(
+            days=7
+        )
+        has_sent_requests = self.user.sent_requests.exists()
+        has_received_requests = self.user.received_requests.exists()
+        return registered_more_than_7_days and has_sent_requests and has_received_requests
+
 
 class LocationArea(models.TextChoices):
     CABA_CENTRO = "CABA_CENTRO", "CABA Centro"
