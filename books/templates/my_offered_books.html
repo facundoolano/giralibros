@@ -92,7 +92,6 @@
               <tr>
                 <th>Título</th>
                 <th>Autor</th>
-                <th class="has-text-centered">Foto</th>
                 <th class="has-text-right">Acciones</th>
               </tr>
             </thead>
@@ -101,30 +100,23 @@
                 <tr id="book-row-{{ book.id }}">
                   <td>{{ book.title }}</td>
                   <td>{{ book.author }}</td>
-                  <td class="has-text-centered">
-                    {% if book.cover_image %}
-                      <span class="icon has-text-success">
-                        <i class="fas fa-check"></i>
-                      </span>
-                    {% else %}
-                      <span class="icon has-text-grey-light">
-                        <i class="fas fa-minus"></i>
-                      </span>
-                    {% endif %}
-                  </td>
                   <td class="has-text-right">
                     <div class="buttons is-right">
-                      <a href="{% url 'edit_offered_book' book.id %}" class="button is-small is-info is-light">
-                        <span class="icon is-small">
-                          <i class="fas fa-edit"></i>
-                        </span>
-                        <span>Editar</span>
-                      </a>
-                      <button type="button" class="button is-small is-danger is-light js-delete-book-btn" data-delete-url="{% url 'delete_offered_book' book.id %}">
+                      <button type="button" class="button is-small is-danger is-light js-delete-book-btn" data-delete-url="{% url 'delete_offered_book' book.id %}" title="Borrar">
                         <span class="icon is-small">
                           <i class="fas fa-trash"></i>
                         </span>
-                        <span>Borrar</span>
+                      </button>
+                      <a href="{% url 'edit_offered_book' book.id %}" class="button is-small is-info is-light" title="Editar">
+                        <span class="icon is-small">
+                          <i class="fas fa-edit"></i>
+                        </span>
+                      </a>
+                      <button type="button" class="button is-small is-success is-light js-mark-exchanged-btn" data-delete-url="{% url 'delete_offered_book' book.id %}">
+                        <span>Ya cambiado</span>
+                        <span class="icon is-small">
+                          <i class="fas fa-check"></i>
+                        </span>
                       </button>
                     </div>
                   </td>
@@ -135,6 +127,12 @@
         </div>
       </div>
     {% endif %}
+
+    <div class="mt-4 has-text-right">
+      <a href="{% url 'profile' username=request.user.username %}" class="button">
+        Volver
+      </a>
+    </div>
   </div>
 </div>
 
@@ -181,6 +179,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } catch (error) {
         alert('Error al borrar el libro.');
+      }
+    });
+  });
+
+  // Mark as exchanged buttons (for now, same as delete)
+  document.querySelectorAll('.js-mark-exchanged-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const deleteUrl = e.currentTarget.dataset.deleteUrl;
+      const row = e.currentTarget.closest('tr');
+
+      try {
+        const response = await fetch(deleteUrl, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+
+        if (response.ok) {
+          row.remove();
+        } else {
+          alert('Error al marcar el libro.');
+        }
+      } catch (error) {
+        alert('Error al marcar el libro.');
       }
     });
   });
