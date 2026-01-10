@@ -56,8 +56,8 @@
                 {% endif %}
               </div>
               <div>
-                <input type="file" name="cover_image" id="cover-image-input" accept="image/*" style="display: none;">
-                <button type="button" class="button is-info is-small is-light" id="photo-upload-btn">
+                <input type="file" name="cover_image" id="js-cover-image-input" accept="image/*" style="display: none;">
+                <button type="button" class="button is-info is-small is-light" id="js-photo-upload-btn">
                   <span class="icon is-small">
                     <i class="fas fa-camera"></i>
                   </span>
@@ -120,7 +120,7 @@
                         </span>
                         <span>Editar</span>
                       </a>
-                      <button type="button" class="button is-small is-danger is-light delete-book-btn" data-book-id="{{ book.id }}">
+                      <button type="button" class="button is-small is-danger is-light js-delete-book-btn" data-delete-url="{% url 'delete_offered_book' book.id %}">
                         <span class="icon is-small">
                           <i class="fas fa-trash"></i>
                         </span>
@@ -141,12 +141,12 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   // Photo upload: trigger file input
-  document.getElementById('photo-upload-btn').addEventListener('click', () => {
-    document.getElementById('cover-image-input').click();
+  document.getElementById('js-photo-upload-btn').addEventListener('click', () => {
+    document.getElementById('js-cover-image-input').click();
   });
 
   // Photo upload: show preview
-  document.getElementById('cover-image-input').addEventListener('change', (e) => {
+  document.getElementById('js-cover-image-input').addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -160,10 +160,10 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Delete buttons
-  document.querySelectorAll('.delete-book-btn').forEach(btn => {
+  document.querySelectorAll('.js-delete-book-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
-      const bookId = e.currentTarget.dataset.bookId;
-      const deleteUrl = "{% url 'delete_offered_book' 0 %}".replace('/0/', `/${bookId}/`);
+      const deleteUrl = e.currentTarget.dataset.deleteUrl;
+      const row = e.currentTarget.closest('tr');
 
       try {
         const response = await fetch(deleteUrl, {
@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (response.ok) {
-          document.getElementById(`book-row-${bookId}`).remove();
+          row.remove();
         } else {
           alert('Error al borrar el libro.');
         }
