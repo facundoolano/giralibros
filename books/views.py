@@ -387,10 +387,8 @@ def profile(request, username):
 @login_required
 def my_offered_books(request, book_id=None):
     """Display form to add/edit offered books and list of existing books."""
-    if book_id:
-        book = get_object_or_404(OfferedBook, id=book_id, user=request.user)
-    else:
-        book = None
+    # Determine if editing or creating
+    book = get_object_or_404(OfferedBook, id=book_id, user=request.user) if book_id else None
 
     if request.method == "POST":
         form = OfferedBookForm(request.POST, request.FILES, instance=book)
@@ -401,59 +399,31 @@ def my_offered_books(request, book_id=None):
 
             # Process cover image if uploaded
             if "cover_image" in request.FILES:
-                uploaded_file = request.FILES["cover_image"]
                 try:
-                    processed_image = _process_book_cover_image(uploaded_file)
-                    book.cover_image.save(
-                        processed_image.name, processed_image, save=False
-                    )
+                    processed_image = _process_book_cover_image(request.FILES["cover_image"])
+                    book.cover_image.save(processed_image.name, processed_image, save=False)
                     book.cover_uploaded_at = timezone.now()
                 except ValueError as e:
                     form.add_error("cover_image", str(e))
-                    offered_books = OfferedBook.objects.filter(
-                        user=request.user
-                    ).order_by("-created_at")
-                    return render(
-                        request,
-                        "my_offered_books.html",
-                        {
-                            "form": form,
-                            "offered_books": offered_books,
-                            "editing_book_id": book_id,
-                        },
-                    )
 
-            book.save()
-            return redirect("my_offered")
-
-        # Form invalid - re-render with errors
-        offered_books = OfferedBook.objects.filter(user=request.user).order_by(
-            "-created_at"
-        )
-        return render(
-            request,
-            "my_offered_books.html",
-            {
-                "form": form,
-                "offered_books": offered_books,
-                "editing_book_id": book_id,
-            },
-        )
+            # Only save if no errors were added during processing
+            if not form.errors:
+                book.save()
+                return redirect("my_offered")
     else:
         # GET request
         form = OfferedBookForm(instance=book)
-        offered_books = OfferedBook.objects.filter(user=request.user).order_by(
-            "-created_at"
-        )
-        return render(
-            request,
-            "my_offered_books.html",
-            {
-                "form": form,
-                "offered_books": offered_books,
-                "editing_book_id": book_id,
-            },
-        )
+
+    # Render template (for both GET and POST with errors)
+    return render(
+        request,
+        "my_offered_books.html",
+        {
+            "form": form,
+            "offered_books": OfferedBook.objects.filter(user=request.user).order_by("-created_at"),
+            "editing_book_id": book_id,
+        },
+    )
 
 
 @login_required
