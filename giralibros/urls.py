@@ -24,10 +24,11 @@ from books import views
 urlpatterns = [
     path('', views.list_books, name='home'),
     path('my/offered/', views.my_offered_books, name='my_offered'),
+    path('my/offered/<int:book_id>/edit/', views.my_offered_books, name='edit_offered_book'),
+    path('my/offered/<int:book_id>/delete/', views.delete_offered_book, name='delete_offered_book'),
     path('my/wanted/', views.my_wanted_books, name='my_wanted'),
     path('books/<int:book_id>/request-exchange/', views.request_exchange, name='request_exchange'),
     path('books/<int:book_id>/upload-photo/', views.upload_book_photo, name='upload_book_photo'),
-    path('books/upload-temp-photo/', views.upload_temp_book_photo, name='upload_temp_book_photo'),
     path('about/', views.about, name='about'),
     path('login/', views.login, name='login'),
     path('register/', views.register, name='register'),

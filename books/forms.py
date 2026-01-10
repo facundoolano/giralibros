@@ -132,11 +132,9 @@ class OfferedBookForm(BulmaFormMixin, forms.ModelForm):
     Form for creating/editing an offered book.
     """
 
-    temp_cover_id = forms.IntegerField(required=False, widget=forms.HiddenInput())
-
     class Meta:
         model = OfferedBook
-        fields = ["title", "author", "notes"]
+        fields = ["title", "author", "notes", "cover_image"]
         widgets = {
             "title": forms.TextInput(attrs={"placeholder": "Título del libro"}),
             "author": forms.TextInput(attrs={"placeholder": "Autor"}),
