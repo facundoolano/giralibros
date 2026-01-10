@@ -71,7 +71,7 @@
           </div>
         </div>
 
-        <div class="field is-grouped is-grouped-right mt-4">
+        <div class="field is-grouped is-grouped-centered mt-4">
           <div class="control">
             <button type="submit" class="button is-primary">
               {% if editing_book_id %}Guardar cambios{% else %}Agregar libro{% endif %}
@@ -84,22 +84,12 @@
     {# Books List #}
     {% if offered_books %}
       <div class="box">
-        <h2 class="subtitle is-5 mb-3">Tus libros</h2>
-
         <div class="table-container">
-          <table class="table is-fullwidth is-striped is-hoverable">
-            <thead>
-              <tr>
-                <th>Título</th>
-                <th>Autor</th>
-                <th class="has-text-right">Acciones</th>
-              </tr>
-            </thead>
+          <table class="table is-fullwidth is-hoverable books-table">
             <tbody>
               {% for book in offered_books %}
                 <tr id="book-row-{{ book.id }}">
-                  <td>{{ book.title }}</td>
-                  <td>{{ book.author }}</td>
+                  <td><strong>{{ book.title }}</strong>, {{ book.author }}</td>
                   <td class="has-text-right">
                     <div class="buttons is-right">
                       <button type="button" class="button is-small is-danger is-light js-delete-book-btn" data-delete-url="{% url 'delete_offered_book' book.id %}" title="Borrar">
