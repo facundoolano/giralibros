@@ -100,17 +100,14 @@ class BookTestMixin:
             wanted: If True, adds wanted books; otherwise adds offered books
         """
         if wanted:
-            # Wanted books still use formset
-            form_data = {
-                "form-TOTAL_FORMS": str(len(books)),
-                "form-INITIAL_FORMS": "0",
-            }
-            for i, (title, author) in enumerate(books):
-                form_data[f"form-{i}-title"] = title
-                form_data[f"form-{i}-author"] = author
-            self.client.post(reverse("my_wanted"), form_data)
+            # Wanted books use single-form approach
+            for title, author in books:
+                self.client.post(
+                    reverse("my_wanted"),
+                    {"title": title, "author": author},
+                )
         else:
-            # Offered books use new single-book endpoint
+            # Offered books use single-form approach
             for title, author in books:
                 self.client.post(
                     reverse("my_offered"),
