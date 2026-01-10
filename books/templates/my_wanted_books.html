@@ -48,7 +48,13 @@
             <tbody>
               {% for book in wanted_books %}
                 <tr id="book-row-{{ book.id }}">
-                  <td><strong>{{ book.author }}</strong>{% if book.title %}, {{ book.title }}{% endif %}</td>
+                  <td>
+                    {% if book.title %}
+                      <strong>{{ book.title }}</strong>, {{ book.author }}
+                    {% else %}
+                      Cualquier libro de <strong>{{ book.author }}</strong>
+                    {% endif %}
+                  </td>
                   <td class="has-text-right">
                     <button type="button" class="button is-small is-danger is-light js-delete-book-btn" data-delete-url="{% url 'delete_wanted_book' book.id %}" title="Borrar">
                       <span class="icon is-small">
