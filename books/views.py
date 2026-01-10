@@ -12,7 +12,6 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.mail import EmailMultiAlternatives
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.forms import modelformset_factory
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -441,34 +440,37 @@ def delete_offered_book(request, book_id):
 
 @login_required
 def my_wanted_books(request):
-    """Manage user's wanted books (bulk add/edit/delete)."""
-    BookFormSet = modelformset_factory(
-        WantedBook,
-        form=WantedBookForm,
-        extra=1,
-        can_delete=True,
+    """Display form to add wanted books and list of existing books."""
+    if request.method == "POST":
+        form = WantedBookForm(request.POST)
+        if form.is_valid():
+            book = form.save(commit=False)
+            book.user = request.user
+            book.save()
+            return redirect("my_wanted")
+    else:
+        form = WantedBookForm()
+
+    return render(
+        request,
+        "my_wanted_books.html",
+        {
+            "form": form,
+            "wanted_books": WantedBook.objects.filter(user=request.user).order_by("-created_at"),
+        },
     )
 
-    queryset = WantedBook.objects.filter(user=request.user).order_by("created_at")
 
-    if request.method == "POST":
-        formset = BookFormSet(request.POST, queryset=queryset)
-        if formset.is_valid():
-            instances = formset.save(commit=False)
+@login_required
+def delete_wanted_book(request, book_id):
+    """Delete a wanted book (AJAX endpoint)."""
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
 
-            for instance in instances:
-                if not instance.pk:
-                    instance.user = request.user
-                instance.save()
+    book = get_object_or_404(WantedBook, id=book_id, user=request.user)
+    book.delete()
 
-            for obj in formset.deleted_objects:
-                obj.delete()
-
-            return redirect("profile", username=request.user.username)
-    else:
-        formset = BookFormSet(queryset=queryset)
-
-    return render(request, "my_wanted_books.html", {"formset": formset})
+    return JsonResponse({"success": True})
 
 
 @login_required

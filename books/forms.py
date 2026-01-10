@@ -156,3 +156,7 @@ class WantedBookForm(BulmaFormMixin, forms.ModelForm):
     class Meta:
         model = WantedBook
         fields = ["author", "title"]
+        widgets = {
+            "author": forms.TextInput(attrs={"placeholder": "Autor"}),
+            "title": forms.TextInput(attrs={"placeholder": "Título (opcional)"}),
+        }

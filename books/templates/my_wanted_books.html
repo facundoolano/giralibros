@@ -8,85 +8,96 @@
   <div class="column is-full-mobile is-8-tablet is-6-desktop">
     <h1 class="title is-4 mb-2">Mis libros deseados</h1>
     <p class="mb-4 has-text-grey">
-      Agregá abajo los libros que estás buscando. Podés poner solo el nombre del autor para buscar cualquiera de sus libros.
+      Agregá los libros que estás buscando. Podés poner solo el nombre del autor para buscar cualquiera de sus libros.
     </p>
 
-    <form method="post" id="books-form">
-      {% csrf_token %}
-      {{ formset.management_form }}
+    {# Add Form #}
+    <div class="box">
+      <form method="post" id="book-form">
+        {% csrf_token %}
 
-      <div id="books-container">
-        {% for form in formset %}
-          <div class="box book-entry {{ forloop.last|yesno:'new-entry,' }}" {% if form.instance.pk %}data-book-id="{{ form.instance.pk }}"{% endif %}>
-            <button type="button" class="delete delete-btn" aria-label="Eliminar" title="Borrar libro" tabindex="-1"></button>
+        <div class="field">
+          {{ form.author }}
+          {% if form.author.errors %}
+            <p class="help is-danger">{{ form.author.errors.0 }}</p>
+          {% endif %}
+        </div>
 
-            {# Hidden fields for formset #}
-            {{ form.id }}
+        <div class="field">
+          {{ form.title }}
+          {% if form.title.errors %}
+            <p class="help is-danger">{{ form.title.errors.0 }}</p>
+          {% endif %}
+        </div>
 
-            <div class="field">
-              <input class="input" type="text" name="{{ form.author.html_name }}" id="{{ form.author.id_for_label }}" value="{{ form.author.value|default:'' }}" placeholder="Autor">
-              {% if form.author.errors %}
-                <p class="help is-danger">{{ form.author.errors.0 }}</p>
-              {% endif %}
-            </div>
-            <div class="field">
-              <input class="input" type="text" name="{{ form.title.html_name }}" id="{{ form.title.id_for_label }}" value="{{ form.title.value|default:'' }}" placeholder="Título (opcional)">
-              {% if form.title.errors %}
-                <p class="help is-danger">{{ form.title.errors.0 }}</p>
-              {% endif %}
-            </div>
-
-            {# Hidden DELETE checkbox (we'll handle this with JavaScript) #}
-            <div style="display: none;">
-              {{ form.DELETE }}
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-
-      {# Template for new entries - using Django's empty_form #}
-      <template id="empty-form-template">
-        <div class="box book-entry new-entry">
-          <button type="button" class="delete delete-btn" aria-label="Eliminar" title="Borrar libro" tabindex="-1"></button>
-
-          {# Hidden fields for formset #}
-          {{ formset.empty_form.id }}
-
-          <div class="field">
-            <input class="input" type="text" name="{{ formset.empty_form.author.html_name }}" id="{{ formset.empty_form.author.id_for_label }}" value="" placeholder="Autor">
-          </div>
-          <div class="field">
-            <input class="input" type="text" name="{{ formset.empty_form.title.html_name }}" id="{{ formset.empty_form.title.id_for_label }}" value="" placeholder="Título (opcional)">
-          </div>
-
-          {# Hidden DELETE checkbox #}
-          <div style="display: none;">
-            {{ formset.empty_form.DELETE }}
+        <div class="field is-grouped is-grouped-centered mt-4">
+          <div class="control">
+            <button type="submit" class="button is-primary">
+              Agregar libro
+            </button>
           </div>
         </div>
-      </template>
+      </form>
+    </div>
 
-      <div class="field is-grouped is-grouped-right mt-4">
-        <div class="control">
-          <button type="button" class="button" id="cancel-btn">
-            <span id="cancel-btn-text">Volver</span>
-          </button>
-        </div>
-        <div class="control" id="save-btn-container" style="display: none;">
-          <button type="submit" class="button is-primary">
-            Guardar cambios
-          </button>
+    {# Books List #}
+    {% if wanted_books %}
+      <div class="box">
+        <div class="table-container">
+          <table class="table is-fullwidth is-hoverable books-table">
+            <tbody>
+              {% for book in wanted_books %}
+                <tr id="book-row-{{ book.id }}">
+                  <td><strong>{{ book.author }}</strong>{% if book.title %}, {{ book.title }}{% endif %}</td>
+                  <td class="has-text-right">
+                    <button type="button" class="button is-small is-danger is-light js-delete-book-btn" data-delete-url="{% url 'delete_wanted_book' book.id %}" title="Borrar">
+                      <span class="icon is-small">
+                        <i class="fas fa-trash"></i>
+                      </span>
+                    </button>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
       </div>
-    </form>
+    {% endif %}
+
+    <div class="mt-4 has-text-right">
+      <a href="{% url 'profile' username=request.user.username %}" class="button">
+        Volver
+      </a>
+    </div>
   </div>
 </div>
 
-<script src="{% static 'js/book_formset_manager.js' %}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  initBookFormset({
-    profileUrl: "{% url 'profile' username=request.user.username %}"
+  // Delete buttons
+  document.querySelectorAll('.js-delete-book-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const deleteUrl = e.currentTarget.dataset.deleteUrl;
+      const row = e.currentTarget.closest('tr');
+
+      try {
+        const response = await fetch(deleteUrl, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+
+        if (response.ok) {
+          row.remove();
+        } else {
+          alert('Error al borrar el libro.');
+        }
+      } catch (error) {
+        alert('Error al borrar el libro.');
+      }
+    });
   });
 });
 </script>
