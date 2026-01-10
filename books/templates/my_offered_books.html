@@ -1,7 +1,49 @@
 {% extends "base_logged.html" %}
 {% load static %}
 
-{% block extra_css %}{% endblock %}
+{% block extra_css %}
+<style>
+  @media screen and (min-width: 769px) {
+    .books-table {
+      table-layout: fixed;
+    }
+    .books-table td:first-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .books-table td:last-child {
+      width: 240px;
+      white-space: nowrap;
+    }
+  }
+
+  @media screen and (max-width: 768px) {
+    .books-table, .books-table tbody, .books-table tr {
+      display: block;
+    }
+    .books-table td {
+      display: block;
+      width: 100%;
+      border: none;
+      padding-left: 0;
+      padding-right: 0;
+    }
+    .books-table td:first-child {
+      padding-bottom: 0.5rem;
+    }
+    .books-table td:last-child {
+      padding-top: 0;
+    }
+    .books-table tr {
+      border-bottom: 1px solid #dbdbdb;
+    }
+    .books-table tr:last-child {
+      border-bottom: none;
+    }
+  }
+</style>
+{% endblock %}
 
 {% block logged_content %}
 <div class="columns is-centered">
