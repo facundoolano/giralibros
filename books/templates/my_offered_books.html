@@ -1,162 +1,249 @@
 {% extends "base_logged.html" %}
 {% load static %}
 
-{% block extra_css %}{% endblock %}
+{% block extra_css %}
+<style>
+  @media screen and (min-width: 769px) {
+    .books-table {
+      table-layout: fixed;
+    }
+    .books-table td:first-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .books-table td:last-child {
+      width: 240px;
+      white-space: nowrap;
+    }
+  }
+
+  @media screen and (max-width: 768px) {
+    .books-table, .books-table tbody, .books-table tr {
+      display: block;
+    }
+    .books-table td {
+      display: block;
+      width: 100%;
+      border: none;
+      padding-left: 0;
+      padding-right: 0;
+    }
+    .books-table td:first-child {
+      padding-bottom: 0.5rem;
+    }
+    .books-table td:last-child {
+      padding-top: 0;
+    }
+    .books-table tr {
+      border-bottom: 1px solid #dbdbdb;
+    }
+    .books-table tr:last-child {
+      border-bottom: none;
+    }
+
+    #book-form .columns .column.is-narrow {
+      display: flex;
+      justify-content: center;
+    }
+  }
+</style>
+{% endblock %}
 
 {% block logged_content %}
 <div class="columns is-centered">
   <div class="column is-full-mobile is-8-tablet is-6-desktop">
     <h1 class="title is-4 mb-2">Mis libros ofrecidos</h1>
     <p class="mb-4 has-text-grey">
-      Agregá abajo los libros que tenés para cambiar. Usá las observaciones para aclarar lo que quieras (editorial, condición, género, etc).
+      Agregá los libros que tenés para cambiar. Usá las observaciones para aclarar lo que quieras (editorial, condición, género, etc).
     </p>
 
-    <form method="post" id="books-form">
-      {% csrf_token %}
-      {{ formset.management_form }}
+    {# Add/Edit Form #}
+    <div class="box box-mobile-flat">
+      <form method="post" enctype="multipart/form-data" id="book-form">
+        {% csrf_token %}
 
-      <div id="books-container">
-        {% for form in formset %}
-          <div class="box book-entry {{ forloop.last|yesno:'new-entry,' }}" {% if form.instance.pk %}data-book-id="{{ form.instance.pk }}"{% endif %}>
-            <button type="button" class="delete delete-btn" aria-label="Eliminar" title="Borrar libro" tabindex="-1"></button>
-
-            {# Hidden fields for formset #}
-            {{ form.id }}
-            {{ form.temp_cover_id }}
-
-            <div class="columns">
-              {# Left column on desktop: Form fields #}
-              <div class="column">
-                <div class="field">
-                  <input class="input" type="text" name="{{ form.title.html_name }}" id="{{ form.title.id_for_label }}" value="{{ form.title.value|default:'' }}" placeholder="Título del libro">
-                  {% if form.title.errors %}
-                    <p class="help is-danger">{{ form.title.errors.0 }}</p>
-                  {% endif %}
-                </div>
-                <div class="field">
-                  <input class="input" type="text" name="{{ form.author.html_name }}" id="{{ form.author.id_for_label }}" value="{{ form.author.value|default:'' }}" placeholder="Autor">
-                  {% if form.author.errors %}
-                    <p class="help is-danger">{{ form.author.errors.0 }}</p>
-                  {% endif %}
-                </div>
-                <div class="field">
-                  {{ form.notes }}
-                  {% if form.notes.errors %}
-                    <p class="help is-danger">{{ form.notes.errors.0 }}</p>
-                  {% endif %}
-                </div>
-              </div>
-
-              {# Right column on desktop: Image and upload button #}
-              <div class="column is-narrow">
-                <div class="is-flex is-flex-direction-column" style="gap: 0.5rem;">
-                  <div class="temp-photo-container is-flex is-align-items-center book-cover-container" data-form-prefix="{{ form.prefix }}">
-                    {% if form.instance.cover_image %}
-                      <img src="{{ form.instance.cover_image.url }}" alt="Cover" class="book-cover-image">
-                    {% else %}
-                      <div class="book-placeholder book-cover-container is-flex is-justify-content-center is-align-items-center">
-                        <span class="icon is-medium has-text-grey-dark">
-                          <i class="fas fa-book fa-lg"></i>
-                        </span>
-                      </div>
-                    {% endif %}
-                  </div>
-                  <div>
-                    <input type="file" name="temp_cover_image" accept="image/*" style="display: none;" class="temp-photo-input" data-form-prefix="{{ form.prefix }}">
-                    <button type="button" class="button is-info is-small is-light temp-upload-trigger" data-form-prefix="{{ form.prefix }}">
-                      <span class="icon is-small">
-                        <i class="fas fa-camera"></i>
-                      </span>
-                      <span class="temp-upload-text">{% if form.instance.cover_image %}Cambiar foto{% else %}Agregar foto{% endif %}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
+        <div class="columns">
+          {# Left column: Form fields #}
+          <div class="column">
+            <div class="field">
+              {{ form.title }}
+              {% if form.title.errors %}
+                <p class="help is-danger">{{ form.title.errors.0 }}</p>
+              {% endif %}
             </div>
 
-            {# Hidden DELETE checkbox (we'll handle this with JavaScript) #}
-            <div style="display: none;">
-              {{ form.DELETE }}
+            <div class="field">
+              {{ form.author }}
+              {% if form.author.errors %}
+                <p class="help is-danger">{{ form.author.errors.0 }}</p>
+              {% endif %}
+            </div>
+
+            <div class="field">
+              {{ form.notes }}
+              {% if form.notes.errors %}
+                <p class="help is-danger">{{ form.notes.errors.0 }}</p>
+              {% endif %}
             </div>
           </div>
-        {% endfor %}
-      </div>
 
-      {# Template for new entries - using Django's empty_form #}
-      <template id="empty-form-template">
-        <div class="box book-entry new-entry">
-          <button type="button" class="delete delete-btn" aria-label="Eliminar" title="Borrar libro" tabindex="-1"></button>
-
-          {# Hidden fields for formset #}
-          {{ formset.empty_form.id }}
-          {{ formset.empty_form.temp_cover_id }}
-
-          <div class="columns">
-            {# Left column on desktop: Form fields #}
-            <div class="column">
-              <div class="field">
-                <input class="input" type="text" name="{{ formset.empty_form.title.html_name }}" id="{{ formset.empty_form.title.id_for_label }}" value="" placeholder="Título del libro">
+          {# Right column: Photo upload #}
+          <div class="column is-narrow">
+            <div class="is-flex is-flex-direction-column" style="gap: 0.5rem;">
+              <div>
+                <input type="file" name="cover_image" id="js-cover-image-input" accept="image/*" style="display: none;">
+                <button type="button" class="button is-info is-small is-light" id="js-photo-upload-btn">
+                  <span class="icon is-small">
+                    <i class="fas fa-camera"></i>
+                  </span>
+                  <span id="photo-upload-text">{% if form.instance.cover_image %}Cambiar foto{% else %}Agregar foto{% endif %}</span>
+                </button>
+                {% if form.cover_image.errors %}
+                  <p class="help is-danger">{{ form.cover_image.errors.0 }}</p>
+                {% endif %}
               </div>
-              <div class="field">
-                <input class="input" type="text" name="{{ formset.empty_form.author.html_name }}" id="{{ formset.empty_form.author.id_for_label }}" value="" placeholder="Autor">
-              </div>
-              <div class="field">
-                {{ formset.empty_form.notes }}
-              </div>
-            </div>
-
-            {# Right column on desktop: Image and upload button #}
-            <div class="column is-narrow">
-              <div class="is-flex is-flex-direction-column" style="gap: 0.5rem;">
-                <div class="temp-photo-container is-flex is-align-items-center book-cover-container" data-form-prefix="{{ formset.empty_form.prefix }}">
+              <div id="photo-preview-container" class="is-flex is-align-items-center book-cover-container">
+                {% if form.instance.cover_image %}
+                  <img src="{{ form.instance.cover_image.url }}" alt="Cover" class="book-cover-image" id="photo-preview">
+                {% else %}
                   <div class="book-placeholder book-cover-container is-flex is-justify-content-center is-align-items-center">
                     <span class="icon is-medium has-text-grey-dark">
                       <i class="fas fa-book fa-lg"></i>
                     </span>
                   </div>
-                </div>
-                <div>
-                  <input type="file" name="temp_cover_image" accept="image/*" style="display: none;" class="temp-photo-input" data-form-prefix="{{ formset.empty_form.prefix }}">
-                  <button type="button" class="button is-info is-small is-light temp-upload-trigger" data-form-prefix="{{ formset.empty_form.prefix }}">
-                    <span class="icon is-small">
-                      <i class="fas fa-camera"></i>
-                    </span>
-                    <span class="temp-upload-text">Agregar foto</span>
-                  </button>
-                </div>
+                {% endif %}
               </div>
             </div>
           </div>
+        </div>
 
-          {# Hidden DELETE checkbox #}
-          <div style="display: none;">
-            {{ formset.empty_form.DELETE }}
+        <div class="field is-grouped is-grouped-centered mt-4">
+          <div class="control">
+            <button type="submit" class="button is-primary">
+              {% if editing_book_id %}Guardar cambios{% else %}Agregar libro{% endif %}
+            </button>
           </div>
         </div>
-      </template>
+      </form>
+    </div>
 
-      <div class="field is-grouped is-grouped-right mt-4">
-        <div class="control">
-          <button type="button" class="button" id="cancel-btn">
-            <span id="cancel-btn-text">Volver</span>
-          </button>
-        </div>
-        <div class="control" id="save-btn-container" style="display: none;">
-          <button type="submit" class="button is-primary">
-            Guardar cambios
-          </button>
+    {# Books List #}
+    {% if offered_books %}
+      <div class="box box-mobile-flat">
+        <div class="table-container">
+          <table class="table is-fullwidth is-hoverable books-table">
+            <tbody>
+              {% for book in offered_books %}
+                <tr id="book-row-{{ book.id }}">
+                  <td><strong>{{ book.title }}</strong>, {{ book.author }}</td>
+                  <td class="has-text-right">
+                    <div class="buttons is-right">
+                      <button type="button" class="button is-small is-danger is-light js-delete-book-btn" data-delete-url="{% url 'delete_offered_book' book.id %}" title="Borrar">
+                        <span class="icon is-small">
+                          <i class="fas fa-trash"></i>
+                        </span>
+                      </button>
+                      <a href="{% url 'edit_offered_book' book.id %}" class="button is-small is-info is-light" title="Editar">
+                        <span class="icon is-small">
+                          <i class="fas fa-edit"></i>
+                        </span>
+                      </a>
+                      <button type="button" class="button is-small is-success is-light js-mark-exchanged-btn" data-delete-url="{% url 'delete_offered_book' book.id %}">
+                        <span>Ya cambiado</span>
+                        <span class="icon is-small">
+                          <i class="fas fa-check"></i>
+                        </span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
       </div>
-    </form>
+    {% endif %}
+
+    <div class="mt-4 has-text-right">
+      <a href="{% url 'profile' username=request.user.username %}" class="button">
+        Volver
+      </a>
+    </div>
   </div>
 </div>
 
-<script src="{% static 'js/book_formset_manager.js' %}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  initBookFormset({
-    profileUrl: "{% url 'profile' username=request.user.username %}",
-    tempUploadUrl: "{% url 'upload_temp_book_photo' %}"
+  // Photo upload: trigger file input
+  document.getElementById('js-photo-upload-btn').addEventListener('click', () => {
+    document.getElementById('js-cover-image-input').click();
+  });
+
+  // Photo upload: show preview
+  document.getElementById('js-cover-image-input').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      document.getElementById('photo-preview-container').innerHTML =
+        `<img src="${event.target.result}" alt="Preview" class="book-cover-image">`;
+      document.getElementById('photo-upload-text').textContent = 'Cambiar foto';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Delete buttons
+  document.querySelectorAll('.js-delete-book-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const deleteUrl = e.currentTarget.dataset.deleteUrl;
+      const row = e.currentTarget.closest('tr');
+
+      try {
+        const response = await fetch(deleteUrl, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+
+        if (response.ok) {
+          row.remove();
+        } else {
+          alert('Error al borrar el libro.');
+        }
+      } catch (error) {
+        alert('Error al borrar el libro.');
+      }
+    });
+  });
+
+  // Mark as exchanged buttons (for now, same as delete)
+  document.querySelectorAll('.js-mark-exchanged-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const deleteUrl = e.currentTarget.dataset.deleteUrl;
+      const row = e.currentTarget.closest('tr');
+
+      try {
+        const response = await fetch(deleteUrl, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+
+        if (response.ok) {
+          row.remove();
+        } else {
+          alert('Error al marcar el libro.');
+        }
+      } catch (error) {
+        alert('Error al marcar el libro.');
+      }
+    });
   });
 });
 </script>

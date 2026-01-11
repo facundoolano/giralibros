@@ -203,7 +203,7 @@
 
             // Handle exchange request button clicks
             document.addEventListener('click', (e) => {
-                const button = e.target.closest('button[data-book-id]');
+                const button = e.target.closest('button.js-exchange-btn[data-book-id]');
                 if (!button || button.disabled) {
                     return;
                 }

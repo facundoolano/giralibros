@@ -99,16 +99,20 @@ class BookTestMixin:
             books: List of (title, author) tuples
             wanted: If True, adds wanted books; otherwise adds offered books
         """
-        form_data = {
-            "form-TOTAL_FORMS": str(len(books)),
-            "form-INITIAL_FORMS": "0",
-        }
-        for i, (title, author) in enumerate(books):
-            form_data[f"form-{i}-title"] = title
-            form_data[f"form-{i}-author"] = author
-
-        url = reverse("my_wanted") if wanted else reverse("my_offered")
-        self.client.post(url, form_data)
+        if wanted:
+            # Wanted books use single-form approach
+            for title, author in books:
+                self.client.post(
+                    reverse("my_wanted"),
+                    {"title": title, "author": author},
+                )
+        else:
+            # Offered books use single-form approach
+            for title, author in books:
+                self.client.post(
+                    reverse("my_offered"),
+                    {"title": title, "author": author},
+                )
 
 
 # Create your tests here.
@@ -1751,15 +1755,12 @@ class BookCoverTest(BookTestMixin, TransactionTestCase):
         # Verify image exists
         self.assertTrue(self.file_exists(image_url))
 
-        # Remove the book by marking it for deletion in formset
-        form_data = {
-            "form-TOTAL_FORMS": "1",
-            "form-INITIAL_FORMS": "1",
-            "form-0-id": str(book.id),
-            "form-0-DELETE": "on",
-        }
-        response = self.client.post(reverse("my_offered"), form_data)
-        self.assertEqual(response.status_code, 302)
+        # Remove the book using the delete endpoint
+        response = self.client.post(
+            reverse("delete_offered_book", kwargs={"book_id": book.id}),
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(response.status_code, 200)
 
         # Verify profile no longer shows the book in offered books section
         response = self.client.get(reverse("profile", kwargs={"username": "testuser"}))
@@ -1800,242 +1801,6 @@ class BookCoverTest(BookTestMixin, TransactionTestCase):
 
         # Should fail with bad request
         self.assertEqual(response.status_code, 400)
-
-    def test_inline_temp_cover(self):
-        """Test that users can upload a temp cover image via AJAX before creating a book."""
-        # Register and verify user
-        self.register_and_verify_user(fill_profile=True)
-
-        # Create a test image file
-        image_file = self.create_test_image()
-
-        # Upload temp cover via AJAX
-        response = self.client.post(
-            reverse("upload_temp_book_photo"),
-            {"cover_image": image_file},
-            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
-        )
-        self.assertEqual(response.status_code, 200)
-
-        # Verify response contains temp_cover_id and image_url
-        response_data = response.json()
-        self.assertIn("temp_cover_id", response_data)
-        self.assertIn("image_url", response_data)
-        self.assertIn("success", response_data)
-        self.assertTrue(response_data["success"])
-
-        temp_image_url = response_data["image_url"]
-
-        # Verify temp image file exists on disk
-        self.assertTrue(self.file_exists(temp_image_url))
-
-    def test_inline_temp_cover_replaced_on_submit(self):
-        """Test that temp cover images are moved to permanent storage when the book is created."""
-        # Register and verify user
-        self.register_and_verify_user(fill_profile=True)
-
-        # Upload temp cover via AJAX
-        image_file = self.create_test_image()
-        response = self.client.post(
-            reverse("upload_temp_book_photo"),
-            {"cover_image": image_file},
-            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
-        )
-        self.assertEqual(response.status_code, 200)
-
-        response_data = response.json()
-        temp_cover_id = response_data["temp_cover_id"]
-        temp_image_url = response_data["image_url"]
-
-        # Verify temp image exists
-        self.assertTrue(self.file_exists(temp_image_url))
-
-        # Submit the book formset creating a book with the temp cover ID
-        form_data = {
-            "form-TOTAL_FORMS": "1",
-            "form-INITIAL_FORMS": "0",
-            "form-0-title": "Test Book",
-            "form-0-author": "Test Author",
-            "form-0-temp_cover_id": str(temp_cover_id),
-        }
-        response = self.client.post(reverse("my_offered"), form_data)
-        self.assertEqual(response.status_code, 302)
-
-        # Get the user profile
-        response = self.client.get(reverse("profile", kwargs={"username": "testuser"}))
-        self.assertEqual(response.status_code, 200)
-        offered_books = response.context["offered_books"]
-        self.assertEqual(len(offered_books), 1)
-
-        book = offered_books[0]
-        self.assertTrue(book.cover_image)
-
-        # Verify the book has an image with different URL than the temp image URL
-        book_image_url = book.cover_image.url
-        self.assertNotEqual(book_image_url, temp_image_url)
-
-        # Verify new image file exists
-        self.assertTrue(self.file_exists(book_image_url))
-
-        # Verify temp image file was deleted
-        self.assertFalse(self.file_exists(temp_image_url))
-
-    def test_inline_temp_cover_multiple_books(self):
-        """Test that temp covers work correctly when submitting multiple books at once."""
-        self.register_and_verify_user(fill_profile=True)
-        # Create a temp image via AJAX
-        image_file = self.create_test_image()
-        response = self.client.post(
-            reverse("upload_temp_book_photo"),
-            {"cover_image": image_file},
-            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
-        )
-        self.assertEqual(response.status_code, 200)
-
-        response_data = response.json()
-        temp_cover_id = response_data["temp_cover_id"]
-        temp_image_url = response_data["image_url"]
-
-        # Submit a form with three books all without covers
-        form_data = {
-            "form-TOTAL_FORMS": "3",
-            "form-INITIAL_FORMS": "0",
-            "form-0-title": "Book Without Cover 1",
-            "form-0-author": "Author 1",
-            "form-0-temp_cover_id": "",
-            "form-1-title": "Book With Cover",
-            "form-1-author": "Author 2",
-            "form-1-temp_cover_id": "",
-            "form-2-title": "Book Without Cover 2",
-            "form-2-author": "Author 3",
-            "form-2-temp_cover_id": "",
-        }
-        response = self.client.post(reverse("my_offered"), form_data)
-        self.assertEqual(response.status_code, 302)
-
-        # add a cover on a second request
-        # FIXME there must be a better way to do this without coupling this much
-        response = self.client.get(reverse("my_offered"))
-        instances_ids = [form.instance.pk for form in response.context["formset"].forms]
-        form_data["form-INITIAL_FORMS"] = "3"
-        form_data["form-0-id"] = str(instances_ids[0])
-        form_data["form-1-id"] = str(instances_ids[1])
-        form_data["form-2-id"] = str(instances_ids[2])
-        form_data["form-1-temp_cover_id"] = str(temp_cover_id)
-        response = self.client.post(reverse("my_offered"), form_data)
-        self.assertEqual(response.status_code, 302)
-
-        # Get the user profile
-        response = self.client.get(reverse("profile", kwargs={"username": "testuser"}))
-        self.assertEqual(response.status_code, 200)
-        offered_books = response.context["offered_books"]
-        self.assertEqual(len(offered_books), 3)
-
-        # Verify first book has no cover
-        book1 = next(b for b in offered_books if b.title == "Book Without Cover 1")
-        self.assertFalse(book1.cover_image)
-
-        # Verify middle book has a cover with different URL than temp
-        book2 = next(b for b in offered_books if b.title == "Book With Cover")
-        self.assertTrue(book2.cover_image)
-        book2_image_url = book2.cover_image.url
-        self.assertNotEqual(book2_image_url, temp_image_url)
-        self.assertTrue(self.file_exists(book2_image_url))
-
-        # Verify third book has no cover
-        book3 = next(b for b in offered_books if b.title == "Book Without Cover 2")
-        self.assertFalse(book3.cover_image)
-
-        # Verify temp image was cleaned up
-        self.assertFalse(self.file_exists(temp_image_url))
-
-    def test_inline_image_replacement(self):
-        """Test that inline photo uploads can replace existing book covers and cleanup old files."""
-        # Register and verify user
-        self.register_and_verify_user(fill_profile=True)
-
-        # Upload first temp cover via AJAX
-        image_file = self.create_test_image("first_cover.jpg")
-        response = self.client.post(
-            reverse("upload_temp_book_photo"),
-            {"cover_image": image_file},
-            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
-        )
-        self.assertEqual(response.status_code, 200)
-
-        response_data = response.json()
-        first_temp_cover_id = response_data["temp_cover_id"]
-        first_temp_image_url = response_data["image_url"]
-
-        # Submit the book formset creating a book with the first temp cover ID
-        form_data = {
-            "form-TOTAL_FORMS": "1",
-            "form-INITIAL_FORMS": "0",
-            "form-0-title": "Test Book",
-            "form-0-author": "Test Author",
-            "form-0-temp_cover_id": str(first_temp_cover_id),
-        }
-        response = self.client.post(reverse("my_offered"), form_data)
-        self.assertEqual(response.status_code, 302)
-
-        # Get the user profile and extract the image URL for the book
-        response = self.client.get(reverse("profile", kwargs={"username": "testuser"}))
-        self.assertEqual(response.status_code, 200)
-        offered_books = response.context["offered_books"]
-        self.assertEqual(len(offered_books), 1)
-        book = offered_books[0]
-        first_book_image_url = book.cover_image.url
-
-        # Request the formset GET, verify the permanent image URL is used (not temp)
-        response = self.client.get(reverse("my_offered"))
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, first_book_image_url)
-        self.assertNotContains(response, first_temp_image_url)
-
-        # Upload second temp cover via AJAX for the same book
-        image_file = self.create_test_image("second_cover.jpg")
-        response = self.client.post(
-            reverse("upload_temp_book_photo"),
-            {"cover_image": image_file},
-            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
-        )
-        self.assertEqual(response.status_code, 200)
-
-        response_data = response.json()
-        second_temp_cover_id = response_data["temp_cover_id"]
-        second_temp_image_url = response_data["image_url"]
-
-        # Submit the formset with the second temp image ID for the existing book
-        form_data = {
-            "form-TOTAL_FORMS": "1",
-            "form-INITIAL_FORMS": "1",
-            "form-0-id": str(book.id),
-            "form-0-title": "Test Book",
-            "form-0-author": "Test Author",
-            "form-0-temp_cover_id": str(second_temp_cover_id),
-        }
-        response = self.client.post(reverse("my_offered"), form_data)
-        self.assertEqual(response.status_code, 302)
-
-        # Get the user profile
-        response = self.client.get(reverse("profile", kwargs={"username": "testuser"}))
-        self.assertEqual(response.status_code, 200)
-        offered_books = response.context["offered_books"]
-        self.assertEqual(len(offered_books), 1)
-
-        book = offered_books[0]
-        final_book_image_url = book.cover_image.url
-
-        # Verify the book has an image that doesn't match either the old cover or temp URLs
-        self.assertNotEqual(final_book_image_url, first_book_image_url)
-        self.assertNotEqual(final_book_image_url, second_temp_image_url)
-
-        # Verify new image file exists
-        self.assertTrue(self.file_exists(final_book_image_url))
-
-        # Verify the two older files (first book cover and second temp cover) do not exist
-        self.assertFalse(self.file_exists(first_book_image_url))
-        self.assertFalse(self.file_exists(second_temp_image_url))
 
     def create_test_image(self, filename="test_cover.jpg"):
         """

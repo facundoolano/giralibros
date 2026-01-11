@@ -8,12 +8,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetView
-from django.core.files import File
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.mail import EmailMultiAlternatives
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.forms import modelformset_factory
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -35,7 +33,6 @@ from books.forms import (
 from books.models import (
     ExchangeRequest,
     OfferedBook,
-    TempBookCover,
     UserLocation,
     UserProfile,
     WantedBook,
@@ -388,95 +385,92 @@ def profile(request, username):
 
 
 @login_required
-def my_offered_books(request):
-    """Manage user's offered books (bulk add/edit/delete)."""
-    BookFormSet = modelformset_factory(
-        OfferedBook,
-        form=OfferedBookForm,
-        extra=1,
-        can_delete=True,
-    )
-
-    queryset = OfferedBook.objects.filter(user=request.user).order_by("created_at")
+def my_offered_books(request, book_id=None):
+    """Display form to add/edit offered books and list of existing books."""
+    # Determine if editing or creating
+    book = get_object_or_404(OfferedBook, id=book_id, user=request.user) if book_id else None
 
     if request.method == "POST":
-        formset = BookFormSet(request.POST, queryset=queryset)
-        if formset.is_valid():
-            with transaction.atomic():
-                formset.save(commit=False)
+        form = OfferedBookForm(request.POST, request.FILES, instance=book)
+        if form.is_valid():
+            book = form.save(commit=False)
+            if not book.user_id:
+                book.user = request.user
 
-                # Process each instance and its corresponding form
-                for form in formset.forms:
-                    # Skip deleted forms or unchanged forms
-                    if form in formset.deleted_forms or not form.has_changed():
-                        continue
+            # Process cover image if uploaded
+            if "cover_image" in request.FILES:
+                try:
+                    processed_image = _process_book_cover_image(request.FILES["cover_image"])
+                    book.cover_image.save(processed_image.name, processed_image, save=False)
+                    book.cover_uploaded_at = timezone.now()
+                except ValueError as e:
+                    form.add_error("cover_image", str(e))
 
-                    instance = form.instance
-                    if not instance.pk:
-                        instance.user = request.user
-
-                    # Handle temp cover photo if present
-                    temp_cover_id = form.cleaned_data.get("temp_cover_id")
-                    if temp_cover_id:
-                        try:
-                            temp_cover = TempBookCover.objects.get(
-                                id=temp_cover_id, user=request.user
-                            )
-                            # Copy temp image file content to book's cover_image field
-                            with temp_cover.image.open("rb") as f:
-                                instance.cover_image.save(
-                                    temp_cover.image.name, File(f), save=False
-                                )
-                            instance.cover_uploaded_at = timezone.now()
-                            temp_cover.delete()
-                        except TempBookCover.DoesNotExist:
-                            # Temp file missing - ignore gracefully
-                            logger.warning(
-                                f"TempBookCover {temp_cover_id} not found for user {request.user.id}"
-                            )
-
-                    instance.save()
-
-                for obj in formset.deleted_objects:
-                    obj.delete()
-
-            return redirect("profile", username=request.user.username)
+            # Only save if no errors were added during processing
+            if not form.errors:
+                book.save()
+                return redirect("my_offered")
     else:
-        formset = BookFormSet(queryset=queryset)
+        # GET request
+        form = OfferedBookForm(instance=book)
 
-    return render(request, "my_offered_books.html", {"formset": formset})
+    # Render template (for both GET and POST with errors)
+    return render(
+        request,
+        "my_offered_books.html",
+        {
+            "form": form,
+            "offered_books": OfferedBook.objects.filter(user=request.user).order_by("-created_at"),
+            "editing_book_id": book_id,
+        },
+    )
+
+
+@login_required
+def delete_offered_book(request, book_id):
+    """Delete an offered book (AJAX endpoint)."""
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    book = get_object_or_404(OfferedBook, id=book_id, user=request.user)
+    book.delete()
+
+    return JsonResponse({"success": True})
 
 
 @login_required
 def my_wanted_books(request):
-    """Manage user's wanted books (bulk add/edit/delete)."""
-    BookFormSet = modelformset_factory(
-        WantedBook,
-        form=WantedBookForm,
-        extra=1,
-        can_delete=True,
+    """Display form to add wanted books and list of existing books."""
+    if request.method == "POST":
+        form = WantedBookForm(request.POST)
+        if form.is_valid():
+            book = form.save(commit=False)
+            book.user = request.user
+            book.save()
+            return redirect("my_wanted")
+    else:
+        form = WantedBookForm()
+
+    return render(
+        request,
+        "my_wanted_books.html",
+        {
+            "form": form,
+            "wanted_books": WantedBook.objects.filter(user=request.user).order_by("-created_at"),
+        },
     )
 
-    queryset = WantedBook.objects.filter(user=request.user).order_by("created_at")
 
-    if request.method == "POST":
-        formset = BookFormSet(request.POST, queryset=queryset)
-        if formset.is_valid():
-            instances = formset.save(commit=False)
+@login_required
+def delete_wanted_book(request, book_id):
+    """Delete a wanted book (AJAX endpoint)."""
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
 
-            for instance in instances:
-                if not instance.pk:
-                    instance.user = request.user
-                instance.save()
+    book = get_object_or_404(WantedBook, id=book_id, user=request.user)
+    book.delete()
 
-            for obj in formset.deleted_objects:
-                obj.delete()
-
-            return redirect("profile", username=request.user.username)
-    else:
-        formset = BookFormSet(queryset=queryset)
-
-    return render(request, "my_wanted_books.html", {"formset": formset})
+    return JsonResponse({"success": True})
 
 
 @login_required
@@ -619,44 +613,6 @@ def upload_book_photo(request, book_id):
             return HttpResponseBadRequest("Error processing image")
 
     return HttpResponseBadRequest("Method not allowed")
-
-
-@login_required
-def upload_temp_book_photo(request):
-    """
-    Handle temporary book cover upload for books not yet created.
-    Returns temp cover ID for client to store in formset hidden field.
-    """
-    if request.method != "POST":
-        return JsonResponse({"error": "Method not allowed"}, status=405)
-
-    if "cover_image" not in request.FILES:
-        return HttpResponseBadRequest("No image file provided")
-
-    uploaded_file = request.FILES["cover_image"]
-
-    try:
-        # Validate and process the uploaded image
-        thumbnail = _process_book_cover_image(uploaded_file)
-
-        # Save to TempBookCover
-        temp_cover = TempBookCover(user=request.user)
-        temp_cover.image.save(thumbnail.name, thumbnail, save=True)
-
-        return JsonResponse(
-            {
-                "success": True,
-                "temp_cover_id": temp_cover.id,
-                "image_url": temp_cover.image.url,
-            }
-        )
-
-    except ValueError as e:
-        logger.warning(f"Error processing temp image upload: {e}")
-        return HttpResponseBadRequest(str(e))
-    except Exception as e:
-        logger.error(f"Error processing temp image upload: {e}")
-        return HttpResponseBadRequest("Error processing image")
 
 
 def _process_book_cover_image(uploaded_file):
