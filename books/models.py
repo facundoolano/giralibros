@@ -157,7 +157,7 @@ class OfferedBookManager(models.Manager):
         - If viewing own profile: returns all books without annotation
         - If viewing another user's profile: annotates with 'already_requested' flag
         """
-        queryset = self.filter(user=profile_user)
+        queryset = self.filter(user=profile_user).order_by('-created_at')
 
         if viewing_user != profile_user:
             queryset = self._annotate_already_requested(queryset, viewing_user)

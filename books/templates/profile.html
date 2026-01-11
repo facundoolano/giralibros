@@ -86,7 +86,7 @@
               <span class="icon">
                 <i class="fas fa-book"></i>
               </span>
-              <span>Libros ofrecidos</span>
+              <span>Libros ofrecidos ({{ offered_books|length }})</span>
             </h2>
           </div>
         </div>
@@ -105,17 +105,17 @@
       </div>
 
       {% if offered_books %}
-      <div class="columns is-multiline mb-5">
+      <div class="columns is-multiline mb-3" id="offered-books-container">
         {% for book in offered_books %}
-        <div class="column is-12-mobile is-6-tablet">
+        <div class="column is-12-mobile is-6-tablet offered-book-item" {% if forloop.counter > books_per_page %}style="display: none;"{% endif %}>
           <div class="is-flex" style="gap: 1rem;">
             <div class="is-flex-shrink-0 is-flex is-align-items-center book-cover-container-small{% if is_own_profile %} cover-clickable{% endif %}"{% if is_own_profile %} style="cursor: pointer;"{% endif %} {% if is_own_profile %}data-input-id="photo-input-{{ book.id }}"{% endif %}>
               {% if book.cover_image %}
                 <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover-small">
               {% else %}
                 <div class="book-placeholder book-cover-container-small is-flex is-justify-content-center is-align-items-center">
-                  <span class="icon is-small has-text-grey-dark">
-                    <i class="fas fa-book"></i>
+                  <span class="icon is-small has-text-grey">
+                    <i class="fas fa-book fa-lg"></i>
                   </span>
                 </div>
               {% endif %}
@@ -150,6 +150,15 @@
         </div>
         {% endfor %}
       </div>
+      {% if offered_books|length > books_per_page %}
+      <div class="has-text-centered mb-5" id="show-more-container">
+        <button id="show-more-offered" class="button" data-books-per-page="{{ books_per_page }}">
+          <span>Mostrar más</span>
+        </button>
+      </div>
+      {% else %}
+      <div class="mb-5"></div>
+      {% endif %}
       {% else %}
       <div class="mb-5 nested-content">
         <p class="has-text-grey-light has-text-centered">Sin libros para mostrar</p>
@@ -166,7 +175,7 @@
               <span class="icon">
                 <i class="fas fa-search"></i>
               </span>
-              <span>Libros deseados</span>
+              <span>Libros deseados ({{ wanted_books|length }})</span>
             </h2>
           </div>
         </div>
@@ -217,7 +226,7 @@
         <span class="icon">
           <i class="fas fa-paper-plane"></i>
         </span>
-        <span>Solicitudes enviadas</span>
+        <span>Solicitudes enviadas ({{ profile_user.sent_requests.count }})</span>
       </h2>
 
       {% if sent_requests %}
@@ -240,7 +249,7 @@
         <span class="icon">
           <i class="fas fa-inbox"></i>
         </span>
-        <span>Solicitudes recibidas</span>
+        <span>Solicitudes recibidas ({{ profile_user.received_requests.count }})</span>
       </h2>
 
       {% if received_requests %}
@@ -265,6 +274,31 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  // Show more offered books
+  const showMoreBtn = document.getElementById('show-more-offered');
+  if (showMoreBtn) {
+    const booksPerPage = parseInt(showMoreBtn.dataset.booksPerPage);
+    let currentlyShown = booksPerPage;
+
+    showMoreBtn.addEventListener('click', () => {
+      const allBooks = document.querySelectorAll('.offered-book-item');
+      const hiddenBooks = Array.from(allBooks).filter(book => book.style.display === 'none');
+
+      // Show next batch of books
+      const booksToShow = hiddenBooks.slice(0, booksPerPage);
+      booksToShow.forEach(book => {
+        book.style.display = '';
+      });
+
+      currentlyShown += booksToShow.length;
+
+      // Hide container if all books are shown
+      if (currentlyShown >= allBooks.length) {
+        document.getElementById('show-more-container').style.display = 'none';
+      }
+    });
+  }
+
   // Timeago tooltips
   document.querySelectorAll('.timeago-tooltip').forEach(element => {
     const timestamp = element.dataset.timestamp;

@@ -46,7 +46,7 @@ body {
 /* Book cover placeholder with dark mode support */
 .book-placeholder {
     background-color: var(--bulma-scheme-main-bis);
-    border: 1px solid var(--bulma-border);
+    border: 2px dashed var(--bulma-border);
 }
 
 /* =============================================================================
