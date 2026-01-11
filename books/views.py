@@ -380,6 +380,7 @@ def profile(request, username):
             "wanted_books": wanted_books,
             "sent_requests": sent_requests,
             "received_requests": received_requests,
+            "books_per_page": settings.BOOKS_PER_PAGE,
         },
     )
 

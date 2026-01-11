@@ -105,9 +105,9 @@
       </div>
 
       {% if offered_books %}
-      <div class="columns is-multiline mb-5">
+      <div class="columns is-multiline mb-3" id="offered-books-container">
         {% for book in offered_books %}
-        <div class="column is-12-mobile is-6-tablet">
+        <div class="column is-12-mobile is-6-tablet offered-book-item" {% if forloop.counter > books_per_page %}style="display: none;"{% endif %}>
           <div class="is-flex" style="gap: 1rem;">
             <div class="is-flex-shrink-0 is-flex is-align-items-center book-cover-container-small{% if is_own_profile %} cover-clickable{% endif %}"{% if is_own_profile %} style="cursor: pointer;"{% endif %} {% if is_own_profile %}data-input-id="photo-input-{{ book.id }}"{% endif %}>
               {% if book.cover_image %}
@@ -150,6 +150,15 @@
         </div>
         {% endfor %}
       </div>
+      {% if offered_books|length > books_per_page %}
+      <div class="has-text-centered mb-5" id="show-more-container">
+        <button id="show-more-offered" class="button" data-books-per-page="{{ books_per_page }}">
+          <span>Mostrar más</span>
+        </button>
+      </div>
+      {% else %}
+      <div class="mb-5"></div>
+      {% endif %}
       {% else %}
       <div class="mb-5 nested-content">
         <p class="has-text-grey-light has-text-centered">Sin libros para mostrar</p>
@@ -265,6 +274,31 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  // Show more offered books
+  const showMoreBtn = document.getElementById('show-more-offered');
+  if (showMoreBtn) {
+    const booksPerPage = parseInt(showMoreBtn.dataset.booksPerPage);
+    let currentlyShown = booksPerPage;
+
+    showMoreBtn.addEventListener('click', () => {
+      const allBooks = document.querySelectorAll('.offered-book-item');
+      const hiddenBooks = Array.from(allBooks).filter(book => book.style.display === 'none');
+
+      // Show next batch of books
+      const booksToShow = hiddenBooks.slice(0, booksPerPage);
+      booksToShow.forEach(book => {
+        book.style.display = '';
+      });
+
+      currentlyShown += booksToShow.length;
+
+      // Hide container if all books are shown
+      if (currentlyShown >= allBooks.length) {
+        document.getElementById('show-more-container').style.display = 'none';
+      }
+    });
+  }
+
   // Timeago tooltips
   document.querySelectorAll('.timeago-tooltip').forEach(element => {
     const timestamp = element.dataset.timestamp;
