@@ -86,7 +86,7 @@
               <span class="icon">
                 <i class="fas fa-book"></i>
               </span>
-              <span>Libros ofrecidos</span>
+              <span>Libros ofrecidos ({{ offered_books|length }})</span>
             </h2>
           </div>
         </div>
@@ -166,7 +166,7 @@
               <span class="icon">
                 <i class="fas fa-search"></i>
               </span>
-              <span>Libros deseados</span>
+              <span>Libros deseados ({{ wanted_books|length }})</span>
             </h2>
           </div>
         </div>
@@ -217,7 +217,7 @@
         <span class="icon">
           <i class="fas fa-paper-plane"></i>
         </span>
-        <span>Solicitudes enviadas</span>
+        <span>Solicitudes enviadas ({{ profile_user.sent_requests.count }})</span>
       </h2>
 
       {% if sent_requests %}
@@ -240,7 +240,7 @@
         <span class="icon">
           <i class="fas fa-inbox"></i>
         </span>
-        <span>Solicitudes recibidas</span>
+        <span>Solicitudes recibidas ({{ profile_user.received_requests.count }})</span>
       </h2>
 
       {% if received_requests %}
