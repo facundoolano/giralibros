@@ -12,7 +12,7 @@
 
     <ul>
     {% for requester_book in requester.offered.available.all %}
-        <li><strong>"{{ requester_book.title }}"</strong> de {{ requester_book.author }}{% if requester_book.notes %} <em>({{ requester_book.notes }})</em>{% endif %}</li>
+        <li><strong>"{{ requester_book.title }}"</strong> de {{ requester_book.author }}{% if requester_book.notes %} <em>({% if requester_book.is_reserved %}[RESERVADO] {% endif %}{{ requester_book.notes }})</em>{% endif %}</li>
     {% endfor %}
     </ul>
 

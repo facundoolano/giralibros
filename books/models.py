@@ -318,6 +318,15 @@ class OfferedBook(BaseBook):
         """Check if the book is reserved."""
         return self.status == BookStatus.RESERVED
 
+    def notes_display(self):
+        """Return notes with [RESERVADO] prefix if book is reserved."""
+        if self.is_reserved():
+            if self.notes:
+                return f"[RESERVADO]\n{self.notes}"
+            else:
+                return "[RESERVADO]"
+        return self.notes
+
 
 class WantedBook(BaseBook):
     "A book a user is interested in."

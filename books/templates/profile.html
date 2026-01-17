@@ -126,8 +126,8 @@
                 <div>
                   <strong>{{ book.title }}</strong>, {{ book.author }}
                 </div>
-                {% if book.notes %}
-                  <div class="has-text-grey is-size-7 mt-1">{{ book.notes }}</div>
+                {% if book.notes_display %}
+                  <div class="has-text-grey is-size-7 mt-1">{{ book.notes_display }}</div>
                 {% endif %}
               </div>
               <div class="buttons">
