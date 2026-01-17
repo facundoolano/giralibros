@@ -130,12 +130,18 @@
                   <div class="has-text-grey is-size-7 mt-1">{{ book.notes }}</div>
                 {% endif %}
               </div>
-              <div>
+              <div class="buttons">
                 {% if is_own_profile %}
                   <form method="post" action="{% url 'upload_book_photo' book_id=book.id %}" enctype="multipart/form-data" class="photo-upload-form" style="display: none;">
                     {% csrf_token %}
                     <input type="file" name="cover_image" accept="image/*" class="photo-input" id="photo-input-{{ book.id }}">
                   </form>
+                  <button type="button" class="button is-small is-light">
+                    <span>Reservar</span>
+                    <span class="icon is-small">
+                      <i class="fa fa-pause"></i>
+                    </span>
+                  </button>
                   <button type="button" class="button is-small is-success is-light js-trade-book-btn" data-trade-url="{% url 'trade_offered_book' book.id %}" data-book-id="{{ book.id }}">
                     <span>Cambiado</span>
                     <span class="icon is-small">
