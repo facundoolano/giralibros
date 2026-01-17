@@ -27,6 +27,7 @@ urlpatterns = [
     path('my/offered/<int:book_id>/edit/', views.my_offered_books, name='edit_offered_book'),
     path('my/offered/<int:book_id>/delete/', views.delete_offered_book, name='delete_offered_book'),
     path('my/offered/<int:book_id>/trade/', views.trade_offered_book, name='trade_offered_book'),
+    path('my/offered/<int:book_id>/reserve/', views.reserve_offered_book, name='reserve_offered_book'),
     path('my/wanted/', views.my_wanted_books, name='my_wanted'),
     path('my/wanted/<int:book_id>/delete/', views.delete_wanted_book, name='delete_wanted_book'),
     path('books/<int:book_id>/request-exchange/', views.request_exchange, name='request_exchange'),

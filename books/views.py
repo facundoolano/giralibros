@@ -455,6 +455,18 @@ def trade_offered_book(request, book_id):
 
 
 @login_required
+def reserve_offered_book(request, book_id):
+    """Toggle reservation status of an offered book (AJAX endpoint)."""
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    book = get_object_or_404(OfferedBook, id=book_id, user=request.user)
+    book.reserve()
+
+    return JsonResponse({"success": True})
+
+
+@login_required
 def my_wanted_books(request):
     """Display form to add wanted books and list of existing books."""
     if request.method == "POST":
