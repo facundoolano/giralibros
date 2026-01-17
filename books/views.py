@@ -196,7 +196,7 @@ def about(request):
 
     # Calculate statistics
     registered_users = User.objects.filter(profile__isnull=False).count()
-    offered_books = OfferedBook.objects.count()
+    offered_books = OfferedBook.objects.available().count()
 
     # Requests in the last week
     one_week_ago = timezone.now() - timedelta(days=7)
@@ -366,9 +366,11 @@ def profile(request, username):
 
     sent_requests = None
     received_requests = None
+    traded_books = None
     if is_own_profile:
         sent_requests = ExchangeRequest.objects.recent_sent_by(profile_user)
         received_requests = ExchangeRequest.objects.recent_received_by(profile_user)
+        traded_books = OfferedBook.objects.traded_by(profile_user)
 
     return render(
         request,
@@ -378,6 +380,7 @@ def profile(request, username):
             "is_own_profile": is_own_profile,
             "offered_books": offered_books,
             "wanted_books": wanted_books,
+            "traded_books": traded_books,
             "sent_requests": sent_requests,
             "received_requests": received_requests,
             "books_per_page": settings.BOOKS_PER_PAGE,
@@ -421,7 +424,7 @@ def my_offered_books(request, book_id=None):
         "my_offered_books.html",
         {
             "form": form,
-            "offered_books": OfferedBook.objects.filter(user=request.user).order_by("-created_at"),
+            "offered_books": OfferedBook.objects.available().filter(user=request.user).order_by("-created_at"),
             "editing_book_id": book_id,
         },
     )
@@ -429,12 +432,36 @@ def my_offered_books(request, book_id=None):
 
 @login_required
 def delete_offered_book(request, book_id):
-    """Delete an offered book (AJAX endpoint)."""
+    """Mark an offered book as deleted (AJAX endpoint)."""
     if request.method != "POST":
         return JsonResponse({"error": "Method not allowed"}, status=405)
 
     book = get_object_or_404(OfferedBook, id=book_id, user=request.user)
     book.delete()
+
+    return JsonResponse({"success": True})
+
+
+@login_required
+def trade_offered_book(request, book_id):
+    """Mark an offered book as traded (AJAX endpoint)."""
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    book = get_object_or_404(OfferedBook, id=book_id, user=request.user)
+    book.trade()
+
+    return JsonResponse({"success": True})
+
+
+@login_required
+def reserve_offered_book(request, book_id):
+    """Toggle reservation status of an offered book (AJAX endpoint)."""
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    book = get_object_or_404(OfferedBook, id=book_id, user=request.user)
+    book.reserve()
 
     return JsonResponse({"success": True})
 
@@ -488,7 +515,7 @@ def request_exchange(request, book_id):
 
     # Get the book
     try:
-        book = OfferedBook.objects.select_related("user").get(pk=book_id)
+        book = OfferedBook.objects.available().select_related("user").get(pk=book_id)
     except OfferedBook.DoesNotExist:
         return JsonResponse({"error": "Libro no encontrado"}, status=404)
 
@@ -499,7 +526,7 @@ def request_exchange(request, book_id):
         )
 
     # Check if user has any offered books
-    if not request.user.offered.exists():
+    if not request.user.offered.available().exists():
         my_books_url = reverse("my_offered")
         return JsonResponse(
             {

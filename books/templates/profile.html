@@ -76,6 +76,7 @@
         </span>
       </div>
 
+      {% if offered_books or is_own_profile %}
       <hr>
 
       {# Libros ofrecidos section #}
@@ -109,13 +110,13 @@
         {% for book in offered_books %}
         <div class="column is-12-mobile is-6-tablet offered-book-item" {% if forloop.counter > books_per_page %}style="display: none;"{% endif %}>
           <div class="is-flex" style="gap: 1rem;">
-            <div class="is-flex-shrink-0 is-flex is-align-items-center book-cover-container-small{% if is_own_profile %} cover-clickable{% endif %}"{% if is_own_profile %} style="cursor: pointer;"{% endif %} {% if is_own_profile %}data-input-id="photo-input-{{ book.id }}"{% endif %}>
+            <div class="is-flex-shrink-0 is-flex is-align-items-center book-cover-container-small{% if is_own_profile %} cover-clickable{% endif %}"{% if is_own_profile %} style="cursor: pointer;" data-input-id="photo-input-{{ book.id }}"{% endif %}>
               {% if book.cover_image %}
                 <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover-small">
               {% else %}
                 <div class="book-placeholder book-cover-container-small is-flex is-justify-content-center is-align-items-center">
                   <span class="icon is-small has-text-grey">
-                    <i class="fas fa-book fa-lg"></i>
+                    <i class="fas {% if is_own_profile %}fa-camera{% else %}fa-book{% endif %} fa-lg"></i>
                   </span>
                 </div>
               {% endif %}
@@ -125,22 +126,37 @@
                 <div>
                   <strong>{{ book.title }}</strong>, {{ book.author }}
                 </div>
-                {% if book.notes %}
-                  <div class="has-text-grey is-size-7 mt-1">{{ book.notes }}</div>
+                {% if book.notes_display %}
+                  <div class="has-text-grey is-size-7 mt-1">{{ book.notes_display }}</div>
                 {% endif %}
               </div>
-              <div>
+              <div class="buttons">
                 {% if is_own_profile %}
-                  <form method="post" action="{% url 'upload_book_photo' book_id=book.id %}" enctype="multipart/form-data" class="photo-upload-form" style="display: inline;">
+                  <form method="post" action="{% url 'upload_book_photo' book_id=book.id %}" enctype="multipart/form-data" class="photo-upload-form" style="display: none;">
                     {% csrf_token %}
-                    <input type="file" name="cover_image" accept="image/*" style="display: none;" class="photo-input" id="photo-input-{{ book.id }}">
-                    <button type="button" class="button is-info is-small is-light upload-trigger" data-input-id="photo-input-{{ book.id }}">
-                      <span class="icon is-small">
-                        <i class="fas fa-camera"></i>
-                      </span>
-                      <span class="upload-text">{% if book.cover_image %}Cambiar foto{% else %}Agregar foto{% endif %}</span>
-                    </button>
+                    <input type="file" name="cover_image" accept="image/*" class="photo-input" id="photo-input-{{ book.id }}">
                   </form>
+                  {% if book.is_reserved %}
+                  <button type="button" class="button is-small is-light js-reserve-book-btn" data-reserve-url="{% url 'reserve_offered_book' book.id %}">
+                    <span>Desreservar</span>
+                    <span class="icon is-small">
+                      <i class="fa fa-play"></i>
+                    </span>
+                  </button>
+                  {% else %}
+                  <button type="button" class="button is-small is-light js-reserve-book-btn" data-reserve-url="{% url 'reserve_offered_book' book.id %}">
+                    <span>Reservar</span>
+                    <span class="icon is-small">
+                      <i class="fa fa-pause"></i>
+                    </span>
+                  </button>
+                  {% endif %}
+                  <button type="button" class="button is-small is-success is-light js-trade-book-btn" data-trade-url="{% url 'trade_offered_book' book.id %}" data-book-id="{{ book.id }}">
+                    <span>Cambiado</span>
+                    <span class="icon is-small">
+                      <i class="fas fa-check"></i>
+                    </span>
+                  </button>
                 {% else %}
                   {% include '_exchange_button.html' with button_classes='is-small' icon_classes='is-small' %}
                 {% endif %}
@@ -164,7 +180,9 @@
         <p class="has-text-grey-light has-text-centered">Sin libros para mostrar</p>
       </div>
       {% endif %}
+      {% endif %}
 
+      {% if wanted_books or is_own_profile %}
       <hr>
 
       {# Libros deseados section #}
@@ -218,8 +236,28 @@
         <p class="has-text-grey-light has-text-centered">Sin libros para mostrar</p>
       </div>
       {% endif %}
+      {% endif %}
 
-      {% if is_own_profile %}
+      {% if is_own_profile and traded_books %}
+      <hr>
+
+      <h2 class="title is-5 mb-4">
+        <span class="icon">
+          <i class="fas fa-rotate"></i>
+        </span>
+        <span>Libros cambiados ({{ traded_books|length }})</span>
+      </h2>
+
+      <ul class="mb-5 nested-content">
+        {% for book in traded_books %}
+        <li class="mb-2">
+          <strong>{{ book.title }}</strong>, {{ book.author }}
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+
+      {% if is_own_profile and sent_requests %}
       <hr>
 
       <h2 class="title is-5 mb-4">
@@ -229,7 +267,6 @@
         <span>Solicitudes enviadas ({{ profile_user.sent_requests.count }})</span>
       </h2>
 
-      {% if sent_requests %}
       <ul class="mb-5 nested-content">
         {% for req in sent_requests %}
         <li class="mb-2">
@@ -237,12 +274,9 @@
         </li>
         {% endfor %}
       </ul>
-      {% else %}
-      <div class="mb-5 nested-content">
-        <p class="has-text-grey-light has-text-centered">Sin solicitudes para mostrar</p>
-      </div>
       {% endif %}
 
+      {% if is_own_profile and received_requests %}
       <hr>
 
       <h2 class="title is-5 mb-4">
@@ -252,7 +286,6 @@
         <span>Solicitudes recibidas ({{ profile_user.received_requests.count }})</span>
       </h2>
 
-      {% if received_requests %}
       <ul class="mb-5 nested-content">
         {% for req in received_requests %}
         <li class="mb-2">
@@ -260,11 +293,6 @@
         </li>
         {% endfor %}
       </ul>
-      {% else %}
-      <div class="mb-5 nested-content">
-        <p class="has-text-grey-light has-text-centered">Sin solicitudes para mostrar</p>
-      </div>
-      {% endif %}
       {% endif %}
 
     </div>
@@ -315,15 +343,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Photo upload handling - button clicks
-  document.querySelectorAll('.upload-trigger').forEach(button => {
-    button.addEventListener('click', () => {
-      const inputId = button.dataset.inputId;
-      const input = document.getElementById(inputId);
-      input.click();
-    });
-  });
-
   // Photo upload handling - cover image clicks
   document.querySelectorAll('.cover-clickable').forEach(cover => {
     cover.addEventListener('click', () => {
@@ -340,16 +359,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const form = event.target.closest('.photo-upload-form');
-      const button = form.querySelector('.upload-trigger');
-      const icon = button.querySelector('i');
-      const text = button.querySelector('.upload-text');
-
-      // Show loading state
-      const originalIcon = icon.className;
-      const originalText = text.textContent;
-      icon.className = 'fas fa-spinner fa-pulse';
-      text.textContent = 'Subiendo...';
-      button.disabled = true;
 
       try {
         const formData = new FormData(form);
@@ -375,29 +384,15 @@ document.addEventListener('DOMContentLoaded', () => {
               existingImg.src = data.image_url;
             } else {
               // Replace placeholder div with img
-              coverContainer.innerHTML = `<img src="${data.image_url}" alt="Book cover" style="max-width: 60px; max-height: 90px; border-radius: 4px;">`;
+              coverContainer.innerHTML = `<img src="${data.image_url}" alt="Book cover" class="book-cover-small">`;
             }
           }
-
-          // Update button text to "Cambiar foto"
-          text.textContent = 'Cambiar foto';
-
-          // Restore button state
-          icon.className = originalIcon;
-          button.disabled = false;
         } else {
-          // Error - show message and restore button
           const errorText = await response.text();
           alert('Error al subir la foto: ' + (errorText || 'Intentá de nuevo'));
-          icon.className = originalIcon;
-          text.textContent = originalText;
-          button.disabled = false;
         }
       } catch (error) {
         alert('Error al subir la foto. Verificá tu conexión e intentá de nuevo.');
-        icon.className = originalIcon;
-        text.textContent = originalText;
-        button.disabled = false;
       }
 
       // Reset the file input so the same file can be selected again if needed
@@ -444,6 +439,56 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  // Mark books as traded
+  document.querySelectorAll('.js-trade-book-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const tradeUrl = e.currentTarget.dataset.tradeUrl;
+
+      try {
+        const response = await fetch(tradeUrl, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          alert('Error al marcar el libro como cambiado.');
+        }
+      } catch (error) {
+        alert('Error al marcar el libro como cambiado.');
+      }
+    });
+  });
+
+  // Reserve/unreserve books
+  document.querySelectorAll('.js-reserve-book-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const reserveUrl = e.currentTarget.dataset.reserveUrl;
+
+      try {
+        const response = await fetch(reserveUrl, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          alert('Error al cambiar el estado de reserva.');
+        }
+      } catch (error) {
+        alert('Error al cambiar el estado de reserva.');
+      }
+    });
+  });
 });
 </script>
 {% endblock %}

@@ -13,7 +13,7 @@
       white-space: nowrap;
     }
     .books-table td:last-child {
-      width: 240px;
+      width: 340px;
       white-space: nowrap;
     }
   }
@@ -46,6 +46,10 @@
       display: flex;
       justify-content: center;
     }
+  }
+
+  .books-table tbody tr {
+    cursor: pointer;
   }
 </style>
 {% endblock %}
@@ -135,22 +139,37 @@
           <table class="table is-fullwidth is-hoverable books-table">
             <tbody>
               {% for book in offered_books %}
-                <tr id="book-row-{{ book.id }}">
+                <tr id="book-row-{{ book.id }}" data-edit-url="{% url 'edit_offered_book' book.id %}">
                   <td><strong>{{ book.title }}</strong>, {{ book.author }}</td>
                   <td class="has-text-right">
                     <div class="buttons is-right">
-                      <button type="button" class="button is-small is-danger is-light js-delete-book-btn" data-delete-url="{% url 'delete_offered_book' book.id %}" title="Borrar">
-                        <span class="icon is-small">
-                          <i class="fas fa-trash"></i>
-                        </span>
-                      </button>
                       <a href="{% url 'edit_offered_book' book.id %}" class="button is-small is-info is-light" title="Editar">
                         <span class="icon is-small">
                           <i class="fas fa-edit"></i>
                         </span>
                       </a>
-                      <button type="button" class="button is-small is-success is-light js-mark-exchanged-btn" data-delete-url="{% url 'delete_offered_book' book.id %}">
-                        <span>Ya cambiado</span>
+                      <button type="button" class="button is-small is-danger is-light js-delete-book-btn" data-delete-url="{% url 'delete_offered_book' book.id %}" title="Borrar">
+                        <span class="icon is-small">
+                          <i class="fas fa-trash"></i>
+                        </span>
+                      </button>
+                      {% if book.is_reserved %}
+                      <button type="button" class="button is-small is-light js-reserve-book-btn" data-reserve-url="{% url 'reserve_offered_book' book.id %}">
+                        <span>Desreservar</span>
+                        <span class="icon is-small">
+                          <i class="fa fa-play"></i>
+                        </span>
+                      </button>
+                      {% else %}
+                      <button type="button" class="button is-small is-light js-reserve-book-btn" data-reserve-url="{% url 'reserve_offered_book' book.id %}">
+                        <span>Reservar</span>
+                        <span class="icon is-small">
+                          <i class="fa fa-pause"></i>
+                        </span>
+                      </button>
+                      {% endif %}
+                      <button type="button" class="button is-small is-success is-light js-mark-exchanged-btn" data-trade-url="{% url 'trade_offered_book' book.id %}">
+                        <span>Cambiado</span>
                         <span class="icon is-small">
                           <i class="fas fa-check"></i>
                         </span>
@@ -175,6 +194,20 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  // Make table rows clickable to edit
+  document.querySelectorAll('.books-table tbody tr').forEach(row => {
+    row.addEventListener('click', (e) => {
+      // Don't navigate if clicking on buttons
+      if (e.target.closest('button') || e.target.closest('a')) {
+        return;
+      }
+      const editUrl = row.dataset.editUrl;
+      if (editUrl) {
+        window.location.href = editUrl;
+      }
+    });
+  });
+
   // Photo upload: trigger file input
   document.getElementById('js-photo-upload-btn').addEventListener('click', () => {
     document.getElementById('js-cover-image-input').click();
@@ -220,14 +253,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Mark as exchanged buttons (for now, same as delete)
+  // Mark as exchanged buttons
   document.querySelectorAll('.js-mark-exchanged-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
-      const deleteUrl = e.currentTarget.dataset.deleteUrl;
+      const tradeUrl = e.currentTarget.dataset.tradeUrl;
       const row = e.currentTarget.closest('tr');
 
       try {
-        const response = await fetch(deleteUrl, {
+        const response = await fetch(tradeUrl, {
           method: 'POST',
           headers: {
             'X-CSRFToken': '{{ csrf_token }}',
@@ -242,6 +275,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } catch (error) {
         alert('Error al marcar el libro.');
+      }
+    });
+  });
+
+  // Reserve/unreserve books
+  document.querySelectorAll('.js-reserve-book-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const reserveUrl = e.currentTarget.dataset.reserveUrl;
+
+      try {
+        const response = await fetch(reserveUrl, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          alert('Error al cambiar el estado de reserva.');
+        }
+      } catch (error) {
+        alert('Error al cambiar el estado de reserva.');
       }
     });
   });
