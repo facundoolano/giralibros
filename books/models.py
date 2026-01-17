@@ -49,6 +49,13 @@ class LocationArea(models.TextChoices):
     GBA_SUR = "GBA_SUR", "GBA Sur"
 
 
+class BookStatus(models.TextChoices):
+    NEW = "NEW", "New"
+    RESERVED = "RESERVED", "Reserved"
+    DELETED = "DELETED", "Deleted"
+    TRADED = "TRADED", "Traded"
+
+
 class UserLocation(models.Model):
     """
     Represent a region where users offer to make exchanges, which affects which other user's books
@@ -249,6 +256,16 @@ class OfferedBook(BaseBook):
     reserved = models.BooleanField(
         default=False,
         help_text="Used to mark that this book is reserved for a not yet fulfilled exchange.",
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=BookStatus.choices,
+        default=BookStatus.NEW,
+        help_text="Current status of the book offer",
+    )
+    status_changed_at = models.DateTimeField(
+        default=timezone.now,
+        help_text="When the status was last changed",
     )
     cover_image = models.ImageField(
         upload_to="book_covers/%Y/%m/",
