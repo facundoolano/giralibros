@@ -449,8 +449,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.js-trade-book-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       const tradeUrl = e.currentTarget.dataset.tradeUrl;
-      const bookId = e.currentTarget.dataset.bookId;
-      const bookItem = e.currentTarget.closest('.offered-book-item');
 
       try {
         const response = await fetch(tradeUrl, {
@@ -462,23 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (response.ok) {
-          // Remove the book item from the display
-          bookItem.remove();
-
-          // Update the count in the header
-          const header = document.querySelector('h2.title.is-5 .icon + span');
-          if (header) {
-            const currentCount = parseInt(header.textContent.match(/\d+/)[0]);
-            const newCount = currentCount - 1;
-            header.textContent = `Libros ofrecidos (${newCount})`;
-          }
-
-          // Check if there are no more books and show empty message
-          const remainingBooks = document.querySelectorAll('.offered-book-item');
-          if (remainingBooks.length === 0) {
-            const container = document.getElementById('offered-books-container');
-            container.innerHTML = '<div class="column is-12 mb-5 nested-content"><p class="has-text-grey-light has-text-centered">Sin libros para mostrar</p></div>';
-          }
+          window.location.reload();
         } else {
           alert('Error al marcar el libro como cambiado.');
         }
