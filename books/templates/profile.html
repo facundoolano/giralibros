@@ -76,6 +76,7 @@
         </span>
       </div>
 
+      {% if offered_books or is_own_profile %}
       <hr>
 
       {# Libros ofrecidos section #}
@@ -170,7 +171,9 @@
         <p class="has-text-grey-light has-text-centered">Sin libros para mostrar</p>
       </div>
       {% endif %}
+      {% endif %}
 
+      {% if wanted_books or is_own_profile %}
       <hr>
 
       {# Libros deseados section #}
@@ -224,8 +227,9 @@
         <p class="has-text-grey-light has-text-centered">Sin libros para mostrar</p>
       </div>
       {% endif %}
+      {% endif %}
 
-      {% if is_own_profile %}
+      {% if is_own_profile and sent_requests %}
       <hr>
 
       <h2 class="title is-5 mb-4">
@@ -235,7 +239,6 @@
         <span>Solicitudes enviadas ({{ profile_user.sent_requests.count }})</span>
       </h2>
 
-      {% if sent_requests %}
       <ul class="mb-5 nested-content">
         {% for req in sent_requests %}
         <li class="mb-2">
@@ -243,12 +246,9 @@
         </li>
         {% endfor %}
       </ul>
-      {% else %}
-      <div class="mb-5 nested-content">
-        <p class="has-text-grey-light has-text-centered">Sin solicitudes para mostrar</p>
-      </div>
       {% endif %}
 
+      {% if is_own_profile and received_requests %}
       <hr>
 
       <h2 class="title is-5 mb-4">
@@ -258,7 +258,6 @@
         <span>Solicitudes recibidas ({{ profile_user.received_requests.count }})</span>
       </h2>
 
-      {% if received_requests %}
       <ul class="mb-5 nested-content">
         {% for req in received_requests %}
         <li class="mb-2">
@@ -266,11 +265,6 @@
         </li>
         {% endfor %}
       </ul>
-      {% else %}
-      <div class="mb-5 nested-content">
-        <p class="has-text-grey-light has-text-centered">Sin solicitudes para mostrar</p>
-      </div>
-      {% endif %}
       {% endif %}
 
     </div>
