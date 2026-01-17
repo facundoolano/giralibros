@@ -305,6 +305,10 @@ class OfferedBook(BaseBook):
         self.status_changed_at = timezone.now()
         self.save()
 
+    def is_reserved(self):
+        """Check if the book is reserved."""
+        return self.status == BookStatus.RESERVED
+
 
 class WantedBook(BaseBook):
     "A book a user is interested in."

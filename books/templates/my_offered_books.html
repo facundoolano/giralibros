@@ -13,7 +13,7 @@
       white-space: nowrap;
     }
     .books-table td:last-child {
-      width: 240px;
+      width: 320px;
       white-space: nowrap;
     }
   }
@@ -153,6 +153,21 @@
                           <i class="fas fa-trash"></i>
                         </span>
                       </button>
+                      {% if book.is_reserved %}
+                      <button type="button" class="button is-small is-light">
+                        <span>Desreservar</span>
+                        <span class="icon is-small">
+                          <i class="fa fa-play"></i>
+                        </span>
+                      </button>
+                      {% else %}
+                      <button type="button" class="button is-small is-light">
+                        <span>Reservar</span>
+                        <span class="icon is-small">
+                          <i class="fa fa-pause"></i>
+                        </span>
+                      </button>
+                      {% endif %}
                       <button type="button" class="button is-small is-success is-light js-mark-exchanged-btn" data-trade-url="{% url 'trade_offered_book' book.id %}">
                         <span>Cambiado</span>
                         <span class="icon is-small">

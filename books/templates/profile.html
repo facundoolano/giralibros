@@ -136,12 +136,21 @@
                     {% csrf_token %}
                     <input type="file" name="cover_image" accept="image/*" class="photo-input" id="photo-input-{{ book.id }}">
                   </form>
+                  {% if book.is_reserved %}
+                  <button type="button" class="button is-small is-light">
+                    <span>Desreservar</span>
+                    <span class="icon is-small">
+                      <i class="fa fa-play"></i>
+                    </span>
+                  </button>
+                  {% else %}
                   <button type="button" class="button is-small is-light">
                     <span>Reservar</span>
                     <span class="icon is-small">
                       <i class="fa fa-pause"></i>
                     </span>
                   </button>
+                  {% endif %}
                   <button type="button" class="button is-small is-success is-light js-trade-book-btn" data-trade-url="{% url 'trade_offered_book' book.id %}" data-book-id="{{ book.id }}">
                     <span>Cambiado</span>
                     <span class="icon is-small">
