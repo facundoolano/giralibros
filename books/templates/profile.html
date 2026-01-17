@@ -110,13 +110,13 @@
         {% for book in offered_books %}
         <div class="column is-12-mobile is-6-tablet offered-book-item" {% if forloop.counter > books_per_page %}style="display: none;"{% endif %}>
           <div class="is-flex" style="gap: 1rem;">
-            <div class="is-flex-shrink-0 is-flex is-align-items-center book-cover-container-small{% if is_own_profile %} cover-clickable{% endif %}"{% if is_own_profile %} style="cursor: pointer;"{% endif %} {% if is_own_profile %}data-input-id="photo-input-{{ book.id }}"{% endif %}>
+            <div class="is-flex-shrink-0 is-flex is-align-items-center book-cover-container-small{% if is_own_profile %} cover-clickable{% endif %}"{% if is_own_profile %} style="cursor: pointer;" data-input-id="photo-input-{{ book.id }}"{% endif %}>
               {% if book.cover_image %}
                 <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover-small">
               {% else %}
                 <div class="book-placeholder book-cover-container-small is-flex is-justify-content-center is-align-items-center">
                   <span class="icon is-small has-text-grey">
-                    <i class="fas fa-book fa-lg"></i>
+                    <i class="fas {% if is_own_profile %}fa-camera{% else %}fa-book{% endif %} fa-lg"></i>
                   </span>
                 </div>
               {% endif %}
@@ -130,17 +130,11 @@
                   <div class="has-text-grey is-size-7 mt-1">{{ book.notes }}</div>
                 {% endif %}
               </div>
-              <div class="buttons">
+              <div>
                 {% if is_own_profile %}
-                  <form method="post" action="{% url 'upload_book_photo' book_id=book.id %}" enctype="multipart/form-data" class="photo-upload-form" style="display: inline;">
+                  <form method="post" action="{% url 'upload_book_photo' book_id=book.id %}" enctype="multipart/form-data" class="photo-upload-form" style="display: none;">
                     {% csrf_token %}
-                    <input type="file" name="cover_image" accept="image/*" style="display: none;" class="photo-input" id="photo-input-{{ book.id }}">
-                    <button type="button" class="button is-info is-small is-light upload-trigger" data-input-id="photo-input-{{ book.id }}">
-                      <span class="icon is-small">
-                        <i class="fas fa-camera"></i>
-                      </span>
-                      <span class="upload-text">{% if book.cover_image %}Cambiar foto{% else %}Agregar foto{% endif %}</span>
-                    </button>
+                    <input type="file" name="cover_image" accept="image/*" class="photo-input" id="photo-input-{{ book.id }}">
                   </form>
                   <button type="button" class="button is-small is-success is-light js-trade-book-btn" data-trade-url="{% url 'trade_offered_book' book.id %}" data-book-id="{{ book.id }}">
                     <span>Cambiado</span>
@@ -334,15 +328,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Photo upload handling - button clicks
-  document.querySelectorAll('.upload-trigger').forEach(button => {
-    button.addEventListener('click', () => {
-      const inputId = button.dataset.inputId;
-      const input = document.getElementById(inputId);
-      input.click();
-    });
-  });
-
   // Photo upload handling - cover image clicks
   document.querySelectorAll('.cover-clickable').forEach(cover => {
     cover.addEventListener('click', () => {
@@ -359,16 +344,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const form = event.target.closest('.photo-upload-form');
-      const button = form.querySelector('.upload-trigger');
-      const icon = button.querySelector('i');
-      const text = button.querySelector('.upload-text');
-
-      // Show loading state
-      const originalIcon = icon.className;
-      const originalText = text.textContent;
-      icon.className = 'fas fa-spinner fa-pulse';
-      text.textContent = 'Subiendo...';
-      button.disabled = true;
 
       try {
         const formData = new FormData(form);
@@ -394,29 +369,15 @@ document.addEventListener('DOMContentLoaded', () => {
               existingImg.src = data.image_url;
             } else {
               // Replace placeholder div with img
-              coverContainer.innerHTML = `<img src="${data.image_url}" alt="Book cover" style="max-width: 60px; max-height: 90px; border-radius: 4px;">`;
+              coverContainer.innerHTML = `<img src="${data.image_url}" alt="Book cover" class="book-cover-small">`;
             }
           }
-
-          // Update button text to "Cambiar foto"
-          text.textContent = 'Cambiar foto';
-
-          // Restore button state
-          icon.className = originalIcon;
-          button.disabled = false;
         } else {
-          // Error - show message and restore button
           const errorText = await response.text();
           alert('Error al subir la foto: ' + (errorText || 'Intentá de nuevo'));
-          icon.className = originalIcon;
-          text.textContent = originalText;
-          button.disabled = false;
         }
       } catch (error) {
         alert('Error al subir la foto. Verificá tu conexión e intentá de nuevo.');
-        icon.className = originalIcon;
-        text.textContent = originalText;
-        button.disabled = false;
       }
 
       // Reset the file input so the same file can be selected again if needed
