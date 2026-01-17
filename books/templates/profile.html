@@ -129,7 +129,7 @@
                   <div class="has-text-grey is-size-7 mt-1">{{ book.notes }}</div>
                 {% endif %}
               </div>
-              <div>
+              <div class="buttons">
                 {% if is_own_profile %}
                   <form method="post" action="{% url 'upload_book_photo' book_id=book.id %}" enctype="multipart/form-data" class="photo-upload-form" style="display: inline;">
                     {% csrf_token %}
@@ -141,6 +141,12 @@
                       <span class="upload-text">{% if book.cover_image %}Cambiar foto{% else %}Agregar foto{% endif %}</span>
                     </button>
                   </form>
+                  <button type="button" class="button is-small is-success is-light js-trade-book-btn" data-trade-url="{% url 'trade_offered_book' book.id %}" data-book-id="{{ book.id }}">
+                    <span>Ya cambiado</span>
+                    <span class="icon is-small">
+                      <i class="fas fa-check"></i>
+                    </span>
+                  </button>
                 {% else %}
                   {% include '_exchange_button.html' with button_classes='is-small' icon_classes='is-small' %}
                 {% endif %}
@@ -444,6 +450,49 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  // Mark books as traded
+  document.querySelectorAll('.js-trade-book-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const tradeUrl = e.currentTarget.dataset.tradeUrl;
+      const bookId = e.currentTarget.dataset.bookId;
+      const bookItem = e.currentTarget.closest('.offered-book-item');
+
+      try {
+        const response = await fetch(tradeUrl, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+
+        if (response.ok) {
+          // Remove the book item from the display
+          bookItem.remove();
+
+          // Update the count in the header
+          const header = document.querySelector('h2.title.is-5 .icon + span');
+          if (header) {
+            const currentCount = parseInt(header.textContent.match(/\d+/)[0]);
+            const newCount = currentCount - 1;
+            header.textContent = `Libros ofrecidos (${newCount})`;
+          }
+
+          // Check if there are no more books and show empty message
+          const remainingBooks = document.querySelectorAll('.offered-book-item');
+          if (remainingBooks.length === 0) {
+            const container = document.getElementById('offered-books-container');
+            container.innerHTML = '<div class="column is-12 mb-5 nested-content"><p class="has-text-grey-light has-text-centered">Sin libros para mostrar</p></div>';
+          }
+        } else {
+          alert('Error al marcar el libro como cambiado.');
+        }
+      } catch (error) {
+        alert('Error al marcar el libro como cambiado.');
+      }
+    });
+  });
 });
 </script>
 {% endblock %}
