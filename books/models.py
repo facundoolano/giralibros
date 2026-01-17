@@ -113,6 +113,10 @@ class OfferedBookManager(models.Manager):
         """Return only books that are available (exclude deleted and traded)."""
         return self.exclude(status__in=[BookStatus.DELETED, BookStatus.TRADED])
 
+    def traded_by(self, user):
+        """Return traded books for a user, ordered by most recent first."""
+        return self.filter(user=user, status=BookStatus.TRADED).order_by('-status_changed_at')
+
     def _annotate_last_activity(self, queryset):
         """Add last_activity_date annotation (max of created_at and cover_uploaded_at)."""
         return queryset.annotate(

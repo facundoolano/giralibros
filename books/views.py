@@ -366,9 +366,11 @@ def profile(request, username):
 
     sent_requests = None
     received_requests = None
+    traded_books = None
     if is_own_profile:
         sent_requests = ExchangeRequest.objects.recent_sent_by(profile_user)
         received_requests = ExchangeRequest.objects.recent_received_by(profile_user)
+        traded_books = OfferedBook.objects.traded_by(profile_user)
 
     return render(
         request,
@@ -378,6 +380,7 @@ def profile(request, username):
             "is_own_profile": is_own_profile,
             "offered_books": offered_books,
             "wanted_books": wanted_books,
+            "traded_books": traded_books,
             "sent_requests": sent_requests,
             "received_requests": received_requests,
             "books_per_page": settings.BOOKS_PER_PAGE,
