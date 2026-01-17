@@ -1772,6 +1772,50 @@ class BookCoverTest(BookTestMixin, TransactionTestCase):
         # Verify image file was cleaned up
         self.assertFalse(self.file_exists(image_url))
 
+    def test_cleanup_after_book_traded(self):
+        """Test that cover images are deleted when their associated book is marked as traded."""
+        # Register and verify user
+        self.register_and_verify_user(fill_profile=True)
+
+        # Add a book
+        self.add_books([("Test Book", "Test Author")])
+
+        # Get the book ID and upload a cover
+        response = self.client.get(reverse("profile", kwargs={"username": "testuser"}))
+        offered_books = response.context["offered_books"]
+        book = offered_books[0]
+
+        image_file = self.create_test_image()
+        response = self.client.post(
+            reverse("upload_book_photo", kwargs={"book_id": book.id}),
+            {"cover_image": image_file},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(response.status_code, 200)
+
+        response_data = response.json()
+        image_url = response_data["image_url"]
+
+        # Verify image exists
+        self.assertTrue(self.file_exists(image_url))
+
+        # Mark the book as traded using the trade endpoint
+        response = self.client.post(
+            reverse("trade_offered_book", kwargs={"book_id": book.id}),
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # Verify profile no longer shows the book in offered books section
+        response = self.client.get(reverse("profile", kwargs={"username": "testuser"}))
+        self.assertEqual(response.status_code, 200)
+        offered_books = response.context["offered_books"]
+        self.assertEqual(len(offered_books), 0)
+        self.assertNotContains(response, image_url)
+
+        # Verify image file was cleaned up
+        self.assertFalse(self.file_exists(image_url))
+
     def test_cover_upload_fails_on_non_image_file(self):
         """Test that uploading a non-image file is rejected with an error."""
         from django.core.files.uploadedfile import SimpleUploadedFile
