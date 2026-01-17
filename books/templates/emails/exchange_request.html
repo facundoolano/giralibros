@@ -11,7 +11,7 @@
     <p>{{ requester.first_name }} está en {% for location in requester.locations.all %}{{ location.get_area_display }}{% if not forloop.last %}, {% endif %}{% endfor %} y ofrece estos libros:</p>
 
     <ul>
-    {% for requester_book in requester.offered.all %}
+    {% for requester_book in requester.offered.available.all %}
         <li><strong>"{{ requester_book.title }}"</strong> de {{ requester_book.author }}{% if requester_book.notes %} <em>({{ requester_book.notes }})</em>{% endif %}</li>
     {% endfor %}
     </ul>

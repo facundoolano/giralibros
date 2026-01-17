@@ -109,6 +109,10 @@ class BaseBook(models.Model):
 
 
 class OfferedBookManager(models.Manager):
+    def available(self):
+        """Return only books that are available (exclude deleted and traded)."""
+        return self.exclude(status__in=[BookStatus.DELETED, BookStatus.TRADED])
+
     def _annotate_last_activity(self, queryset):
         """Add last_activity_date annotation (max of created_at and cover_uploaded_at)."""
         return queryset.annotate(
@@ -133,9 +137,9 @@ class OfferedBookManager(models.Manager):
         """
         if user.is_authenticated and my_locations:
             user_areas = user.locations.values_list("area", flat=True)
-            queryset = self.filter(user__locations__area__in=user_areas).distinct()
+            queryset = self.available().filter(user__locations__area__in=user_areas).distinct()
         else:
-            queryset = self.all()
+            queryset = self.available()
 
         queryset = queryset.select_related("user")
 
@@ -164,7 +168,7 @@ class OfferedBookManager(models.Manager):
         - If viewing own profile: returns all books without annotation
         - If viewing another user's profile: annotates with 'already_requested' flag
         """
-        queryset = self.filter(user=profile_user).order_by('-created_at')
+        queryset = self.available().filter(user=profile_user).order_by('-created_at')
 
         if viewing_user != profile_user:
             queryset = self._annotate_already_requested(queryset, viewing_user)
