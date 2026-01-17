@@ -229,6 +229,25 @@
       {% endif %}
       {% endif %}
 
+      {% if is_own_profile and traded_books %}
+      <hr>
+
+      <h2 class="title is-5 mb-4">
+        <span class="icon">
+          <i class="fas fa-rotate"></i>
+        </span>
+        <span>Libros cambiados ({{ traded_books|length }})</span>
+      </h2>
+
+      <ul class="mb-5 nested-content">
+        {% for book in traded_books %}
+        <li class="mb-2">
+          <strong>{{ book.title }}</strong>, {{ book.author }}
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+
       {% if is_own_profile and sent_requests %}
       <hr>
 
