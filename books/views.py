@@ -31,6 +31,7 @@ from books.forms import (
     WantedBookForm,
 )
 from books.models import (
+    BookStatus,
     ExchangeRequest,
     OfferedBook,
     UserLocation,
@@ -429,12 +430,19 @@ def my_offered_books(request, book_id=None):
 
 @login_required
 def delete_offered_book(request, book_id):
-    """Delete an offered book (AJAX endpoint)."""
+    """Mark an offered book as deleted (AJAX endpoint)."""
     if request.method != "POST":
         return JsonResponse({"error": "Method not allowed"}, status=405)
 
     book = get_object_or_404(OfferedBook, id=book_id, user=request.user)
-    book.delete()
+
+    # Delete cover image file if it exists
+    if book.cover_image:
+        book.cover_image.delete(save=False)
+
+    book.status = BookStatus.DELETED
+    book.status_changed_at = timezone.now()
+    book.save()
 
     return JsonResponse({"success": True})
 
