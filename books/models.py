@@ -285,6 +285,22 @@ class OfferedBook(BaseBook):
 
     objects = OfferedBookManager()
 
+    def delete(self, *args, **kwargs):
+        """Soft delete: mark book as deleted and remove cover image."""
+        if self.cover_image:
+            self.cover_image.delete(save=False)
+        self.status = BookStatus.DELETED
+        self.status_changed_at = timezone.now()
+        self.save()
+
+    def trade(self):
+        """Mark book as traded and remove cover image."""
+        if self.cover_image:
+            self.cover_image.delete(save=False)
+        self.status = BookStatus.TRADED
+        self.status_changed_at = timezone.now()
+        self.save()
+
 
 class WantedBook(BaseBook):
     "A book a user is interested in."

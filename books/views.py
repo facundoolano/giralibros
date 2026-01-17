@@ -31,7 +31,6 @@ from books.forms import (
     WantedBookForm,
 )
 from books.models import (
-    BookStatus,
     ExchangeRequest,
     OfferedBook,
     UserLocation,
@@ -435,14 +434,19 @@ def delete_offered_book(request, book_id):
         return JsonResponse({"error": "Method not allowed"}, status=405)
 
     book = get_object_or_404(OfferedBook, id=book_id, user=request.user)
+    book.delete()
 
-    # Delete cover image file if it exists
-    if book.cover_image:
-        book.cover_image.delete(save=False)
+    return JsonResponse({"success": True})
 
-    book.status = BookStatus.DELETED
-    book.status_changed_at = timezone.now()
-    book.save()
+
+@login_required
+def trade_offered_book(request, book_id):
+    """Mark an offered book as traded (AJAX endpoint)."""
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    book = get_object_or_404(OfferedBook, id=book_id, user=request.user)
+    book.trade()
 
     return JsonResponse({"success": True})
 
