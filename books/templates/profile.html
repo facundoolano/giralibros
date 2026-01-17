@@ -137,14 +137,14 @@
                     <input type="file" name="cover_image" accept="image/*" class="photo-input" id="photo-input-{{ book.id }}">
                   </form>
                   {% if book.is_reserved %}
-                  <button type="button" class="button is-small is-light">
+                  <button type="button" class="button is-small is-light js-reserve-book-btn" data-reserve-url="{% url 'reserve_offered_book' book.id %}">
                     <span>Desreservar</span>
                     <span class="icon is-small">
                       <i class="fa fa-play"></i>
                     </span>
                   </button>
                   {% else %}
-                  <button type="button" class="button is-small is-light">
+                  <button type="button" class="button is-small is-light js-reserve-book-btn" data-reserve-url="{% url 'reserve_offered_book' book.id %}">
                     <span>Reservar</span>
                     <span class="icon is-small">
                       <i class="fa fa-pause"></i>
@@ -461,6 +461,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } catch (error) {
         alert('Error al marcar el libro como cambiado.');
+      }
+    });
+  });
+
+  // Reserve/unreserve books
+  document.querySelectorAll('.js-reserve-book-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const reserveUrl = e.currentTarget.dataset.reserveUrl;
+
+      try {
+        const response = await fetch(reserveUrl, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          alert('Error al cambiar el estado de reserva.');
+        }
+      } catch (error) {
+        alert('Error al cambiar el estado de reserva.');
       }
     });
   });
