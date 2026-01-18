@@ -55,25 +55,25 @@
       </div>
       {% endif %}
 
-      <div class="is-size-7 has-text-grey mb-5">
-        <span class="mr-4">
-          <span class="icon is-small">
+      <div class="field is-grouped is-grouped-multiline mb-5">
+        <div class="control is-size-7 has-text-grey">
+          <span class="icon is-small mr-1">
             <i class="fas fa-calendar-alt"></i>
           </span>
-          Miembro desde {{ profile_user.date_joined|date:"F Y" }}
-        </span>
-        <span class="mr-4">
-          <span class="icon is-small">
+          <span>Miembro desde {{ profile_user.date_joined|date:"F Y" }}</span>
+        </div>
+        <div class="control is-size-7 has-text-grey">
+          <span class="icon is-small mr-1">
             <i class="fas fa-inbox"></i>
           </span>
-          {{ profile_user.received_requests.count }} solicitudes recibidas
-        </span>
-        <span>
-          <span class="icon is-small">
+          <span>{{ profile_user.received_requests.count }} solicitudes recibidas</span>
+        </div>
+        <div class="control is-size-7 has-text-grey">
+          <span class="icon is-small mr-1">
             <i class="fas fa-paper-plane"></i>
           </span>
-          {{ profile_user.sent_requests.count }} solicitudes enviadas
-        </span>
+          <span>{{ profile_user.sent_requests.count }} solicitudes enviadas</span>
+        </div>
       </div>
 
       {% if offered_books or is_own_profile %}
