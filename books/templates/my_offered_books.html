@@ -50,9 +50,13 @@
       width: 100%;
     }
 
-    /* Hide operations from desktop location */
-    #book-operations {
+    /* Hide desktop actions row on mobile, show mobile submit */
+    #desktop-actions-row {
       display: none;
+    }
+
+    #mobile-submit {
+      display: flex !important;
     }
   }
 
@@ -61,8 +65,14 @@
   }
 
   /* Hide mobile layout in desktop */
-  #mobile-cover-operations {
+  #mobile-cover-operations,
+  #mobile-submit {
     display: none;
+  }
+
+  /* Align small operation buttons with regular submit button */
+  #desktop-actions-row .buttons {
+    margin-bottom: 0;
   }
 </style>
 {% endblock %}
@@ -103,46 +113,6 @@
                 <p class="help is-danger">{{ form.notes.errors.0 }}</p>
               {% endif %}
             </div>
-
-            {% if editing_book_id %}
-            <div class="field" id="book-operations">
-              <div class="buttons">
-                <button type="button" class="button is-small is-info is-light" id="js-photo-upload-btn-ops">
-                  <span class="icon is-small">
-                    <i class="fas fa-camera"></i>
-                  </span>
-                  <span>{% if form.instance.cover_image %}Cambiar foto{% else %}Agregar foto{% endif %}</span>
-                </button>
-                <button type="button" class="button is-small is-danger is-light js-delete-book-btn" data-delete-url="{% url 'delete_offered_book' editing_book_id %}">
-                  <span class="icon is-small">
-                    <i class="fas fa-trash"></i>
-                  </span>
-                  <span>Borrar</span>
-                </button>
-                {% if form.instance.is_reserved %}
-                <button type="button" class="button is-small is-light js-reserve-book-btn" data-reserve-url="{% url 'reserve_offered_book' editing_book_id %}">
-                  <span class="icon is-small">
-                    <i class="fa fa-play"></i>
-                  </span>
-                  <span>Desreservar</span>
-                </button>
-                {% else %}
-                <button type="button" class="button is-small is-light js-reserve-book-btn" data-reserve-url="{% url 'reserve_offered_book' editing_book_id %}">
-                  <span class="icon is-small">
-                    <i class="fa fa-pause"></i>
-                  </span>
-                  <span>Reservar</span>
-                </button>
-                {% endif %}
-                <button type="button" class="button is-small is-success is-light js-mark-exchanged-btn" data-trade-url="{% url 'trade_offered_book' editing_book_id %}">
-                  <span class="icon is-small">
-                    <i class="fas fa-check"></i>
-                  </span>
-                  <span>Cambiado</span>
-                </button>
-              </div>
-            </div>
-            {% endif %}
           </div>
 
           {# Right column: Photo preview #}
@@ -162,6 +132,54 @@
                 </div>
               {% endif %}
             </div>
+          </div>
+        </div>
+
+        {# Desktop: Operations + Submit button in same row #}
+        <div class="field" id="desktop-actions-row">
+          <div class="is-flex is-justify-content-space-between is-align-items-center">
+            {% if editing_book_id %}
+            <div class="buttons">
+              <button type="button" class="button is-small is-info is-light" id="js-photo-upload-btn-ops">
+                <span class="icon is-small">
+                  <i class="fas fa-camera"></i>
+                </span>
+                <span>{% if form.instance.cover_image %}Cambiar foto{% else %}Agregar foto{% endif %}</span>
+              </button>
+              <button type="button" class="button is-small is-danger is-light js-delete-book-btn" data-delete-url="{% url 'delete_offered_book' editing_book_id %}">
+                <span class="icon is-small">
+                  <i class="fas fa-trash"></i>
+                </span>
+                <span>Borrar</span>
+              </button>
+              {% if form.instance.is_reserved %}
+              <button type="button" class="button is-small is-light js-reserve-book-btn" data-reserve-url="{% url 'reserve_offered_book' editing_book_id %}">
+                <span class="icon is-small">
+                  <i class="fa fa-play"></i>
+                </span>
+                <span>Desreservar</span>
+              </button>
+              {% else %}
+              <button type="button" class="button is-small is-light js-reserve-book-btn" data-reserve-url="{% url 'reserve_offered_book' editing_book_id %}">
+                <span class="icon is-small">
+                  <i class="fa fa-pause"></i>
+                </span>
+                <span>Reservar</span>
+              </button>
+              {% endif %}
+              <button type="button" class="button is-small is-success is-light js-mark-exchanged-btn" data-trade-url="{% url 'trade_offered_book' editing_book_id %}">
+                <span class="icon is-small">
+                  <i class="fas fa-check"></i>
+                </span>
+                <span>Cambiado</span>
+              </button>
+            </div>
+            {% else %}
+            <div></div>
+            {% endif %}
+            <button type="submit" class="button is-primary">
+              {% if editing_book_id %}Guardar cambios{% else %}Agregar libro{% endif %}
+            </button>
           </div>
         </div>
 
@@ -218,8 +236,7 @@
           </div>
         </div>
         {% endif %}
-
-        <div class="field is-grouped is-grouped-centered mt-4">
+        <div class="field is-grouped is-grouped-centered mt-4" id="mobile-submit">
           <div class="control">
             <button type="submit" class="button is-primary">
               {% if editing_book_id %}Guardar cambios{% else %}Agregar libro{% endif %}
