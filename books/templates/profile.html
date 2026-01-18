@@ -110,13 +110,13 @@
         {% for book in offered_books %}
         <div class="column is-12-mobile is-6-tablet offered-book-item" {% if forloop.counter > books_per_page %}style="display: none;"{% endif %}>
           <div class="is-flex" style="gap: 1rem;">
-            <div class="is-flex-shrink-0 is-flex is-align-items-center book-cover-container-small{% if is_own_profile %} cover-clickable{% endif %}"{% if is_own_profile %} style="cursor: pointer;" data-input-id="photo-input-{{ book.id }}"{% endif %}>
+            <div class="is-flex-shrink-0 is-flex is-align-items-center book-cover-container-small">
               {% if book.cover_image %}
                 <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover-small">
               {% else %}
                 <div class="book-placeholder book-cover-container-small is-flex is-justify-content-center is-align-items-center">
                   <span class="icon is-small has-text-grey">
-                    <i class="fas {% if is_own_profile %}fa-camera{% else %}fa-book{% endif %} fa-lg"></i>
+                    <i class="fas fa-book fa-lg"></i>
                   </span>
                 </div>
               {% endif %}
@@ -132,31 +132,12 @@
               </div>
               <div class="buttons">
                 {% if is_own_profile %}
-                  <form method="post" action="{% url 'upload_book_photo' book_id=book.id %}" enctype="multipart/form-data" class="photo-upload-form" style="display: none;">
-                    {% csrf_token %}
-                    <input type="file" name="cover_image" accept="image/*" class="photo-input" id="photo-input-{{ book.id }}">
-                  </form>
-                  {% if book.is_reserved %}
-                  <button type="button" class="button is-small is-light js-reserve-book-btn" data-reserve-url="{% url 'reserve_offered_book' book.id %}">
-                    <span>Desreservar</span>
+                  <a href="{% url 'edit_offered_book' book.id %}" class="button is-small is-white">
                     <span class="icon is-small">
-                      <i class="fa fa-play"></i>
+                      <i class="fas fa-edit"></i>
                     </span>
-                  </button>
-                  {% else %}
-                  <button type="button" class="button is-small is-light js-reserve-book-btn" data-reserve-url="{% url 'reserve_offered_book' book.id %}">
-                    <span>Reservar</span>
-                    <span class="icon is-small">
-                      <i class="fa fa-pause"></i>
-                    </span>
-                  </button>
-                  {% endif %}
-                  <button type="button" class="button is-small is-success is-light js-trade-book-btn" data-trade-url="{% url 'trade_offered_book' book.id %}" data-book-id="{{ book.id }}">
-                    <span>Cambiado</span>
-                    <span class="icon is-small">
-                      <i class="fas fa-check"></i>
-                    </span>
-                  </button>
+                    <span>Editar</span>
+                  </a>
                 {% else %}
                   {% include '_exchange_button.html' with button_classes='is-small' icon_classes='is-small' %}
                 {% endif %}
@@ -343,63 +324,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Photo upload handling - cover image clicks
-  document.querySelectorAll('.cover-clickable').forEach(cover => {
-    cover.addEventListener('click', () => {
-      const inputId = cover.dataset.inputId;
-      const input = document.getElementById(inputId);
-      input.click();
-    });
-  });
-
-  document.querySelectorAll('.photo-input').forEach(input => {
-    input.addEventListener('change', async (event) => {
-      if (!event.target.files || event.target.files.length === 0) {
-        return;
-      }
-
-      const form = event.target.closest('.photo-upload-form');
-
-      try {
-        const formData = new FormData(form);
-        const response = await fetch(form.action, {
-          method: 'POST',
-          body: formData,
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-          }
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-
-          // Find the cover image container for this book
-          const coverContainer = form.closest('.column').querySelector('.cover-clickable');
-
-          // Update the image - either update src or replace placeholder
-          if (data.image_url) {
-            const existingImg = coverContainer.querySelector('img');
-            if (existingImg) {
-              // Just update the src attribute
-              existingImg.src = data.image_url;
-            } else {
-              // Replace placeholder div with img
-              coverContainer.innerHTML = `<img src="${data.image_url}" alt="Book cover" class="book-cover-small">`;
-            }
-          }
-        } else {
-          const errorText = await response.text();
-          alert('Error al subir la foto: ' + (errorText || 'Intentá de nuevo'));
-        }
-      } catch (error) {
-        alert('Error al subir la foto. Verificá tu conexión e intentá de nuevo.');
-      }
-
-      // Reset the file input so the same file can be selected again if needed
-      event.target.value = '';
-    });
-  });
-
   // Share profile functionality
   const shareBtn = document.getElementById('shareProfileBtn');
   if (shareBtn) {
@@ -439,56 +363,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-
-  // Mark books as traded
-  document.querySelectorAll('.js-trade-book-btn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const tradeUrl = e.currentTarget.dataset.tradeUrl;
-
-      try {
-        const response = await fetch(tradeUrl, {
-          method: 'POST',
-          headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'X-Requested-With': 'XMLHttpRequest'
-          }
-        });
-
-        if (response.ok) {
-          window.location.reload();
-        } else {
-          alert('Error al marcar el libro como cambiado.');
-        }
-      } catch (error) {
-        alert('Error al marcar el libro como cambiado.');
-      }
-    });
-  });
-
-  // Reserve/unreserve books
-  document.querySelectorAll('.js-reserve-book-btn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const reserveUrl = e.currentTarget.dataset.reserveUrl;
-
-      try {
-        const response = await fetch(reserveUrl, {
-          method: 'POST',
-          headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'X-Requested-With': 'XMLHttpRequest'
-          }
-        });
-
-        if (response.ok) {
-          window.location.reload();
-        } else {
-          alert('Error al cambiar el estado de reserva.');
-        }
-      } catch (error) {
-        alert('Error al cambiar el estado de reserva.');
-      }
-    });
-  });
 });
 </script>
 {% endblock %}
