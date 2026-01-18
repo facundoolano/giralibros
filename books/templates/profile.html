@@ -17,7 +17,7 @@
 
     <div class="box box-mobile-flat">
       {# Header with username and info #}
-      <div class="is-flex is-justify-content-space-between is-align-items-start mb-3">
+      <div class="mb-3">
         <div class="is-flex is-align-items-center is-flex-wrap-wrap" style="gap: 0.5rem;">
           <h1 class="title is-4 mb-0">
             <span class="icon is-small mr-1">
@@ -30,22 +30,6 @@
             <span class="tag location-badge">{{ location.get_area_display }}</span>
             {% endfor %}
           </div>
-        </div>
-        <div class="buttons">
-          {% if is_own_profile %}
-          <a href="{% url 'profile_edit' %}" class="button is-small is-link is-light button-fixed-width">
-            <span class="icon is-small">
-              <i class="fas fa-edit"></i>
-            </span>
-            <span>Editar</span>
-          </a>
-          <button id="shareProfileBtn" class="button is-small is-link is-light button-fixed-width">
-            <span class="icon is-small">
-              <i class="fas fa-arrow-up-right-from-square"></i>
-            </span>
-            <span id="shareProfileText">Compartir</span>
-          </button>
-          {% endif %}
         </div>
       </div>
 
@@ -76,34 +60,33 @@
         </div>
       </div>
 
+      {% if is_own_profile %}
+      <div class="has-text-centered mb-5">
+        <a href="{% url 'profile_edit' %}" class="button is-white">
+          <span class="icon is-small">
+            <i class="fas fa-edit"></i>
+          </span>
+          <span>Editar perfil</span>
+        </a>
+        <button id="shareProfileBtn" class="button is-white">
+          <span class="icon is-small">
+            <i class="fas fa-arrow-up-right-from-square"></i>
+          </span>
+          <span id="shareProfileText">Compartir perfil</span>
+        </button>
+      </div>
+      {% endif %}
+
       {% if offered_books or is_own_profile %}
       <hr>
 
       {# Libros ofrecidos section #}
-      <div class="level is-mobile mb-4">
-        <div class="level-left">
-          <div class="level-item">
-            <h2 class="title is-5 mb-0">
-              <span class="icon">
-                <i class="fas fa-book"></i>
-              </span>
-              <span>Libros ofrecidos ({{ offered_books|length }})</span>
-            </h2>
-          </div>
-        </div>
-        <div class="level-right">
-          <div class="level-item">
-            {% if is_own_profile %}
-            <a href="{% url 'my_offered' %}" class="button is-small is-link is-light button-fixed-width">
-              <span class="icon is-small">
-                <i class="fas fa-edit"></i>
-              </span>
-              <span>Editar</span>
-            </a>
-            {% endif %}
-          </div>
-        </div>
-      </div>
+      <h2 class="title is-5">
+        <span class="icon">
+          <i class="fas fa-book"></i>
+        </span>
+        <span>Libros ofrecidos ({{ offered_books|length }})</span>
+      </h2>
 
       {% if offered_books %}
       <div class="columns is-multiline mb-3" id="offered-books-container">
@@ -148,10 +131,20 @@
         {% endfor %}
       </div>
       {% if offered_books|length > books_per_page %}
-      <div class="has-text-centered mb-5" id="show-more-container">
+      <div class="has-text-centered mb-3" id="show-more-container">
         <button id="show-more-offered" class="button" data-books-per-page="{{ books_per_page }}">
           <span>Mostrar más</span>
         </button>
+      </div>
+      {% endif %}
+      {% if is_own_profile %}
+      <div class="has-text-centered mb-5">
+        <a href="{% url 'my_offered' %}" class="button is-white">
+          <span class="icon is-small">
+            <i class="fas fa-edit"></i>
+          </span>
+          <span>Editar libros ofrecidos</span>
+        </a>
       </div>
       {% else %}
       <div class="mb-5"></div>
@@ -160,6 +153,16 @@
       <div class="mb-5 nested-content">
         <p class="has-text-grey-light has-text-centered">Sin libros para mostrar</p>
       </div>
+      {% if is_own_profile %}
+      <div class="has-text-centered mb-5">
+        <a href="{% url 'my_offered' %}" class="button is-white">
+          <span class="icon is-small">
+            <i class="fas fa-edit"></i>
+          </span>
+          <span>Editar libros ofrecidos</span>
+        </a>
+      </div>
+      {% endif %}
       {% endif %}
       {% endif %}
 
@@ -167,41 +170,15 @@
       <hr>
 
       {# Libros deseados section #}
-      <div class="level is-mobile mb-4">
-        <div class="level-left">
-          <div class="level-item">
-            <h2 class="title is-5 mb-0">
-              <span class="icon">
-                <i class="fas fa-search"></i>
-              </span>
-              <span>Libros deseados ({{ wanted_books|length }})</span>
-            </h2>
-          </div>
-        </div>
-        <div class="level-right">
-          {% if is_own_profile %}
-          <div class="level-item">
-            <a href="{% url 'my_wanted' %}" class="button is-small is-link is-light button-fixed-width">
-              <span class="icon is-small">
-                <i class="fas fa-edit"></i>
-              </span>
-              <span>Editar</span>
-            </a>
-          </div>
-          <div class="level-item">
-            <a href="{% url 'home' %}?wanted" class="button is-small is-link is-light button-fixed-width">
-              <span class="icon is-small">
-                <i class="fas fa-search"></i>
-              </span>
-              <span>Buscar</span>
-            </a>
-          </div>
-          {% endif %}
-        </div>
-      </div>
+      <h2 class="title is-5">
+        <span class="icon">
+          <i class="fas fa-search"></i>
+        </span>
+        <span>Libros deseados ({{ wanted_books|length }})</span>
+      </h2>
 
       {% if wanted_books %}
-      <ul class="mb-5 nested-content">
+      <ul class="mb-3 nested-content">
         {% for book in wanted_books %}
         <li class="mb-2">
           {% if book.title %}
@@ -213,16 +190,34 @@
         {% endfor %}
       </ul>
       {% else %}
-      <div class="mb-5 nested-content">
+      <div class="mb-3 nested-content">
         <p class="has-text-grey-light has-text-centered">Sin libros para mostrar</p>
       </div>
+      {% endif %}
+      {% if is_own_profile %}
+      <div class="has-text-centered mb-5">
+        <a href="{% url 'my_wanted' %}" class="button is-white">
+          <span class="icon is-small">
+            <i class="fas fa-edit"></i>
+          </span>
+          <span>Editar libros deseados</span>
+        </a>
+        <a href="{% url 'home' %}?wanted" class="button is-white">
+          <span class="icon is-small">
+            <i class="fas fa-search"></i>
+          </span>
+          <span>Buscar libros deseados</span>
+        </a>
+      </div>
+      {% else %}
+      <div class="mb-5"></div>
       {% endif %}
       {% endif %}
 
       {% if is_own_profile and traded_books %}
       <hr>
 
-      <h2 class="title is-5 mb-4">
+      <h2 class="title is-5">
         <span class="icon">
           <i class="fas fa-rotate"></i>
         </span>
@@ -241,7 +236,7 @@
       {% if is_own_profile and sent_requests %}
       <hr>
 
-      <h2 class="title is-5 mb-4">
+      <h2 class="title is-5">
         <span class="icon">
           <i class="fas fa-paper-plane"></i>
         </span>
@@ -260,7 +255,7 @@
       {% if is_own_profile and received_requests %}
       <hr>
 
-      <h2 class="title is-5 mb-4">
+      <h2 class="title is-5">
         <span class="icon">
           <i class="fas fa-inbox"></i>
         </span>
