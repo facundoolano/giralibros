@@ -49,6 +49,13 @@ class LocationArea(models.TextChoices):
     GBA_SUR = "GBA_SUR", "GBA Sur"
 
 
+class BookStatus(models.TextChoices):
+    NEW = "NEW", "New"
+    RESERVED = "RESERVED", "Reserved"
+    DELETED = "DELETED", "Deleted"
+    TRADED = "TRADED", "Traded"
+
+
 class UserLocation(models.Model):
     """
     Represent a region where users offer to make exchanges, which affects which other user's books
@@ -102,6 +109,14 @@ class BaseBook(models.Model):
 
 
 class OfferedBookManager(models.Manager):
+    def available(self):
+        """Return only books that are available (exclude deleted and traded)."""
+        return self.exclude(status__in=[BookStatus.DELETED, BookStatus.TRADED])
+
+    def traded_by(self, user):
+        """Return traded books for a user, ordered by most recent first."""
+        return self.filter(user=user, status=BookStatus.TRADED).order_by('-status_changed_at')
+
     def _annotate_last_activity(self, queryset):
         """Add last_activity_date annotation (max of created_at and cover_uploaded_at)."""
         return queryset.annotate(
@@ -126,9 +141,9 @@ class OfferedBookManager(models.Manager):
         """
         if user.is_authenticated and my_locations:
             user_areas = user.locations.values_list("area", flat=True)
-            queryset = self.filter(user__locations__area__in=user_areas).distinct()
+            queryset = self.available().filter(user__locations__area__in=user_areas).distinct()
         else:
-            queryset = self.all()
+            queryset = self.available()
 
         queryset = queryset.select_related("user")
 
@@ -157,7 +172,7 @@ class OfferedBookManager(models.Manager):
         - If viewing own profile: returns all books without annotation
         - If viewing another user's profile: annotates with 'already_requested' flag
         """
-        queryset = self.filter(user=profile_user).order_by('-created_at')
+        queryset = self.available().filter(user=profile_user).order_by('-created_at')
 
         if viewing_user != profile_user:
             queryset = self._annotate_already_requested(queryset, viewing_user)
@@ -250,6 +265,16 @@ class OfferedBook(BaseBook):
         default=False,
         help_text="Used to mark that this book is reserved for a not yet fulfilled exchange.",
     )
+    status = models.CharField(
+        max_length=20,
+        choices=BookStatus.choices,
+        default=BookStatus.NEW,
+        help_text="Current status of the book offer",
+    )
+    status_changed_at = models.DateTimeField(
+        default=timezone.now,
+        help_text="When the status was last changed",
+    )
     cover_image = models.ImageField(
         upload_to="book_covers/%Y/%m/",
         blank=True,
@@ -263,6 +288,44 @@ class OfferedBook(BaseBook):
     )
 
     objects = OfferedBookManager()
+
+    def delete(self, *args, **kwargs):
+        """Soft delete: mark book as deleted and remove cover image."""
+        if self.cover_image:
+            self.cover_image.delete(save=False)
+        self.status = BookStatus.DELETED
+        self.status_changed_at = timezone.now()
+        self.save()
+
+    def trade(self):
+        """Mark book as traded and remove cover image."""
+        if self.cover_image:
+            self.cover_image.delete(save=False)
+        self.status = BookStatus.TRADED
+        self.status_changed_at = timezone.now()
+        self.save()
+
+    def reserve(self):
+        """Toggle book reservation status between NEW and RESERVED."""
+        if self.status == BookStatus.RESERVED:
+            self.status = BookStatus.NEW
+        else:
+            self.status = BookStatus.RESERVED
+        self.status_changed_at = timezone.now()
+        self.save()
+
+    def is_reserved(self):
+        """Check if the book is reserved."""
+        return self.status == BookStatus.RESERVED
+
+    def notes_display(self):
+        """Return notes with [RESERVADO] prefix if book is reserved."""
+        if self.is_reserved():
+            if self.notes:
+                return f"[RESERVADO]\n{self.notes}"
+            else:
+                return "[RESERVADO]"
+        return self.notes
 
 
 class WantedBook(BaseBook):

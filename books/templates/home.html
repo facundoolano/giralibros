@@ -87,7 +87,7 @@
   {% endif %}
 </div>
 
-{% if user.is_authenticated and not user.offered.exists %}
+{% if user.is_authenticated and not user.offered.available.exists %}
 <div class="columns is-centered">
   <div class="column is-full-mobile is-three-quarters-tablet is-half-desktop">
     <article class="message is-warning">

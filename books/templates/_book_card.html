@@ -27,9 +27,9 @@
         <span class="has-text-grey-dark">{{ book.author }}</span>
         {% endif %}
       </p>
-      {% if book.notes and request.user.is_authenticated %}
+      {% if book.notes_display and request.user.is_authenticated %}
       <p class="is-size-7 mb-2 has-text-grey" style="cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" onclick="document.getElementById('modal-{{ book.id }}').classList.add('is-active')">
-        {{ book.notes }}
+        {{ book.notes_display }}
       </p>
       {% endif %}
       <div style="margin-top: auto;">
@@ -84,9 +84,9 @@
             <span class="has-text-grey-dark">{{ book.author }}</span>
             {% endif %}
           </p>
-          {% if book.notes and request.user.is_authenticated %}
+          {% if book.notes_display and request.user.is_authenticated %}
           <p class="is-size-7 mb-2 has-text-grey">
-            {{ book.notes }}
+            {{ book.notes_display }}
           </p>
           {% endif %}
           <div style="margin-top: auto;">
@@ -142,8 +142,8 @@
               <p class="subtitle is-6 mb-3 has-text-grey-dark">
                 <a href="{% url 'home' %}?search={{ book.author|urlencode }}" class="has-text-grey-dark" title="Buscar libros de este autor">{{ book.author }}</a>
               </p>
-              {% if book.notes %}
-              <div class="content mb-3">{{ book.notes|linebreaks }}</div>
+              {% if book.notes_display %}
+              <div class="content mb-3">{{ book.notes_display|linebreaks }}</div>
               {% endif %}
               <div style="margin-top: auto;">
                 <div class="is-flex is-justify-content-space-between is-align-items-baseline">
