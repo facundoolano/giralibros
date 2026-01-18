@@ -7,6 +7,10 @@
     table-layout: fixed;
   }
 
+  .books-table td {
+    vertical-align: middle;
+  }
+
   .books-table td:first-child {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -14,7 +18,7 @@
   }
 
   .books-table td:last-child {
-    width: 100px;
+    width: 120px;
     white-space: nowrap;
   }
 
@@ -235,7 +239,7 @@
                 <tr id="book-row-{{ book.id }}" data-edit-url="{% url 'edit_offered_book' book.id %}">
                   <td><strong>{{ book.title }}</strong>, {{ book.author }}</td>
                   <td class="has-text-right">
-                    <a href="{% url 'edit_offered_book' book.id %}" class="button is-small is-white">
+                    <a href="{% url 'edit_offered_book' book.id %}" class="button is-white">
                       <span class="icon is-small">
                         <i class="fas fa-edit"></i>
                       </span>
