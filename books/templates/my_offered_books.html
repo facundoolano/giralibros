@@ -13,7 +13,7 @@
       white-space: nowrap;
     }
     .books-table td:last-child {
-      width: 340px;
+      width: 100px;
       white-space: nowrap;
     }
   }
@@ -43,8 +43,21 @@
     }
 
     #book-form .columns .column.is-narrow {
-      display: flex;
-      justify-content: center;
+      display: block;
+      float: left;
+      width: 120px;
+      margin-right: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    #book-operations .buttons {
+      flex-direction: column;
+    }
+
+    #book-operations .buttons .button {
+      width: 100%;
+      margin-bottom: 0.5rem;
+      margin-right: 0;
     }
   }
 
@@ -90,34 +103,64 @@
                 <p class="help is-danger">{{ form.notes.errors.0 }}</p>
               {% endif %}
             </div>
-          </div>
 
-          {# Right column: Photo upload #}
-          <div class="column is-narrow">
-            <div class="is-flex is-flex-direction-column" style="gap: 0.5rem;">
-              <div>
-                <input type="file" name="cover_image" id="js-cover-image-input" accept="image/*" style="display: none;">
-                <button type="button" class="button is-info is-small is-light" id="js-photo-upload-btn">
+            {% if editing_book_id %}
+            <div class="field" id="book-operations">
+              <div class="buttons">
+                <button type="button" class="button is-small is-info is-light" id="js-photo-upload-btn-ops">
                   <span class="icon is-small">
                     <i class="fas fa-camera"></i>
                   </span>
-                  <span id="photo-upload-text">{% if form.instance.cover_image %}Cambiar foto{% else %}Agregar foto{% endif %}</span>
+                  <span>{% if form.instance.cover_image %}Cambiar foto{% else %}Agregar foto{% endif %}</span>
                 </button>
-                {% if form.cover_image.errors %}
-                  <p class="help is-danger">{{ form.cover_image.errors.0 }}</p>
-                {% endif %}
-              </div>
-              <div id="photo-preview-container" class="is-flex is-align-items-center book-cover-container">
-                {% if form.instance.cover_image %}
-                  <img src="{{ form.instance.cover_image.url }}" alt="Cover" class="book-cover-image" id="photo-preview">
+                <button type="button" class="button is-small is-danger is-light js-delete-book-btn" data-delete-url="{% url 'delete_offered_book' editing_book_id %}">
+                  <span class="icon is-small">
+                    <i class="fas fa-trash"></i>
+                  </span>
+                  <span>Borrar</span>
+                </button>
+                {% if form.instance.is_reserved %}
+                <button type="button" class="button is-small is-light js-reserve-book-btn" data-reserve-url="{% url 'reserve_offered_book' editing_book_id %}">
+                  <span class="icon is-small">
+                    <i class="fa fa-play"></i>
+                  </span>
+                  <span>Desreservar</span>
+                </button>
                 {% else %}
-                  <div class="book-placeholder book-cover-container is-flex is-justify-content-center is-align-items-center">
-                    <span class="icon is-medium has-text-grey">
-                      <i class="fas fa-book fa-2x"></i>
-                    </span>
-                  </div>
+                <button type="button" class="button is-small is-light js-reserve-book-btn" data-reserve-url="{% url 'reserve_offered_book' editing_book_id %}">
+                  <span class="icon is-small">
+                    <i class="fa fa-pause"></i>
+                  </span>
+                  <span>Reservar</span>
+                </button>
                 {% endif %}
+                <button type="button" class="button is-small is-success is-light js-mark-exchanged-btn" data-trade-url="{% url 'trade_offered_book' editing_book_id %}">
+                  <span class="icon is-small">
+                    <i class="fas fa-check"></i>
+                  </span>
+                  <span>Cambiado</span>
+                </button>
               </div>
+            </div>
+            {% endif %}
+          </div>
+
+          {# Right column: Photo preview #}
+          <div class="column is-narrow">
+            <input type="file" name="cover_image" id="js-cover-image-input" accept="image/*" style="display: none;">
+            {% if form.cover_image.errors %}
+              <p class="help is-danger">{{ form.cover_image.errors.0 }}</p>
+            {% endif %}
+            <div id="photo-preview-container" class="is-flex is-align-items-center book-cover-container">
+              {% if form.instance.cover_image %}
+                <img src="{{ form.instance.cover_image.url }}" alt="Cover" class="book-cover-image" id="photo-preview">
+              {% else %}
+                <div class="book-placeholder book-cover-container is-flex is-justify-content-center is-align-items-center">
+                  <span class="icon is-medium has-text-grey">
+                    <i class="fas fa-book fa-2x"></i>
+                  </span>
+                </div>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -136,45 +179,18 @@
     {% if offered_books %}
       <div class="box box-mobile-flat">
         <div class="table-container">
-          <table class="table is-fullwidth is-hoverable books-table">
+          <table class="table is-fullwidth books-table">
             <tbody>
               {% for book in offered_books %}
                 <tr id="book-row-{{ book.id }}" data-edit-url="{% url 'edit_offered_book' book.id %}">
                   <td><strong>{{ book.title }}</strong>, {{ book.author }}</td>
                   <td class="has-text-right">
-                    <div class="buttons is-right">
-                      <a href="{% url 'edit_offered_book' book.id %}" class="button is-small is-info is-light" title="Editar">
-                        <span class="icon is-small">
-                          <i class="fas fa-edit"></i>
-                        </span>
-                      </a>
-                      <button type="button" class="button is-small is-danger is-light js-delete-book-btn" data-delete-url="{% url 'delete_offered_book' book.id %}" title="Borrar">
-                        <span class="icon is-small">
-                          <i class="fas fa-trash"></i>
-                        </span>
-                      </button>
-                      {% if book.is_reserved %}
-                      <button type="button" class="button is-small is-light js-reserve-book-btn" data-reserve-url="{% url 'reserve_offered_book' book.id %}">
-                        <span>Desreservar</span>
-                        <span class="icon is-small">
-                          <i class="fa fa-play"></i>
-                        </span>
-                      </button>
-                      {% else %}
-                      <button type="button" class="button is-small is-light js-reserve-book-btn" data-reserve-url="{% url 'reserve_offered_book' book.id %}">
-                        <span>Reservar</span>
-                        <span class="icon is-small">
-                          <i class="fa fa-pause"></i>
-                        </span>
-                      </button>
-                      {% endif %}
-                      <button type="button" class="button is-small is-success is-light js-mark-exchanged-btn" data-trade-url="{% url 'trade_offered_book' book.id %}">
-                        <span>Cambiado</span>
-                        <span class="icon is-small">
-                          <i class="fas fa-check"></i>
-                        </span>
-                      </button>
-                    </div>
+                    <a href="{% url 'edit_offered_book' book.id %}" class="button is-small is-white">
+                      <span class="icon is-small">
+                        <i class="fas fa-edit"></i>
+                      </span>
+                      <span>Editar</span>
+                    </a>
                   </td>
                 </tr>
               {% endfor %}
@@ -208,10 +224,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Photo upload: trigger file input
-  document.getElementById('js-photo-upload-btn').addEventListener('click', () => {
-    document.getElementById('js-cover-image-input').click();
-  });
+  // Photo upload: trigger file input from operations button (if it exists)
+  const photoUploadBtnOps = document.getElementById('js-photo-upload-btn-ops');
+  if (photoUploadBtnOps) {
+    photoUploadBtnOps.addEventListener('click', () => {
+      document.getElementById('js-cover-image-input').click();
+    });
+  }
 
   // Photo upload: show preview
   document.getElementById('js-cover-image-input').addEventListener('change', (e) => {
@@ -222,7 +241,15 @@ document.addEventListener('DOMContentLoaded', () => {
     reader.onload = (event) => {
       document.getElementById('photo-preview-container').innerHTML =
         `<img src="${event.target.result}" alt="Preview" class="book-cover-image">`;
-      document.getElementById('photo-upload-text').textContent = 'Cambiar foto';
+
+      // Update button text in operations if it exists
+      const photoUploadBtnOps = document.getElementById('js-photo-upload-btn-ops');
+      if (photoUploadBtnOps) {
+        const textSpan = photoUploadBtnOps.querySelector('span:not(.icon)');
+        if (textSpan) {
+          textSpan.textContent = 'Cambiar foto';
+        }
+      }
     };
     reader.readAsDataURL(file);
   });
