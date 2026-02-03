@@ -144,7 +144,6 @@
         {# Desktop: Operations + Submit button in same row #}
         <div class="field" id="desktop-actions-row">
           <div class="is-flex is-justify-content-space-between is-align-items-center">
-            {% if editing_book_id %}
             <div class="buttons">
               <button type="button" class="button is-small is-info is-light" id="js-photo-upload-btn-ops">
                 <span class="icon is-small">
@@ -152,6 +151,7 @@
                 </span>
                 <span>{% if form.instance.cover_image %}Cambiar foto{% else %}Agregar foto{% endif %}</span>
               </button>
+            {% if editing_book_id %}
               <button type="button" class="button is-small is-danger is-light js-delete-book-btn" data-delete-url="{% url 'delete_offered_book' editing_book_id %}">
                 <span class="icon is-small">
                   <i class="fas fa-trash"></i>
@@ -179,10 +179,8 @@
                 </span>
                 <span>Cambiado</span>
               </button>
-            </div>
-            {% else %}
-            <div></div>
             {% endif %}
+            </div>
             <button type="submit" class="button is-primary">
               {% if editing_book_id %}Guardar cambios{% else %}Agregar libro{% endif %}
             </button>
@@ -190,7 +188,6 @@
         </div>
 
         {# Mobile-only layout: cover on left, operations on right #}
-        {% if editing_book_id %}
         <div id="mobile-cover-operations" class="mb-4">
           <div class="mobile-cover">
             <div id="photo-preview-container-mobile" class="is-flex is-align-items-center book-cover-container">
@@ -212,6 +209,7 @@
               </span>
               <span>{% if form.instance.cover_image %}Cambiar foto{% else %}Agregar foto{% endif %}</span>
             </button>
+            {% if editing_book_id %}
             <button type="button" class="button is-small is-danger is-light js-delete-book-btn" data-delete-url="{% url 'delete_offered_book' editing_book_id %}">
               <span class="icon is-small">
                 <i class="fas fa-trash"></i>
@@ -239,9 +237,9 @@
               </span>
               <span>Cambiado</span>
             </button>
+          {% endif %}
           </div>
         </div>
-        {% endif %}
         <div class="field is-grouped is-grouped-centered mt-4" id="mobile-submit">
           <div class="control">
             <button type="submit" class="button is-primary">
