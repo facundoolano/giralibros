@@ -373,7 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (response.ok) {
-          row.remove();
+          window.location.href = '{% url "my_offered" %}';
         } else {
           alert('Error al borrar el libro.');
         }
@@ -399,7 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (response.ok) {
-          row.remove();
+          window.location.href = '{% url "my_offered" %}';
         } else {
           alert('Error al marcar el libro.');
         }
