@@ -33,9 +33,9 @@
       </p>
       {% endif %}
       <div style="margin-top: auto;">
-        <div class="mb-2 is-flex is-justify-content-space-between is-align-items-baseline">
+        <div class="mb-2 is-flex is-justify-content-space-between is-align-items-baseline book-card-meta-row">
           {% if request.user.is_authenticated %}
-          <div class="is-size-6">
+          <div class="is-size-6 book-card-user">
             <span class="icon is-small has-text-grey">
               <i class="fas fa-user"></i>
             </span>
@@ -44,7 +44,7 @@
           {% else %}
           <div></div>
           {% endif %}
-          <div class="is-size-7">
+          <div class="is-size-7 book-card-timestamp">
             <span class="icon is-small has-text-grey">
               <i class="fas fa-clock"></i>
             </span>
@@ -90,9 +90,9 @@
           </p>
           {% endif %}
           <div style="margin-top: auto;">
-            <div class="mb-2 is-flex is-justify-content-space-between is-align-items-baseline">
+            <div class="mb-2 is-flex is-justify-content-space-between is-align-items-baseline book-card-meta-row">
               {% if request.user.is_authenticated %}
-              <div class="is-size-6">
+              <div class="is-size-6 book-card-user">
                 <span class="icon is-small has-text-grey">
                   <i class="fas fa-user"></i>
                 </span>
@@ -101,7 +101,7 @@
               {% else %}
               <div></div>
               {% endif %}
-              <div class="is-size-7">
+              <div class="is-size-7 book-card-timestamp">
                 <span class="icon is-small has-text-grey">
                   <i class="fas fa-clock"></i>
                 </span>
@@ -146,14 +146,14 @@
               <div class="content mb-3">{{ book.notes_display|linebreaks }}</div>
               {% endif %}
               <div style="margin-top: auto;">
-                <div class="is-flex is-justify-content-space-between is-align-items-baseline">
-                  <div class="is-size-6">
+                <div class="is-flex is-justify-content-space-between is-align-items-baseline book-card-meta-row">
+                  <div class="is-size-6 book-card-user">
                     <span class="icon is-small has-text-grey">
                       <i class="fas fa-user"></i>
                     </span>
                     <a href="{% url 'profile' username=book.user.username %}" title="Ver el perfil de {{ book.user.username }}">{{ book.user.username }}</a>
                   </div>
-                  <div class="is-size-7">
+                  <div class="is-size-7 book-card-timestamp">
                     <span class="icon is-small has-text-grey">
                       <i class="fas fa-clock"></i>
                     </span>

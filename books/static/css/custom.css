@@ -53,6 +53,24 @@ body {
    Book Components
    ============================================================================= */
 
+/* Book card user/timestamp row - prevent username overflow */
+.book-card-meta-row {
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.book-card-user {
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.book-card-timestamp {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
 /* Book cover images - consistent sizing */
 .book-cover-image {
     width: 100%;
@@ -265,5 +283,10 @@ body {
         flex-direction: column;
         align-items: flex-start !important;
         gap: 0.5rem;
+    }
+
+    /* Allow book card columns to shrink for username overflow fix */
+    .card-content .columns .column {
+        min-width: 0;
     }
 }
