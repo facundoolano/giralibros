@@ -27,3 +27,8 @@ sql:
 	sqlite3 -cmd ".open db.sqlite3"
 
 
+prod-db-pull:
+	scp $(SSH):/home/libros/giralibros/db.sqlite3 db.sqlite3
+
+prod-img-pull:
+	rsync -avz $(SSH):/var/www/giralibros/media/ ./media/
