@@ -12,7 +12,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.mail import EmailMultiAlternatives
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.http import HttpResponseBadRequest, JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
@@ -40,6 +40,18 @@ from books.models import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def honeypot_responder(request, context):
+    """
+    Custom responder for honeypot violations.
+    Logs the attempt and returns 403 Forbidden for easier monitoring.
+    """
+    logger.warning(
+        f"Honeypot violation detected: IP={request.META.get('REMOTE_ADDR')}, "
+        f"Path={request.path}, User-Agent={request.META.get('HTTP_USER_AGENT', 'N/A')}"
+    )
+    return HttpResponse("Forbidden", status=403)
 
 
 def login(request):

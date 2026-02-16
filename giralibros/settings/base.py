@@ -154,6 +154,7 @@ REGISTRATION_ENABLED = True  # Allow new user registrations
 
 # Honeypot settings (bot protection)
 HONEYPOT_FIELD_NAME = "email2"  # Name of the hidden honeypot field
+HONEYPOT_RESPONDER = "books.views.honeypot_responder"  # Custom responder for logging and 403 status
 
 # Email settings (common across all environments)
 # The EMAIL_BACKEND will be overridden in environment-specific settings
