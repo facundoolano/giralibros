@@ -19,6 +19,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from honeypot.decorators import check_honeypot
 from PIL import Image, ImageOps
 
 from books.forms import (
@@ -64,6 +65,7 @@ def login(request):
     )
 
 
+@check_honeypot
 def register(request):
     """
     Handle user registration.
