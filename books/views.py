@@ -364,6 +364,7 @@ def profile(request, username):
     offered_books = OfferedBook.objects.for_profile(profile_user, request.user)
     wanted_books = profile_user.wanted.all()
 
+    traded_books_count = OfferedBook.objects.traded_by(profile_user).count()
     sent_requests = None
     received_requests = None
     traded_books = None
@@ -381,6 +382,7 @@ def profile(request, username):
             "offered_books": offered_books,
             "wanted_books": wanted_books,
             "traded_books": traded_books,
+            "traded_books_count": traded_books_count,
             "sent_requests": sent_requests,
             "received_requests": received_requests,
             "books_per_page": settings.BOOKS_PER_PAGE,
