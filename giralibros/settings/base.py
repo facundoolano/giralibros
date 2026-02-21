@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "books",
     "django_cleanup.apps.CleanupConfig",  # Auto-deletes files when models are deleted
+    "honeypot",  # Bot registration protection
 ]
 
 MIDDLEWARE = [
@@ -150,6 +151,10 @@ BOOK_COVER_JPEG_QUALITY = 85  # JPEG compression quality (1-100)
 
 # Feature flags
 REGISTRATION_ENABLED = True  # Allow new user registrations
+
+# Honeypot settings (bot protection)
+HONEYPOT_FIELD_NAME = "email2"  # Name of the hidden honeypot field
+HONEYPOT_RESPONDER = "books.views.honeypot_responder"  # Custom responder for logging and 403 status
 
 # Email settings (common across all environments)
 # The EMAIL_BACKEND will be overridden in environment-specific settings

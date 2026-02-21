@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+from django.contrib.auth.models import User
 from django.core import mail
 from django.test import Client, TestCase, TransactionTestCase, override_settings
 from django.urls import reverse
@@ -33,6 +34,7 @@ class BookTestMixin:
                 "email": email,
                 "password1": password,
                 "password2": password,
+                "email2": "",  # Honeypot field (must be empty)
             },
         )
         verify_url = self.get_verification_url_from_email(email)
@@ -140,6 +142,7 @@ class UserTest(BookTestMixin, TestCase):
                 "email": "test@example.com",
                 "password1": "testpass123",
                 "password2": "testpass123",
+                "email2": "",  # Honeypot field
             },
         )
         self.assertEqual(response.status_code, 200)
@@ -171,6 +174,7 @@ class UserTest(BookTestMixin, TestCase):
                 "email": "test@example.com",
                 "password1": "testpass123",
                 "password2": "testpass123",
+                "email2": "",  # Honeypot field
             },
         )
         self.assertEqual(response.status_code, 200)
@@ -213,6 +217,7 @@ class UserTest(BookTestMixin, TestCase):
                 "email": "test@example.com",
                 "password1": "testpass123",
                 "password2": "testpass123",
+                "email2": "",  # Honeypot field
             },
         )
         self.assertEqual(response.status_code, 200)
@@ -225,6 +230,7 @@ class UserTest(BookTestMixin, TestCase):
                 "email": "test2@example.com",
                 "password1": "testpass456",
                 "password2": "testpass456",
+                "email2": "",  # Honeypot field
             },
         )
         self.assertEqual(response.status_code, 200)
@@ -359,6 +365,7 @@ class UserTest(BookTestMixin, TestCase):
                 "email": "test@example.com",
                 "password1": "testpass123",
                 "password2": "testpass123",
+                "email2": "",  # Honeypot field
             },
         )
         self.assertEqual(response.status_code, 200)
@@ -371,6 +378,7 @@ class UserTest(BookTestMixin, TestCase):
                 "email": "different@example.com",
                 "password1": "testpass123",
                 "password2": "testpass123",
+                "email2": "",  # Honeypot field
             },
         )
         self.assertEqual(response.status_code, 200)  # Stays on form
@@ -386,6 +394,7 @@ class UserTest(BookTestMixin, TestCase):
                 "email": "test@example.com",
                 "password1": "testpass123",
                 "password2": "testpass123",
+                "email2": "",  # Honeypot field
             },
         )
         self.assertEqual(response.status_code, 200)  # Stays on form
@@ -401,6 +410,7 @@ class UserTest(BookTestMixin, TestCase):
                 "email": "test@example.com",
                 "password1": "short",
                 "password2": "short",
+                "email2": "",  # Honeypot field
             },
         )
         self.assertEqual(response.status_code, 200)  # Stays on form
@@ -416,6 +426,7 @@ class UserTest(BookTestMixin, TestCase):
                 "email": "test2@example.com",
                 "password1": "1111333777",
                 "password2": "1111333777",
+                "email2": "",  # Honeypot field
             },
         )
         self.assertEqual(response.status_code, 200)  # Stays on form
@@ -431,12 +442,32 @@ class UserTest(BookTestMixin, TestCase):
                 "email": "test3@example.com",
                 "password1": "password",
                 "password2": "password",
+                "email2": "",  # Honeypot field
             },
         )
         self.assertEqual(response.status_code, 200)  # Stays on form
         self.assertContains(
             response, "La contraseña tiene un valor demasiado común"
         )  # Error message
+
+    def test_honeypot_blocks_bots(self):
+        """Test that honeypot field blocks bot registrations."""
+        # Bot fills in the honeypot field
+        response = self.client.post(
+            reverse("register"),
+            {
+                "username": "botuser",
+                "email": "bot@example.com",
+                "password1": "testpass123",
+                "password2": "testpass123",
+                "email2": "bot@spam.com",  # Honeypot field filled (bot behavior)
+            },
+        )
+        # Should return 403 Forbidden
+        self.assertEqual(response.status_code, 403)
+
+        # Verify user was not created
+        self.assertFalse(User.objects.filter(username="botuser").exists())
 
     def test_home_redirects_on_no_profile(self):
         """Test that users without profile data are redirected to profile setup before accessing home."""

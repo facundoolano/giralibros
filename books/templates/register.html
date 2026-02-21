@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% load static %} {% block extra_css %}
+{% extends "base.html" %} {% load honeypot %} {% load static %} {% block extra_css %}
 <style>
   html,
   body {
@@ -44,7 +44,9 @@
         {% endif %}
 
         <form method="post" action="{% url 'register' %}">
-          {% csrf_token %} {% for field in form %}
+          {% csrf_token %}
+          {% render_honeypot_field %}
+          {% for field in form %}
           <div class="field">
             <label class="label">{{ field.label }}</label>
             <div class="control">{{ field }}</div>
