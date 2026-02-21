@@ -62,13 +62,44 @@ body {
 .book-card-user {
     min-width: 0;
     flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.3rem;
+}
+
+.book-card-user a {
     overflow: hidden;
     white-space: nowrap;
+    text-overflow: ellipsis;
+    min-width: 0;
 }
 
 .book-card-timestamp {
     flex-shrink: 0;
     white-space: nowrap;
+}
+
+/* Avatar in book card header row */
+.book-card-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 4px;
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;
+}
+
+.book-card-avatar-placeholder {
+    width: 44px;
+    height: 44px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    background-color: var(--bulma-scheme-main-bis);
+    border: 2px dashed var(--bulma-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Book cover images - consistent sizing */
