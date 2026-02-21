@@ -144,7 +144,7 @@ body {
     background-size: cover;
     background-position: center center;
     position: relative;
-    min-height: 260px;
+    min-height: 280px;
 }
 
 .book-card-cover-bg::after {
@@ -180,7 +180,7 @@ body {
 
 @media screen and (min-width: 769px) {
     .book-card-cover-bg {
-        min-height: 380px;
+        min-height: 360px;
     }
 }
 
