@@ -4,7 +4,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import BooleanField, Exists, OuterRef, Q, Value
+from django.db.models import BooleanField, Exists, F, OuterRef, Q, Value
 from django.db.models.functions import Coalesce, Greatest
 from django.utils import timezone
 
@@ -174,10 +174,12 @@ class OfferedBookManager(models.Manager):
         queryset = queryset.order_by("-last_activity_date")
 
         if user.is_authenticated:
-            return self._annotate_already_requested(queryset, user)
+            queryset = self._annotate_already_requested(queryset, user)
+            return self._annotate_already_liked(queryset, user)
         else:
             return queryset.annotate(
-                already_requested=Value(False, output_field=BooleanField())
+                already_requested=Value(False, output_field=BooleanField()),
+                already_liked=Value(False, output_field=BooleanField()),
             )
 
     def for_profile(self, profile_user, viewing_user):
@@ -196,6 +198,7 @@ class OfferedBookManager(models.Manager):
 
         if viewing_user != profile_user:
             queryset = self._annotate_already_requested(queryset, viewing_user)
+            queryset = self._annotate_already_liked(queryset, viewing_user)
 
         return queryset
 
@@ -255,6 +258,13 @@ class OfferedBookManager(models.Manager):
 
         return queryset.filter(match_conditions).exclude(user=user).distinct()
 
+    def _annotate_already_liked(self, queryset, user):
+        return queryset.annotate(
+            already_liked=Exists(
+                Like.objects.filter(user=user, offered_book=OuterRef("pk"))
+            )
+        )
+
     def _annotate_already_requested(self, queryset, requesting_user):
         """
         Helper to add already_requested annotation to a queryset.
@@ -306,6 +316,7 @@ class OfferedBook(BaseBook):
         blank=True,
         help_text="When the cover photo was last uploaded",
     )
+    likes = models.PositiveIntegerField(default=0)
 
     objects = OfferedBookManager()
 
@@ -338,6 +349,12 @@ class OfferedBook(BaseBook):
         """Check if the book is reserved."""
         return self.status == BookStatus.RESERVED
 
+    def add_like(self, user):
+        """Create a like from user, incrementing the counter. Silently ignores duplicate likes."""
+        _, created = Like.objects.get_or_create(user=user, offered_book=self)
+        if created:
+            OfferedBook.objects.filter(pk=self.pk).update(likes=F("likes") + 1)
+
     def notes_display(self):
         """Return notes with [RESERVADO] prefix if book is reserved."""
         if self.is_reserved():
@@ -353,6 +370,19 @@ class WantedBook(BaseBook):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="wanted")
     title = models.CharField(max_length=200, blank=True)
+
+
+class Like(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="likes")
+    offered_book = models.ForeignKey(
+        OfferedBook, on_delete=models.CASCADE, related_name="book_likes"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["user", "offered_book"], name="unique_user_book_like")
+        ]
 
 
 class ExchangeRequestManager(models.Manager):

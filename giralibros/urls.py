@@ -31,6 +31,7 @@ urlpatterns = [
     path('my/wanted/', views.my_wanted_books, name='my_wanted'),
     path('my/wanted/<int:book_id>/delete/', views.delete_wanted_book, name='delete_wanted_book'),
     path('books/<int:book_id>/request-exchange/', views.request_exchange, name='request_exchange'),
+    path('books/<int:book_id>/like/', views.like_book, name='like_book'),
     path('books/<int:book_id>/upload-photo/', views.upload_book_photo, name='upload_book_photo'),
     path('about/', views.about, name='about'),
     path('login/', views.login, name='login'),

@@ -24,6 +24,12 @@
           <div class="is-size-7 book-card-timestamp has-text-grey">
             <span class="icon is-small"><i class="fas fa-clock"></i></span>
             <span class="timeago-tooltip" data-timestamp="{{ book.last_activity_date|date:'c' }}">{{ book.last_activity_date|timeago }}</span>
+            {% if request.user.is_authenticated and book.user != request.user %}
+            <button class="search-icon-button js-like-btn{% if book.already_liked %} has-text-danger{% endif %} ml-1" data-book-id="{{ book.id }}" title="Me gusta"{% if book.already_liked %} disabled{% endif %}><i class="fas fa-heart"></i></button>
+            {% else %}
+            <span{% if book.already_liked %} class="has-text-danger ml-1"{% else %} class="ml-1"{% endif %}><i class="fas fa-heart"></i></span>
+            {% endif %}
+            <span class="js-like-count{% if not book.likes %} is-hidden{% endif %}" data-book-id="{{ book.id }}">{{ book.likes }}</span>
           </div>
         </div>
         {% else %}
@@ -32,6 +38,12 @@
           <div class="is-size-7 book-card-timestamp has-text-grey">
             <span class="icon is-small"><i class="fas fa-clock"></i></span>
             <span class="timeago-tooltip" data-timestamp="{{ book.last_activity_date|date:'c' }}">{{ book.last_activity_date|timeago }}</span>
+            {% if request.user.is_authenticated and book.user != request.user %}
+            <button class="search-icon-button js-like-btn{% if book.already_liked %} has-text-danger{% endif %} ml-1" data-book-id="{{ book.id }}" title="Me gusta"{% if book.already_liked %} disabled{% endif %}><i class="fas fa-heart"></i></button>
+            {% else %}
+            <span{% if book.already_liked %} class="has-text-danger ml-1"{% else %} class="ml-1"{% endif %}><i class="fas fa-heart"></i></span>
+            {% endif %}
+            <span class="js-like-count{% if not book.likes %} is-hidden{% endif %}" data-book-id="{{ book.id }}">{{ book.likes }}</span>
           </div>
         </div>
         {% endif %}
@@ -80,6 +92,12 @@
           <div class="is-size-7 book-card-timestamp has-text-grey">
             <span class="icon is-small"><i class="fas fa-clock"></i></span>
             <span class="timeago-tooltip" data-timestamp="{{ book.last_activity_date|date:'c' }}">{{ book.last_activity_date|timeago }}</span>
+            {% if request.user.is_authenticated and book.user != request.user %}
+            <button class="search-icon-button js-like-btn{% if book.already_liked %} has-text-danger{% endif %} ml-1" data-book-id="{{ book.id }}" title="Me gusta"{% if book.already_liked %} disabled{% endif %}><i class="fas fa-heart"></i></button>
+            {% else %}
+            <span{% if book.already_liked %} class="has-text-danger ml-1"{% else %} class="ml-1"{% endif %}><i class="fas fa-heart"></i></span>
+            {% endif %}
+            <span class="js-like-count{% if not book.likes %} is-hidden{% endif %}" data-book-id="{{ book.id }}">{{ book.likes }}</span>
           </div>
         </div>
         {% else %}
@@ -88,6 +106,12 @@
           <div class="is-size-7 book-card-timestamp has-text-grey">
             <span class="icon is-small"><i class="fas fa-clock"></i></span>
             <span class="timeago-tooltip" data-timestamp="{{ book.last_activity_date|date:'c' }}">{{ book.last_activity_date|timeago }}</span>
+            {% if request.user.is_authenticated and book.user != request.user %}
+            <button class="search-icon-button js-like-btn{% if book.already_liked %} has-text-danger{% endif %} ml-1" data-book-id="{{ book.id }}" title="Me gusta"{% if book.already_liked %} disabled{% endif %}><i class="fas fa-heart"></i></button>
+            {% else %}
+            <span{% if book.already_liked %} class="has-text-danger ml-1"{% else %} class="ml-1"{% endif %}><i class="fas fa-heart"></i></span>
+            {% endif %}
+            <span class="js-like-count{% if not book.likes %} is-hidden{% endif %}" data-book-id="{{ book.id }}">{{ book.likes }}</span>
           </div>
         </div>
         {% endif %}
@@ -138,6 +162,13 @@
             <a href="{% url 'profile' username=book.user.username %}" class="is-size-6" title="Ver el perfil de {{ book.user.username }}">{{ book.user.username }}</a>
             <span class="has-text-grey mx-2">·</span>
             <span class="is-size-7 has-text-grey timeago-tooltip" data-timestamp="{{ book.last_activity_date|date:'c' }}">{{ book.last_activity_date|timeago }}</span>
+            <span class="has-text-grey mx-2">·</span>
+            {% if book.user != request.user %}
+            <button class="search-icon-button js-like-btn is-size-7 {% if book.already_liked %}has-text-danger{% else %}has-text-grey{% endif %}" data-book-id="{{ book.id }}" title="Me gusta"{% if book.already_liked %} disabled{% endif %}><i class="fas fa-heart"></i></button>
+            {% else %}
+            <span class="is-size-7 {% if book.already_liked %}has-text-danger{% else %}has-text-grey{% endif %}"><i class="fas fa-heart"></i></span>
+            {% endif %}
+            <span class="js-like-count is-size-7{% if not book.likes %} is-hidden{% endif %}" data-book-id="{{ book.id }}">{{ book.likes }}</span>
           </div>
 
           <!-- Cover left, title + author right; image scales with viewport -->

@@ -493,6 +493,22 @@ def reserve_offered_book(request, book_id):
 
 
 @login_required
+def like_book(request, book_id):
+    """Add a like to an offered book (AJAX endpoint). Silently ignores duplicate likes."""
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    book = get_object_or_404(OfferedBook.objects.available(), pk=book_id)
+
+    if book.user == request.user:
+        return JsonResponse({"error": "No podés dar like a tus propios libros"}, status=400)
+
+    book.add_like(request.user)
+
+    return JsonResponse({"success": True})
+
+
+@login_required
 def my_wanted_books(request):
     """Display form to add wanted books and list of existing books."""
     if request.method == "POST":
@@ -596,6 +612,7 @@ def request_exchange(request, book_id):
                 book_title=book.title,
                 book_author=book.author,
             )
+            book.add_like(request.user)
 
             # Build absolute URL for requester's profile
             profile_path = reverse(

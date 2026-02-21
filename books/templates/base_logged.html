@@ -224,6 +224,36 @@
                 }
             });
 
+            // Handle like button clicks
+            document.addEventListener('click', (e) => {
+                const button = e.target.closest('button.js-like-btn[data-book-id]');
+                if (!button || button.disabled) return;
+
+                button.disabled = true;
+                const bookId = button.dataset.bookId;
+
+                fetch(`/books/${bookId}/like/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrftoken },
+                })
+                .then(response => {
+                    if (response.ok) {
+                        document.querySelectorAll(`.js-like-btn[data-book-id="${bookId}"]`).forEach(btn => {
+                            btn.classList.add('has-text-danger');
+                            btn.classList.remove('has-text-grey');
+                            btn.disabled = true;
+                        });
+                        document.querySelectorAll(`.js-like-count[data-book-id="${bookId}"]`).forEach(counter => {
+                            counter.textContent = (parseInt(counter.textContent) || 0) + 1;
+                            counter.classList.remove('is-hidden');
+                        });
+                    } else {
+                        button.disabled = false;
+                    }
+                })
+                .catch(() => { button.disabled = false; });
+            });
+
             // Handle exchange request button clicks
             document.addEventListener('click', (e) => {
                 const button = e.target.closest('button.js-exchange-btn[data-book-id]');
