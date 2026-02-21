@@ -311,7 +311,16 @@ def profile_edit(request):
 
     if request.method == "POST":
         form = ProfileForm(request.POST)
-        if form.is_valid():
+
+        avatar_error = None
+        processed_avatar = None
+        if "profile_picture" in request.FILES:
+            try:
+                processed_avatar = _process_avatar_image(request.FILES["profile_picture"])
+            except ValueError as e:
+                avatar_error = str(e)
+
+        if form.is_valid() and not avatar_error:
             # Update User.first_name
             request.user.first_name = form.cleaned_data["first_name"]
             request.user.save()
@@ -330,10 +339,11 @@ def profile_edit(request):
                     about=form.cleaned_data["about"],
                 )
 
+            if processed_avatar:
+                profile.profile_picture.save(processed_avatar.name, processed_avatar, save=True)
+
             # Update UserLocation entries
-            # Delete existing locations
             UserLocation.objects.filter(user=request.user).delete()
-            # Create new locations
             for area in form.cleaned_data["locations"]:
                 UserLocation.objects.create(user=request.user, area=area)
 
@@ -361,7 +371,7 @@ def profile_edit(request):
             }
         form = ProfileForm(initial=initial)
 
-    return render(request, "profile_edit.html", {"form": form})
+    return render(request, "profile_edit.html", {"form": form, "avatar_error": avatar_error if request.method == "POST" else None})
 
 
 @login_required
@@ -659,76 +669,90 @@ def upload_book_photo(request, book_id):
     return HttpResponseBadRequest("Method not allowed")
 
 
-def _process_book_cover_image(uploaded_file):
+def _process_uploaded_image(uploaded_file, *, max_size, allowed_types, max_width, max_height, jpeg_quality, filename_suffix, crop_aspect=None):
     """
-    Validate and process uploaded book cover image.
+    Validate and process an uploaded image file.
     Returns InMemoryUploadedFile ready to save, or raises ValueError on validation errors.
-    """
-    # Validate file size
-    max_size = settings.BOOK_COVER_MAX_SIZE
-    if uploaded_file.size > max_size:
-        max_size_mb = max_size / (1024 * 1024)
-        raise ValueError(f"Image file too large (max {max_size_mb:.0f}MB)")
 
-    # Validate file type
-    allowed_types = settings.BOOK_COVER_ALLOWED_TYPES
+    If crop_aspect (width/height) is given, center-crops to that ratio before resizing.
+    """
+    if uploaded_file.size > max_size:
+        raise ValueError(f"Image file too large (max {max_size // (1024 * 1024):.0f}MB)")
+
     if uploaded_file.content_type not in allowed_types:
         raise ValueError("Invalid image format")
 
-    # Open and process image with Pillow
     try:
         image = Image.open(uploaded_file)
     except Exception as e:
         logger.warning(f"PIL cannot identify image file: {uploaded_file.name} - {e}")
         raise ValueError("The uploaded file is not a valid image or is corrupt")
 
-    # Apply EXIF orientation (fixes rotated mobile photos)
-    # exif_transpose returns None if no transposing is needed
     image = ImageOps.exif_transpose(image) or image
 
-    # Convert to RGB if necessary (handles PNG with transparency, etc.)
     if image.mode in ("RGBA", "P"):
         image = image.convert("RGB")
 
-    # Center crop to book aspect ratio (2:3 - typical paperback)
-    # This removes surroundings and focuses on the book
-    target_aspect = 2 / 3  # width / height
-    img_width, img_height = image.size
-    img_aspect = img_width / img_height
+    if crop_aspect is not None:
+        img_width, img_height = image.size
+        img_aspect = img_width / img_height
+        if img_aspect > crop_aspect:
+            new_width = int(img_height * crop_aspect)
+            left = (img_width - new_width) // 2
+            image = image.crop((left, 0, left + new_width, img_height))
+        else:
+            new_height = int(img_width / crop_aspect)
+            top = (img_height - new_height) // 2
+            image = image.crop((0, top, img_width, top + new_height))
 
-    if img_aspect > target_aspect:
-        # Image is too wide, crop sides
-        new_width = int(img_height * target_aspect)
-        left = (img_width - new_width) // 2
-        image = image.crop((left, 0, left + new_width, img_height))
-    else:
-        # Image is too tall, crop top/bottom
-        new_height = int(img_width / target_aspect)
-        top = (img_height - new_height) // 2
-        image = image.crop((0, top, img_width, top + new_height))
-
-    # Calculate thumbnail size maintaining aspect ratio
-    max_width = settings.BOOK_COVER_THUMBNAIL_MAX_WIDTH
-    max_height = settings.BOOK_COVER_THUMBNAIL_MAX_HEIGHT
     image.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
 
-    # Save to BytesIO with optimization
     output = BytesIO()
-    quality = settings.BOOK_COVER_JPEG_QUALITY
-    image.save(output, format="JPEG", quality=quality, optimize=True)
+    image.save(output, format="JPEG", quality=jpeg_quality, optimize=True)
     output.seek(0)
 
-    # Create new InMemoryUploadedFile
-    thumbnail = InMemoryUploadedFile(
+    return InMemoryUploadedFile(
         output,
         "ImageField",
-        f"{uploaded_file.name.split('.')[0]}_thumb.jpg",
+        f"{uploaded_file.name.split('.')[0]}{filename_suffix}.jpg",
         "image/jpeg",
         output.getbuffer().nbytes,
         None,
     )
 
-    return thumbnail
+
+def _process_book_cover_image(uploaded_file):
+    """
+    Validate and process uploaded book cover image.
+    Returns InMemoryUploadedFile ready to save, or raises ValueError on validation errors.
+    """
+    return _process_uploaded_image(
+        uploaded_file,
+        max_size=settings.BOOK_COVER_MAX_SIZE,
+        allowed_types=settings.BOOK_COVER_ALLOWED_TYPES,
+        max_width=settings.BOOK_COVER_THUMBNAIL_MAX_WIDTH,
+        max_height=settings.BOOK_COVER_THUMBNAIL_MAX_HEIGHT,
+        jpeg_quality=settings.BOOK_COVER_JPEG_QUALITY,
+        filename_suffix="_thumb",
+        crop_aspect=2 / 3,
+    )
+
+
+def _process_avatar_image(uploaded_file):
+    """
+    Validate and process uploaded profile picture.
+    Returns InMemoryUploadedFile ready to save, or raises ValueError on validation errors.
+    Resizes to fit within max dimension while preserving aspect ratio; CSS handles the square crop.
+    """
+    return _process_uploaded_image(
+        uploaded_file,
+        max_size=settings.PROFILE_PICTURE_MAX_SIZE,
+        allowed_types=settings.PROFILE_PICTURE_ALLOWED_TYPES,
+        max_width=settings.PROFILE_PICTURE_MAX_DIMENSION,
+        max_height=settings.PROFILE_PICTURE_MAX_DIMENSION,
+        jpeg_quality=settings.PROFILE_PICTURE_JPEG_QUALITY,
+        filename_suffix="_avatar",
+    )
 
 
 def _send_templated_email(
