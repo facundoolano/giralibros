@@ -60,7 +60,7 @@
       </div>
     </div>
 
-    <!-- Mobile: Horizontal layout -->
+    <!-- Mobile: Vertical layout with cover as background -->
     <div class="card-content is-hidden-tablet">
 
       <!-- User meta row -->
@@ -93,42 +93,26 @@
         {% endif %}
       </div>
 
-      <div class="columns is-mobile is-gapless">
-        <div class="column is-narrow">
-          <div class="book-cover-container-mobile mr-3">
-            {% if book.cover_image %}
-            <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" style="width: 100%; height: 100%; object-fit: cover; object-position: center 35%; border-radius: 4px; transform: scale(1.2);">
-            {% else %}
-            <div class="book-placeholder is-flex is-justify-content-center is-align-items-center" style="width: 100%; height: 100%;">
-              <span class="icon is-medium has-text-grey">
-                <i class="fas fa-book fa-2x"></i>
-              </span>
-            </div>
-            {% endif %}
-          </div>
-        </div>
-        <div class="column" style="display: flex; flex-direction: column;">
-          <p class="is-size-6 mb-1">
-            <strong>{{ book.title }}</strong>
-          </p>
-          <p class="is-size-6 mb-2">
-            {% if request.user.is_authenticated %}
-            <a href="{% url 'home' %}?search={{ book.author|urlencode }}" class="has-text-grey-dark" title="Buscar libros de este autor">{{ book.author }}</a>
-            {% else %}
-            <span class="has-text-grey-dark">{{ book.author }}</span>
-            {% endif %}
-          </p>
-          {% if book.notes_display and request.user.is_authenticated %}
-          <p class="is-size-7 mb-2 has-text-grey">
-            {{ book.notes_display }}
-          </p>
-          {% endif %}
-          <div style="margin-top: auto;">
-            {% if request.user.is_authenticated and book.user != request.user %}
-            {% include '_exchange_button.html' with button_classes='is-fullwidth' %}
-            {% endif %}
-          </div>
-        </div>
+      <!-- Spacer: pushes text to bottom -->
+      <div class="is-flex is-justify-content-center is-align-items-center" style="flex: 1; cursor: pointer;"{% if request.user.is_authenticated %} onclick="document.getElementById('modal-{{ book.id }}').classList.add('is-active')"{% else %} onclick="window.location.href='{% url 'login' %}'"{% endif %}>
+        {% if not book.cover_image %}
+        <span class="icon is-large has-text-grey"><i class="fas fa-book fa-4x"></i></span>
+        {% endif %}
+      </div>
+
+      <p class="is-size-6 {% if book.notes_display and request.user.is_authenticated %}mb-1{% else %}mb-2{% endif %}">
+        <strong style="color: white;">{{ book.title }}</strong>
+        <span style="display: inline-block;">{% if request.user.is_authenticated %}<a href="{% url 'home' %}?search={{ book.author|urlencode }}" class="has-text-white" title="Buscar libros de este autor">{{ book.author }}</a>{% else %}<span class="has-text-white">{{ book.author }}</span>{% endif %}</span>
+      </p>
+      {% if book.notes_display and request.user.is_authenticated %}
+      <p class="is-size-7 mb-2 has-text-white" style="cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" onclick="document.getElementById('modal-{{ book.id }}').classList.add('is-active')">
+        {{ book.notes_display }}
+      </p>
+      {% endif %}
+      <div style="margin-top: auto;">
+        {% if request.user.is_authenticated and book.user != request.user %}
+        {% include '_exchange_button.html' with button_classes='is-fullwidth' %}
+        {% endif %}
       </div>
     </div>
 
@@ -139,7 +123,9 @@
       <div class="modal-content">
         <div class="box">
           <button class="delete is-pulled-right" aria-label="close" onclick="document.getElementById('modal-{{ book.id }}').classList.remove('is-active')"></button>
-          <div class="columns is-gapless">
+
+          <!-- Desktop/Tablet: image left, text right -->
+          <div class="columns is-gapless is-hidden-mobile">
             <div class="column is-narrow">
               <div style="width: 240px; margin-right: 1.5rem;">
                 {% if book.cover_image %}
@@ -183,6 +169,41 @@
               </div>
             </div>
           </div>
+
+          <!-- Mobile: image top, text below -->
+          <div class="is-hidden-tablet">
+            {% if book.cover_image %}
+            <div class="has-text-centered mb-3">
+              <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" style="max-height: 180px; width: auto; border-radius: 4px; display: inline-block;">
+            </div>
+            {% endif %}
+            <p class="title is-5 mb-2">{{ book.title }}</p>
+            <p class="subtitle is-6 mb-3 has-text-grey-dark">
+              <a href="{% url 'home' %}?search={{ book.author|urlencode }}" class="has-text-grey-dark" title="Buscar libros de este autor">{{ book.author }}</a>
+            </p>
+            {% if book.notes_display %}
+            <div class="content mb-3">{{ book.notes_display|linebreaks }}</div>
+            {% endif %}
+            <div class="is-flex is-align-items-center book-card-meta-row">
+              <a href="{% url 'profile' username=book.user.username %}" style="flex-shrink: 0;" class="mr-2">
+                {% if book.user.profile.profile_picture %}
+                <img src="{{ book.user.profile.profile_picture.url }}" alt="{{ book.user.username }}" class="book-card-avatar">
+                {% else %}
+                <span class="book-card-avatar-placeholder">
+                  <span class="icon is-medium has-text-grey"><i class="fas fa-user fa-lg"></i></span>
+                </span>
+                {% endif %}
+              </a>
+              <div class="book-card-user">
+                <a href="{% url 'profile' username=book.user.username %}" class="is-size-6" title="Ver el perfil de {{ book.user.username }}">{{ book.user.username }}</a>
+                <div class="is-size-7 book-card-timestamp has-text-grey">
+                  <span class="icon is-small"><i class="fas fa-clock"></i></span>
+                  <span class="timeago-tooltip" data-timestamp="{{ book.last_activity_date|date:'c' }}">{{ book.last_activity_date|timeago }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>

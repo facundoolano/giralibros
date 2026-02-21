@@ -138,51 +138,49 @@ body {
 }
 
 /* Card with cover image as full background - tablet and above only */
-@media screen and (min-width: 769px) {
-    .book-card-cover-bg {
-        background-color: var(--bulma-scheme-main-bis);
-        background-size: cover;
-        background-position: center center;
-        position: relative;
-        min-height: 360px;
-    }
-
-    .book-card-cover-bg::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(
-            to bottom,
-            rgba(0, 0, 0, 0.72) 0%,
-            rgba(0, 0, 0, 0.25) 20%,
-            rgba(0, 0, 0, 0.0) 35%,
-            rgba(0, 0, 0, 0.0) 55%,
-            rgba(0, 0, 0, 0.15) 68%,
-            rgba(0, 0, 0, 0.45) 82%,
-            rgba(0, 0, 0, 0.68) 100%
-        );
-        border-radius: inherit;
-        pointer-events: none;
-    }
-
-    .book-card-cover-bg .card-content {
-        position: relative;
-        z-index: 1;
-    }
-
-    .book-card-cover-bg .book-card-meta-username {
-        color: #93c5fd;
-    }
-
-    .book-card-cover-bg .book-card-timestamp {
-        color: rgba(255, 255, 255, 0.65) !important;
-    }
-
+/* Card with cover image as full background */
+.book-card-cover-bg {
+    background-color: var(--bulma-scheme-main-bis);
+    background-size: cover;
+    background-position: center center;
+    position: relative;
+    min-height: 260px;
 }
 
-@media screen and (max-width: 768px) {
+.book-card-cover-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.72) 0%,
+        rgba(0, 0, 0, 0.25) 20%,
+        rgba(0, 0, 0, 0.0) 35%,
+        rgba(0, 0, 0, 0.0) 55%,
+        rgba(0, 0, 0, 0.22) 68%,
+        rgba(0, 0, 0, 0.58) 82%,
+        rgba(0, 0, 0, 0.82) 100%
+    );
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.book-card-cover-bg .card-content {
+    position: relative;
+    z-index: 1;
+}
+
+.book-card-cover-bg .book-card-meta-username {
+    color: #93c5fd;
+}
+
+.book-card-cover-bg .book-card-timestamp {
+    color: rgba(255, 255, 255, 0.65) !important;
+}
+
+@media screen and (min-width: 769px) {
     .book-card-cover-bg {
-        background-image: none !important;
+        min-height: 400px;
     }
 }
 
