@@ -19,10 +19,14 @@
       {# Header with username and info #}
       <div class="mb-3">
         <div class="is-flex is-align-items-center is-flex-wrap-wrap" style="gap: 0.5rem;">
-          <h1 class="title is-4 mb-0">
-            <span class="icon is-small mr-1">
-              <i class="fas fa-user fa-sm"></i>
+          <h1 class="title is-4 mb-0 is-flex is-align-items-center" style="gap: 0.75rem;">
+            {% if profile_user.profile.profile_picture %}
+            <img src="{{ profile_user.profile.profile_picture.url }}" alt="{{ profile_user.username }}" style="width: 72px; height: 72px; border-radius: 4px; object-fit: cover; object-position: center 25%; flex-shrink: 0;">
+            {% else %}
+            <span style="width: 72px; height: 72px; border-radius: 4px; flex-shrink: 0; background-color: var(--bulma-scheme-main-bis); display: inline-flex; align-items: center; justify-content: center;">
+              <span class="icon is-large has-text-grey"><i class="fas fa-user fa-2x"></i></span>
             </span>
+            {% endif %}
             <span>{{ profile_user.username }}</span>
           </h1>
           <div class="tags">
