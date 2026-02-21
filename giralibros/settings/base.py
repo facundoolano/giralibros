@@ -149,6 +149,12 @@ BOOK_COVER_THUMBNAIL_MAX_WIDTH = 400  # Maximum thumbnail width in pixels
 BOOK_COVER_THUMBNAIL_MAX_HEIGHT = 600  # Maximum thumbnail height in pixels
 BOOK_COVER_JPEG_QUALITY = 85  # JPEG compression quality (1-100)
 
+# Profile picture uploads
+PROFILE_PICTURE_MAX_SIZE = 5 * 1024 * 1024  # 5MB maximum upload size
+PROFILE_PICTURE_ALLOWED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
+PROFILE_PICTURE_MAX_DIMENSION = 300  # Maximum dimension in pixels (aspect ratio preserved)
+PROFILE_PICTURE_JPEG_QUALITY = 85  # JPEG compression quality (1-100)
+
 # Feature flags
 REGISTRATION_ENABLED = True  # Allow new user registrations
 
