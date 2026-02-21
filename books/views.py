@@ -494,7 +494,7 @@ def reserve_offered_book(request, book_id):
 
 @login_required
 def like_book(request, book_id):
-    """Add a like to an offered book (AJAX endpoint). Silently ignores duplicate likes."""
+    """Toggle like on an offered book (AJAX endpoint)."""
     if request.method != "POST":
         return JsonResponse({"error": "Method not allowed"}, status=405)
 
@@ -503,9 +503,8 @@ def like_book(request, book_id):
     if book.user == request.user:
         return JsonResponse({"error": "No podés dar like a tus propios libros"}, status=400)
 
-    book.add_like(request.user)
-
-    return JsonResponse({"success": True})
+    liked = book.toggle_like(request.user)
+    return JsonResponse({"liked": liked})
 
 
 @login_required

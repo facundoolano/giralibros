@@ -236,16 +236,17 @@
                     method: 'POST',
                     headers: { 'X-CSRFToken': csrftoken },
                 })
-                .then(response => {
-                    if (response.ok) {
+                .then(response => response.json().then(data => ({ ok: response.ok, data })))
+                .then(({ ok, data }) => {
+                    if (ok) {
                         document.querySelectorAll(`.js-like-btn[data-book-id="${bookId}"]`).forEach(btn => {
-                            btn.classList.add('has-text-danger');
-                            btn.classList.remove('has-text-grey');
-                            btn.disabled = true;
+                            btn.classList.toggle('has-text-danger', data.liked);
+                            btn.disabled = false;
                         });
                         document.querySelectorAll(`.js-like-count[data-book-id="${bookId}"]`).forEach(counter => {
-                            counter.textContent = (parseInt(counter.textContent) || 0) + 1;
-                            counter.classList.remove('is-hidden');
+                            const newCount = (parseInt(counter.textContent) || 0) + (data.liked ? 1 : -1);
+                            counter.textContent = newCount;
+                            counter.classList.toggle('is-hidden', newCount <= 0);
                         });
                     } else {
                         button.disabled = false;
@@ -309,6 +310,19 @@
                         // Success - swap buttons
                         button.classList.add('is-hidden');
                         requestedButton.classList.remove('is-hidden');
+
+                        // Reflect the implied like if not already liked
+                        const likeBtn = document.querySelector(`.js-like-btn[data-book-id="${bookId}"]`);
+                        if (likeBtn && !likeBtn.classList.contains('has-text-danger')) {
+                            document.querySelectorAll(`.js-like-btn[data-book-id="${bookId}"]`).forEach(btn => {
+                                btn.classList.add('has-text-danger');
+                            });
+                            document.querySelectorAll(`.js-like-count[data-book-id="${bookId}"]`).forEach(counter => {
+                                const newCount = (parseInt(counter.textContent) || 0) + 1;
+                                counter.textContent = newCount;
+                                counter.classList.remove('is-hidden');
+                            });
+                        }
 
                         // Show success notification
                         showNotification(data.message, 'is-success');

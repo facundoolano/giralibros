@@ -355,6 +355,17 @@ class OfferedBook(BaseBook):
         if created:
             OfferedBook.objects.filter(pk=self.pk).update(likes=F("likes") + 1)
 
+    def toggle_like(self, user):
+        """Toggle like from user. Returns True if now liked, False if unliked."""
+        like, created = Like.objects.get_or_create(user=user, offered_book=self)
+        if created:
+            OfferedBook.objects.filter(pk=self.pk).update(likes=F("likes") + 1)
+            return True
+        else:
+            like.delete()
+            OfferedBook.objects.filter(pk=self.pk, likes__gt=0).update(likes=F("likes") - 1)
+            return False
+
     def notes_display(self):
         """Return notes with [RESERVADO] prefix if book is reserved."""
         if self.is_reserved():
