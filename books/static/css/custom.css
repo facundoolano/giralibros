@@ -331,6 +331,13 @@ body {
    ============================================================================= */
 
 @media screen and (max-width: 768px) {
+    /* Cap book card width and center it in its column */
+    .columns.is-multiline > .column > .card {
+        max-width: 300px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
     /* Book metadata layout on mobile */
     .book-meta {
         display: flex;
