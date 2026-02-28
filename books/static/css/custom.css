@@ -144,7 +144,7 @@ body {
     background-size: cover;
     background-position: center center;
     position: relative;
-    min-height: 280px;
+    min-height: 360px;
 }
 
 .book-card-cover-bg::after {
@@ -181,6 +181,12 @@ body {
 @media screen and (min-width: 769px) {
     .book-card-cover-bg {
         min-height: 360px;
+    }
+
+    .columns.is-multiline > .column > .card {
+        max-width: 240px;
+        margin-left: auto;
+        margin-right: auto;
     }
 }
 
@@ -333,7 +339,7 @@ body {
 @media screen and (max-width: 768px) {
     /* Cap book card width and center it in its column */
     .columns.is-multiline > .column > .card {
-        max-width: 300px;
+        max-width: 240px;
         margin-left: auto;
         margin-right: auto;
     }
