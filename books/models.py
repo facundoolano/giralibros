@@ -4,7 +4,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import BooleanField, Exists, OuterRef, Q, Value
+from django.db.models import BooleanField, Exists, F, OuterRef, Q, Value
 from django.db.models.functions import Coalesce, Greatest
 from django.utils import timezone
 
@@ -28,16 +28,23 @@ class UserProfile(models.Model):
         max_length=200,
         help_text="Miscelaneous notes to be displayed on the user public profile and on exchange requests.",
     )
+    profile_picture = models.ImageField(
+        upload_to="profile_pictures/",
+        blank=True,
+        null=True,
+    )
 
     @property
     def is_full_user(self):
         """User is considered full if they have been registered for more than 7 days, have sent requests, and have received requests."""
-        registered_more_than_7_days = self.user.date_joined < timezone.now() - timedelta(
-            days=7
+        registered_more_than_7_days = (
+            self.user.date_joined < timezone.now() - timedelta(days=7)
         )
         has_sent_requests = self.user.sent_requests.exists()
         has_received_requests = self.user.received_requests.exists()
-        return registered_more_than_7_days and has_sent_requests and has_received_requests
+        return (
+            registered_more_than_7_days and has_sent_requests and has_received_requests
+        )
 
 
 class LocationArea(models.TextChoices):
@@ -115,7 +122,9 @@ class OfferedBookManager(models.Manager):
 
     def traded_by(self, user):
         """Return traded books for a user, ordered by most recent first."""
-        return self.filter(user=user, status=BookStatus.TRADED).order_by('-status_changed_at')
+        return self.filter(user=user, status=BookStatus.TRADED).order_by(
+            "-status_changed_at"
+        )
 
     def _annotate_last_activity(self, queryset):
         """Add last_activity_date annotation (max of created_at and cover_uploaded_at)."""
@@ -125,7 +134,9 @@ class OfferedBookManager(models.Manager):
             )
         )
 
-    def for_user(self, user, search=None, wanted=False, photo=False, my_locations=False):
+    def for_user(
+        self, user, search=None, wanted=False, photo=False, my_locations=False
+    ):
         """
         Return books available to the user with all filters applied.
 
@@ -141,11 +152,13 @@ class OfferedBookManager(models.Manager):
         """
         if user.is_authenticated and my_locations:
             user_areas = user.locations.values_list("area", flat=True)
-            queryset = self.available().filter(user__locations__area__in=user_areas).distinct()
+            queryset = (
+                self.available().filter(user__locations__area__in=user_areas).distinct()
+            )
         else:
             queryset = self.available()
 
-        queryset = queryset.select_related("user")
+        queryset = queryset.select_related("user", "user__profile")
 
         # Apply filters in order
         if search:
@@ -153,16 +166,20 @@ class OfferedBookManager(models.Manager):
         if wanted and user.is_authenticated:
             queryset = self._filter_by_wanted(queryset, user)
         if photo:
-            queryset = queryset.filter(cover_image__isnull=False).exclude(cover_image='')
+            queryset = queryset.filter(cover_image__isnull=False).exclude(
+                cover_image=""
+            )
 
         queryset = self._annotate_last_activity(queryset)
         queryset = queryset.order_by("-last_activity_date")
 
         if user.is_authenticated:
-            return self._annotate_already_requested(queryset, user)
+            queryset = self._annotate_already_requested(queryset, user)
+            return self._annotate_already_liked(queryset, user)
         else:
             return queryset.annotate(
-                already_requested=Value(False, output_field=BooleanField())
+                already_requested=Value(False, output_field=BooleanField()),
+                already_liked=Value(False, output_field=BooleanField()),
             )
 
     def for_profile(self, profile_user, viewing_user):
@@ -172,10 +189,16 @@ class OfferedBookManager(models.Manager):
         - If viewing own profile: returns all books without annotation
         - If viewing another user's profile: annotates with 'already_requested' flag
         """
-        queryset = self.available().filter(user=profile_user).order_by('-created_at')
+        queryset = (
+            self.available()
+            .filter(user=profile_user)
+            .select_related("user", "user__profile")
+            .order_by("-created_at")
+        )
 
         if viewing_user != profile_user:
             queryset = self._annotate_already_requested(queryset, viewing_user)
+            queryset = self._annotate_already_liked(queryset, viewing_user)
 
         return queryset
 
@@ -235,6 +258,13 @@ class OfferedBookManager(models.Manager):
 
         return queryset.filter(match_conditions).exclude(user=user).distinct()
 
+    def _annotate_already_liked(self, queryset, user):
+        return queryset.annotate(
+            already_liked=Exists(
+                Like.objects.filter(user=user, offered_book=OuterRef("pk"))
+            )
+        )
+
     def _annotate_already_requested(self, queryset, requesting_user):
         """
         Helper to add already_requested annotation to a queryset.
@@ -286,6 +316,7 @@ class OfferedBook(BaseBook):
         blank=True,
         help_text="When the cover photo was last uploaded",
     )
+    likes = models.PositiveIntegerField(default=0)
 
     objects = OfferedBookManager()
 
@@ -318,6 +349,23 @@ class OfferedBook(BaseBook):
         """Check if the book is reserved."""
         return self.status == BookStatus.RESERVED
 
+    def add_like(self, user):
+        """Create a like from user, incrementing the counter. Silently ignores duplicate likes."""
+        _, created = Like.objects.get_or_create(user=user, offered_book=self)
+        if created:
+            OfferedBook.objects.filter(pk=self.pk).update(likes=F("likes") + 1)
+
+    def toggle_like(self, user):
+        """Toggle like from user. Returns True if now liked, False if unliked."""
+        like, created = Like.objects.get_or_create(user=user, offered_book=self)
+        if created:
+            OfferedBook.objects.filter(pk=self.pk).update(likes=F("likes") + 1)
+            return True
+        else:
+            like.delete()
+            OfferedBook.objects.filter(pk=self.pk, likes__gt=0).update(likes=F("likes") - 1)
+            return False
+
     def notes_display(self):
         """Return notes with [RESERVADO] prefix if book is reserved."""
         if self.is_reserved():
@@ -333,6 +381,19 @@ class WantedBook(BaseBook):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="wanted")
     title = models.CharField(max_length=200, blank=True)
+
+
+class Like(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="likes")
+    offered_book = models.ForeignKey(
+        OfferedBook, on_delete=models.CASCADE, related_name="book_likes"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["user", "offered_book"], name="unique_user_book_like")
+        ]
 
 
 class ExchangeRequestManager(models.Manager):
@@ -377,11 +438,3 @@ class ExchangeRequest(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     objects = ExchangeRequestManager()
-
-
-class TempBookCover(models.Model):
-    """Temporary storage for book cover uploads before book is created."""
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to="temp_book_covers/")
-    created_at = models.DateTimeField(auto_now_add=True)

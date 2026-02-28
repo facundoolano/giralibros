@@ -18,17 +18,35 @@
     <div class="box box-mobile-flat">
       {# Header with username and info #}
       <div class="mb-3">
-        <div class="is-flex is-align-items-center is-flex-wrap-wrap" style="gap: 0.5rem;">
-          <h1 class="title is-4 mb-0">
-            <span class="icon is-small mr-1">
-              <i class="fas fa-user fa-sm"></i>
-            </span>
-            <span>{{ profile_user.username }}</span>
-          </h1>
-          <div class="tags">
-            {% for location in profile_user.locations.all %}
-            <span class="tag location-badge">{{ location.get_area_display }}</span>
-            {% endfor %}
+        <div class="is-flex is-align-items-flex-start" style="gap: 0.75rem;">
+          {% if profile_user.profile.profile_picture %}
+          <img src="{{ profile_user.profile.profile_picture.url }}" alt="{{ profile_user.username }}" style="width: 72px; height: 72px; border-radius: 4px; object-fit: cover; object-position: center 25%; flex-shrink: 0;">
+          {% else %}
+          <span style="width: 72px; height: 72px; border-radius: 4px; flex-shrink: 0; background-color: var(--bulma-scheme-main-bis); display: inline-flex; align-items: center; justify-content: center;">
+            <span class="icon is-large has-text-grey"><i class="fas fa-user fa-2x"></i></span>
+          </span>
+          {% endif %}
+          <div class="is-flex is-flex-direction-column is-flex-grow-1" style="gap: 0.25rem;">
+            <div class="is-flex is-justify-content-space-between is-align-items-flex-start is-flex-wrap-wrap">
+              <h1 class="title is-4 mb-0">{{ profile_user.username }}</h1>
+              {% if is_own_profile %}
+              <div class="buttons mb-0">
+                <a href="{% url 'profile_edit' %}" class="button is-white">
+                  <span class="icon is-small"><i class="fas fa-edit"></i></span>
+                  <span>Editar</span>
+                </a>
+                <button id="shareProfileBtn" class="button is-white">
+                  <span class="icon is-small"><i class="fas fa-arrow-up-right-from-square"></i></span>
+                  <span id="shareProfileText">Compartir</span>
+                </button>
+              </div>
+              {% endif %}
+            </div>
+            <div class="tags mb-0">
+              {% for location in profile_user.locations.all %}
+              <span class="tag location-badge">{{ location.get_area_display }}</span>
+              {% endfor %}
+            </div>
           </div>
         </div>
       </div>
@@ -58,35 +76,33 @@
           </span>
           <span>{{ profile_user.sent_requests.count }} solicitudes enviadas</span>
         </div>
+        <div class="control is-size-7 has-text-grey">
+          <span class="icon is-small mr-1">
+            <i class="fas fa-rotate"></i>
+          </span>
+          <span>{{ traded_books_count }} cambios realizados</span>
+        </div>
       </div>
 
-      {% if is_own_profile %}
-      <div class="has-text-centered mb-5">
-        <a href="{% url 'profile_edit' %}" class="button is-white">
-          <span class="icon is-small">
-            <i class="fas fa-edit"></i>
-          </span>
-          <span>Editar perfil</span>
-        </a>
-        <button id="shareProfileBtn" class="button is-white">
-          <span class="icon is-small">
-            <i class="fas fa-arrow-up-right-from-square"></i>
-          </span>
-          <span id="shareProfileText">Compartir perfil</span>
-        </button>
-      </div>
-      {% endif %}
 
       {% if offered_books or is_own_profile %}
       <hr>
 
       {# Libros ofrecidos section #}
-      <h2 class="title is-5">
-        <span class="icon">
-          <i class="fas fa-book"></i>
-        </span>
-        <span>Libros ofrecidos ({{ offered_books|length }})</span>
-      </h2>
+      <div class="is-flex is-justify-content-space-between is-align-items-center is-flex-wrap-wrap mb-4">
+        <h2 class="title is-5 mb-0">
+          <span class="icon"><i class="fas fa-book"></i></span>
+          <span>Libros ofrecidos ({{ offered_books|length }})</span>
+        </h2>
+        {% if is_own_profile %}
+        <div class="buttons mb-0">
+          <a href="{% url 'my_offered' %}" class="button is-white">
+            <span class="icon is-small"><i class="fas fa-edit"></i></span>
+            <span>Editar</span>
+          </a>
+        </div>
+        {% endif %}
+      </div>
 
       {% if offered_books %}
       <div class="columns is-multiline mb-3" id="offered-books-container">
@@ -137,32 +153,10 @@
         </button>
       </div>
       {% endif %}
-      {% if is_own_profile %}
-      <div class="has-text-centered mb-5">
-        <a href="{% url 'my_offered' %}" class="button is-white">
-          <span class="icon is-small">
-            <i class="fas fa-edit"></i>
-          </span>
-          <span>Editar libros ofrecidos</span>
-        </a>
-      </div>
-      {% else %}
-      <div class="mb-5"></div>
-      {% endif %}
       {% else %}
       <div class="mb-5 nested-content">
         <p class="has-text-grey-light has-text-centered">Sin libros para mostrar</p>
       </div>
-      {% if is_own_profile %}
-      <div class="has-text-centered mb-5">
-        <a href="{% url 'my_offered' %}" class="button is-white">
-          <span class="icon is-small">
-            <i class="fas fa-edit"></i>
-          </span>
-          <span>Editar libros ofrecidos</span>
-        </a>
-      </div>
-      {% endif %}
       {% endif %}
       {% endif %}
 
@@ -170,12 +164,24 @@
       <hr>
 
       {# Libros deseados section #}
-      <h2 class="title is-5">
-        <span class="icon">
-          <i class="fas fa-search"></i>
-        </span>
-        <span>Libros deseados ({{ wanted_books|length }})</span>
-      </h2>
+      <div class="is-flex is-justify-content-space-between is-align-items-center is-flex-wrap-wrap mb-4">
+        <h2 class="title is-5 mb-0">
+          <span class="icon"><i class="fas fa-search"></i></span>
+          <span>Libros deseados ({{ wanted_books|length }})</span>
+        </h2>
+        {% if is_own_profile %}
+        <div class="buttons mb-0">
+          <a href="{% url 'my_wanted' %}" class="button is-white">
+            <span class="icon is-small"><i class="fas fa-edit"></i></span>
+            <span>Editar</span>
+          </a>
+          <a href="{% url 'home' %}?wanted" class="button is-white">
+            <span class="icon is-small"><i class="fas fa-search"></i></span>
+            <span>Buscar</span>
+          </a>
+        </div>
+        {% endif %}
+      </div>
 
       {% if wanted_books %}
       <ul class="mb-3 nested-content">
@@ -193,24 +199,6 @@
       <div class="mb-3 nested-content">
         <p class="has-text-grey-light has-text-centered">Sin libros para mostrar</p>
       </div>
-      {% endif %}
-      {% if is_own_profile %}
-      <div class="has-text-centered mb-5">
-        <a href="{% url 'my_wanted' %}" class="button is-white">
-          <span class="icon is-small">
-            <i class="fas fa-edit"></i>
-          </span>
-          <span>Editar libros deseados</span>
-        </a>
-        <a href="{% url 'home' %}?wanted" class="button is-white">
-          <span class="icon is-small">
-            <i class="fas fa-search"></i>
-          </span>
-          <span>Buscar libros deseados</span>
-        </a>
-      </div>
-      {% else %}
-      <div class="mb-5"></div>
       {% endif %}
       {% endif %}
 

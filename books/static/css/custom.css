@@ -62,13 +62,43 @@ body {
 .book-card-user {
     min-width: 0;
     flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.3rem;
+}
+
+.book-card-user a {
     overflow: hidden;
     white-space: nowrap;
+    text-overflow: ellipsis;
+    min-width: 0;
 }
 
 .book-card-timestamp {
     flex-shrink: 0;
     white-space: nowrap;
+}
+
+/* Avatar in book card header row */
+.book-card-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;
+}
+
+.book-card-avatar-placeholder {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    background-color: var(--bulma-scheme-main-bis);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Book cover images - consistent sizing */
@@ -105,6 +135,59 @@ body {
     height: 240px;
     overflow: hidden;
     border-radius: 4px;
+}
+
+/* Card with cover image as full background - tablet and above only */
+/* Card with cover image as full background */
+.book-card-cover-bg {
+    background-color: var(--bulma-scheme-main-bis);
+    background-size: cover;
+    background-position: center center;
+    position: relative;
+    min-height: 360px;
+}
+
+.book-card-cover-bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.72) 0%,
+        rgba(0, 0, 0, 0.25) 20%,
+        rgba(0, 0, 0, 0) 35%,
+        rgba(0, 0, 0, 0) 55%,
+        rgba(0, 0, 0, 0.22) 68%,
+        rgba(0, 0, 0, 0.58) 82%,
+        rgba(0, 0, 0, 0.82) 100%
+    );
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.book-card-cover-bg .card-content {
+    position: relative;
+    z-index: 1;
+}
+
+.book-card-cover-bg .book-card-meta-username {
+    color: #93c5fd;
+}
+
+.book-card-cover-bg .book-card-timestamp {
+    color: rgba(255, 255, 255, 0.65) !important;
+}
+
+@media screen and (min-width: 769px) {
+    .book-card-cover-bg {
+        min-height: 360px;
+    }
+
+    .columns.is-multiline > .column > .card {
+        max-width: 240px;
+        margin-left: auto;
+        margin-right: auto;
+    }
 }
 
 /* Equal height cards in grid */
@@ -254,6 +337,13 @@ body {
    ============================================================================= */
 
 @media screen and (max-width: 768px) {
+    /* Cap book card width and center it in its column */
+    .columns.is-multiline > .column > .card {
+        max-width: 240px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
     /* Book metadata layout on mobile */
     .book-meta {
         display: flex;

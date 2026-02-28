@@ -13,7 +13,16 @@
                         <i id="brandSpinner" class="fas fa-spinner fa-spin is-hidden"></i>
                     </span> GiraLibros
                 </a>
-                <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarMenu">
+                <span id="navbarAvatarToggle" class="is-hidden-desktop" style="margin-left: auto; padding: 0 0.5rem; display: flex; align-items: center; cursor: pointer;">
+                    {% if request.user.profile.profile_picture %}
+                    <img src="{{ request.user.profile.profile_picture.url }}" alt="{{ request.user.username }}" style="width: 40px; height: 40px; object-fit: cover; object-position: center 25%; border-radius: 4px; flex-shrink: 0;">
+                    {% else %}
+                    <span style="width: 40px; height: 40px; border-radius: 4px; background-color: var(--bulma-scheme-main-bis); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <span class="icon is-small has-text-grey"><i class="fas fa-user"></i></span>
+                    </span>
+                    {% endif %}
+                </span>
+                <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarMenu" style="margin-left: 0;">
                     <span aria-hidden="true"></span>
                     <span aria-hidden="true"></span>
                     <span aria-hidden="true"></span>
@@ -48,11 +57,15 @@
                 </div>
                 <div class="navbar-end">
                     <div class="navbar-item has-dropdown is-hoverable is-hidden-touch">
-                        <a class="navbar-link">
-                            <span class="icon">
-                                <i class="fas fa-user"></i>
+                        <a class="navbar-link" style="padding-top: 0; padding-bottom: 0; align-items: center;">
+                            {% if request.user.profile.profile_picture %}
+                            <img src="{{ request.user.profile.profile_picture.url }}" alt="{{ request.user.username }}" class="mr-2" style="width: 40px; height: 40px; max-height: none; object-fit: cover; object-position: center 25%; border-radius: 4px; flex-shrink: 0;">
+                            {% else %}
+                            <span class="mr-2" style="width: 40px; height: 40px; border-radius: 4px; background-color: var(--bulma-scheme-main-bis); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <span class="icon is-small has-text-grey"><i class="fas fa-user"></i></span>
                             </span>
-                            <span>{{ request.user.username }}</span>
+                            {% endif %}
+                            <span class="has-text-weight-bold">{{ request.user.username }}</span>
                         </a>
                         <div class="navbar-dropdown">
                             <a class="navbar-item" href="{% url 'profile' username=request.user.username %}">
@@ -97,6 +110,16 @@
                     $target.classList.toggle('is-active');
                 });
             });
+
+            const avatarToggle = document.getElementById('navbarAvatarToggle');
+            if (avatarToggle) {
+                avatarToggle.addEventListener('click', () => {
+                    const burger = document.querySelector('.navbar-burger');
+                    const menu = document.getElementById('navbarMenu');
+                    burger.classList.toggle('is-active');
+                    menu.classList.toggle('is-active');
+                });
+            }
         });
     </script>
 
@@ -201,6 +224,37 @@
                 }
             });
 
+            // Handle like button clicks
+            document.addEventListener('click', (e) => {
+                const button = e.target.closest('button.js-like-btn[data-book-id]');
+                if (!button || button.disabled) return;
+
+                button.disabled = true;
+                const bookId = button.dataset.bookId;
+
+                fetch(`/books/${bookId}/like/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrftoken },
+                })
+                .then(response => response.json().then(data => ({ ok: response.ok, data })))
+                .then(({ ok, data }) => {
+                    if (ok) {
+                        document.querySelectorAll(`.js-like-btn[data-book-id="${bookId}"]`).forEach(btn => {
+                            btn.classList.toggle('has-text-danger', data.liked);
+                            btn.disabled = false;
+                        });
+                        document.querySelectorAll(`.js-like-count[data-book-id="${bookId}"]`).forEach(counter => {
+                            const newCount = (parseInt(counter.textContent) || 0) + (data.liked ? 1 : -1);
+                            counter.textContent = newCount;
+                            counter.classList.toggle('is-hidden', newCount <= 0);
+                        });
+                    } else {
+                        button.disabled = false;
+                    }
+                })
+                .catch(() => { button.disabled = false; });
+            });
+
             // Handle exchange request button clicks
             document.addEventListener('click', (e) => {
                 const button = e.target.closest('button.js-exchange-btn[data-book-id]');
@@ -256,6 +310,19 @@
                         // Success - swap buttons
                         button.classList.add('is-hidden');
                         requestedButton.classList.remove('is-hidden');
+
+                        // Reflect the implied like if not already liked
+                        const likeBtn = document.querySelector(`.js-like-btn[data-book-id="${bookId}"]`);
+                        if (likeBtn && !likeBtn.classList.contains('has-text-danger')) {
+                            document.querySelectorAll(`.js-like-btn[data-book-id="${bookId}"]`).forEach(btn => {
+                                btn.classList.add('has-text-danger');
+                            });
+                            document.querySelectorAll(`.js-like-count[data-book-id="${bookId}"]`).forEach(counter => {
+                                const newCount = (parseInt(counter.textContent) || 0) + 1;
+                                counter.textContent = newCount;
+                                counter.classList.remove('is-hidden');
+                            });
+                        }
 
                         // Show success notification
                         showNotification(data.message, 'is-success');

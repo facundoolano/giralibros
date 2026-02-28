@@ -7,7 +7,7 @@
       {% if user.profile %}Tu perfil{% else %}Completá tu perfil{% endif %}
     </h1>
 
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
 
       {% if form.non_field_errors %}
@@ -109,6 +109,29 @@
         {% endif %}
       </div>
 
+      <div class="field">
+        <label class="label">Foto de perfil</label>
+        <div class="is-flex is-align-items-center" style="gap: 1rem;">
+          <input type="file" name="profile_picture" id="js-avatar-input" accept="image/*" style="display: none;">
+          <div id="avatar-preview-container">
+            {% if user.profile.profile_picture %}
+            <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.username }}" id="avatar-preview" style="width: 72px; height: 72px; border-radius: 4px; object-fit: cover; object-position: center 25%; flex-shrink: 0;">
+            {% else %}
+            <span style="width: 72px; height: 72px; border-radius: 4px; flex-shrink: 0; background-color: var(--bulma-scheme-main-bis); display: inline-flex; align-items: center; justify-content: center;">
+              <span class="icon is-large has-text-grey"><i class="fas fa-user fa-2x"></i></span>
+            </span>
+            {% endif %}
+          </div>
+          <button type="button" class="button is-info is-light" id="js-avatar-upload-btn">
+            <span class="icon is-small"><i class="fas fa-camera"></i></span>
+            <span>{% if user.profile.profile_picture %}Cambiar foto{% else %}Subir foto{% endif %}</span>
+          </button>
+        </div>
+        {% if avatar_error %}
+        <p class="help is-danger">{{ avatar_error }}</p>
+        {% endif %}
+      </div>
+
       <div class="field mt-5 has-text-centered">
         <div class="control">
           <button class="button is-primary" type="submit">
@@ -122,6 +145,24 @@
 
 
 <script>
+  // Avatar upload
+  const avatarInput = document.getElementById('js-avatar-input');
+  const avatarUploadBtn = document.getElementById('js-avatar-upload-btn');
+
+  avatarUploadBtn.addEventListener('click', () => avatarInput.click());
+
+  avatarInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      document.getElementById('avatar-preview-container').innerHTML =
+        `<img src="${event.target.result}" alt="Preview" style="width: 72px; height: 72px; border-radius: 4px; object-fit: cover; object-position: center 25%; flex-shrink: 0;">`;
+      avatarUploadBtn.querySelector('span:not(.icon)').textContent = 'Cambiar foto';
+    };
+    reader.readAsDataURL(file);
+  });
+
   // Update tag styling based on checkbox state
   document.querySelectorAll(".location-tag").forEach((tag) => {
     const checkbox = tag.querySelector('input[type="checkbox"]');
