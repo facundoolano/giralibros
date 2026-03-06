@@ -49,7 +49,8 @@ def honeypot_responder(request, context):
     """
     logger.warning(
         f"Honeypot violation detected: IP={request.META.get('REMOTE_ADDR')}, "
-        f"Path={request.path}, User-Agent={request.META.get('HTTP_USER_AGENT', 'N/A')}"
+        f"Path={request.path}, User-Agent={request.META.get('HTTP_USER_AGENT', 'N/A')}, "
+        f"Email={request.POST.get('email', 'N/A')}"
     )
     return HttpResponse("Forbidden", status=403)
 
