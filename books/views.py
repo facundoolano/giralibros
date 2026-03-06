@@ -47,10 +47,15 @@ def honeypot_responder(request, context):
     Custom responder for honeypot violations.
     Logs the attempt and returns 403 Forbidden for easier monitoring.
     """
+    ip = (
+        request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip()
+        or request.META.get("REMOTE_ADDR")
+    )
     logger.warning(
-        f"Honeypot violation detected: IP={request.META.get('REMOTE_ADDR')}, "
+        f"Honeypot violation detected: IP={ip}, "
         f"Path={request.path}, User-Agent={request.META.get('HTTP_USER_AGENT', 'N/A')}, "
-        f"Email={request.POST.get('email', 'N/A')}"
+        f"Email={request.POST.get('email', 'N/A')}, "
+        f"HoneypotValue={request.POST.get(settings.HONEYPOT_FIELD_NAME, '')}"
     )
     return HttpResponse("Forbidden", status=403)
 

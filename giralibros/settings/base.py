@@ -159,7 +159,7 @@ PROFILE_PICTURE_JPEG_QUALITY = 85  # JPEG compression quality (1-100)
 REGISTRATION_ENABLED = True  # Allow new user registrations
 
 # Honeypot settings (bot protection)
-HONEYPOT_FIELD_NAME = "email2"  # Name of the hidden honeypot field
+HONEYPOT_FIELD_NAME = "website"  # Name of the hidden honeypot field
 HONEYPOT_RESPONDER = "books.views.honeypot_responder"  # Custom responder for logging and 403 status
 
 # Email settings (common across all environments)
