@@ -32,6 +32,7 @@ from books.forms import (
     WantedBookForm,
 )
 from books.models import (
+    BookStatus,
     ExchangeRequest,
     OfferedBook,
     UserLocation,
@@ -47,10 +48,9 @@ def honeypot_responder(request, context):
     Custom responder for honeypot violations.
     Logs the attempt and returns 403 Forbidden for easier monitoring.
     """
-    ip = (
-        request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip()
-        or request.META.get("REMOTE_ADDR")
-    )
+    ip = request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[
+        0
+    ].strip() or request.META.get("REMOTE_ADDR")
     logger.warning(
         f"Honeypot violation detected: IP={ip}, "
         f"Path={request.path}, User-Agent={request.META.get('HTTP_USER_AGENT', 'N/A')}, "
@@ -217,6 +217,7 @@ def about(request):
     # Calculate statistics
     registered_users = User.objects.filter(profile__isnull=False).count()
     offered_books = OfferedBook.objects.available().count()
+    traded_books = OfferedBook.objects.filter(status=BookStatus.TRADED).count()
 
     # Requests in the last week
     one_week_ago = timezone.now() - timedelta(days=7)
@@ -231,6 +232,7 @@ def about(request):
             "registered_users": registered_users,
             "offered_books": offered_books,
             "recent_requests": recent_requests,
+            "traded_books": traded_books,
         },
     )
 
@@ -322,7 +324,9 @@ def profile_edit(request):
         processed_avatar = None
         if "profile_picture" in request.FILES:
             try:
-                processed_avatar = _process_avatar_image(request.FILES["profile_picture"])
+                processed_avatar = _process_avatar_image(
+                    request.FILES["profile_picture"]
+                )
             except ValueError as e:
                 avatar_error = str(e)
 
@@ -346,7 +350,9 @@ def profile_edit(request):
                 )
 
             if processed_avatar:
-                profile.profile_picture.save(processed_avatar.name, processed_avatar, save=True)
+                profile.profile_picture.save(
+                    processed_avatar.name, processed_avatar, save=True
+                )
 
             # Update UserLocation entries
             UserLocation.objects.filter(user=request.user).delete()
@@ -377,7 +383,14 @@ def profile_edit(request):
             }
         form = ProfileForm(initial=initial)
 
-    return render(request, "profile_edit.html", {"form": form, "avatar_error": avatar_error if request.method == "POST" else None})
+    return render(
+        request,
+        "profile_edit.html",
+        {
+            "form": form,
+            "avatar_error": avatar_error if request.method == "POST" else None,
+        },
+    )
 
 
 @login_required
@@ -424,7 +437,11 @@ def profile(request, username):
 def my_offered_books(request, book_id=None):
     """Display form to add/edit offered books and list of existing books."""
     # Determine if editing or creating
-    book = get_object_or_404(OfferedBook, id=book_id, user=request.user) if book_id else None
+    book = (
+        get_object_or_404(OfferedBook, id=book_id, user=request.user)
+        if book_id
+        else None
+    )
 
     if request.method == "POST":
         form = OfferedBookForm(request.POST, request.FILES, instance=book)
@@ -436,8 +453,12 @@ def my_offered_books(request, book_id=None):
             # Process cover image if uploaded
             if "cover_image" in request.FILES:
                 try:
-                    processed_image = _process_book_cover_image(request.FILES["cover_image"])
-                    book.cover_image.save(processed_image.name, processed_image, save=False)
+                    processed_image = _process_book_cover_image(
+                        request.FILES["cover_image"]
+                    )
+                    book.cover_image.save(
+                        processed_image.name, processed_image, save=False
+                    )
                     book.cover_uploaded_at = timezone.now()
                 except ValueError as e:
                     form.add_error("cover_image", str(e))
@@ -456,7 +477,9 @@ def my_offered_books(request, book_id=None):
         "my_offered_books.html",
         {
             "form": form,
-            "offered_books": OfferedBook.objects.available().filter(user=request.user).order_by("-created_at"),
+            "offered_books": OfferedBook.objects.available()
+            .filter(user=request.user)
+            .order_by("-created_at"),
             "editing_book_id": book_id,
         },
     )
@@ -507,7 +530,9 @@ def like_book(request, book_id):
     book = get_object_or_404(OfferedBook.objects.available(), pk=book_id)
 
     if book.user == request.user:
-        return JsonResponse({"error": "No podés dar like a tus propios libros"}, status=400)
+        return JsonResponse(
+            {"error": "No podés dar like a tus propios libros"}, status=400
+        )
 
     liked = book.toggle_like(request.user)
     return JsonResponse({"liked": liked})
@@ -531,7 +556,9 @@ def my_wanted_books(request):
         "my_wanted_books.html",
         {
             "form": form,
-            "wanted_books": WantedBook.objects.filter(user=request.user).order_by("-created_at"),
+            "wanted_books": WantedBook.objects.filter(user=request.user).order_by(
+                "-created_at"
+            ),
         },
     )
 
@@ -691,7 +718,17 @@ def upload_book_photo(request, book_id):
     return HttpResponseBadRequest("Method not allowed")
 
 
-def _process_uploaded_image(uploaded_file, *, max_size, allowed_types, max_width, max_height, jpeg_quality, filename_suffix, crop_aspect=None):
+def _process_uploaded_image(
+    uploaded_file,
+    *,
+    max_size,
+    allowed_types,
+    max_width,
+    max_height,
+    jpeg_quality,
+    filename_suffix,
+    crop_aspect=None,
+):
     """
     Validate and process an uploaded image file.
     Returns InMemoryUploadedFile ready to save, or raises ValueError on validation errors.
@@ -699,7 +736,9 @@ def _process_uploaded_image(uploaded_file, *, max_size, allowed_types, max_width
     If crop_aspect (width/height) is given, center-crops to that ratio before resizing.
     """
     if uploaded_file.size > max_size:
-        raise ValueError(f"Image file too large (max {max_size // (1024 * 1024):.0f}MB)")
+        raise ValueError(
+            f"Image file too large (max {max_size // (1024 * 1024):.0f}MB)"
+        )
 
     if uploaded_file.content_type not in allowed_types:
         raise ValueError("Invalid image format")
