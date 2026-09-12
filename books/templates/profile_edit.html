@@ -123,28 +123,5 @@
     };
     reader.readAsDataURL(file);
   });
-
-  // Update tag styling based on checkbox state
-  document.querySelectorAll(".location-tag").forEach((tag) => {
-    const checkbox = tag.querySelector('input[type="checkbox"]');
-
-    // Update tag style based on checkbox state
-    function updateTagStyle() {
-      if (checkbox.checked) {
-        tag.classList.remove("is-light");
-        tag.classList.add("is-info");
-      } else {
-        tag.classList.remove("is-info");
-        tag.classList.add("is-light");
-      }
-    }
-
-    // Initialize style on page load
-    updateTagStyle();
-
-    // Update style whenever checkbox changes
-    // The label already handles toggling the checkbox, we just update the visual style
-    checkbox.addEventListener("change", updateTagStyle);
-  });
 </script>
 {% endblock %}
