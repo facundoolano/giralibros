@@ -134,31 +134,17 @@ class OfferedBookManager(models.Manager):
             )
         )
 
-    def for_user(
-        self, user, search=None, wanted=False, photo=False, my_locations=False
-    ):
+    def for_user(self, user, search=None, wanted=False, photo=False):
         """
         Return books available to the user with all filters applied.
-
-        For authenticated users: optionally filter by user's locations and annotate already_requested.
-        For anonymous users: return all books with no location filtering.
 
         Args:
             user: User object (authenticated or anonymous)
             search: Search query string (optional)
             wanted: Filter to user's wanted books (boolean)
             photo: Filter to books with uploaded photos (boolean)
-            my_locations: Filter by user's locations vs all locations (boolean)
         """
-        if user.is_authenticated and my_locations:
-            user_areas = user.locations.values_list("area", flat=True)
-            queryset = (
-                self.available().filter(user__locations__area__in=user_areas).distinct()
-            )
-        else:
-            queryset = self.available()
-
-        queryset = queryset.select_related("user", "user__profile")
+        queryset = self.available().select_related("user", "user__profile")
 
         # Apply filters in order
         if search:

@@ -7,7 +7,7 @@ from django.contrib.auth.forms import (
 )
 from django.contrib.auth.models import User
 
-from books.models import LocationArea, OfferedBook, WantedBook
+from books.models import OfferedBook, WantedBook
 
 
 class BulmaFormMixin:
@@ -108,11 +108,6 @@ class ProfileForm(BulmaFormMixin, forms.Form):
         required=False,
         max_length=200,
         widget=forms.TextInput(attrs={"placeholder": "@usuario, teléfono, etc."}),
-    )
-    locations = forms.MultipleChoiceField(
-        choices=LocationArea.choices,
-        widget=forms.MultipleHiddenInput,
-        required=False,
     )
     about = forms.CharField(
         required=False,

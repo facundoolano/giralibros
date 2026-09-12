@@ -35,7 +35,6 @@ from books.models import (
     BookStatus,
     ExchangeRequest,
     OfferedBook,
-    UserLocation,
     UserProfile,
     WantedBook,
 )
@@ -254,7 +253,6 @@ def list_books(request):
     search_query = request.GET.get("search", "").strip()
     wanted = "wanted" in request.GET
     photo = "photo" in request.GET
-    my_locations = "my_locations" in request.GET
 
     # Get books with all filters applied
     offered_books = OfferedBook.objects.for_user(
@@ -262,7 +260,6 @@ def list_books(request):
         search=search_query or None,
         wanted=wanted,
         photo=photo,
-        my_locations=my_locations,
     )
 
     # Paginate results
@@ -353,12 +350,6 @@ def profile_edit(request):
                 profile.profile_picture.save(
                     processed_avatar.name, processed_avatar, save=True
                 )
-
-            # FIXME Keep accepting explicitly posted locations until location filtering is removed.
-            if "locations" in request.POST:
-                UserLocation.objects.filter(user=request.user).delete()
-                for area in form.cleaned_data["locations"]:
-                    UserLocation.objects.create(user=request.user, area=area)
 
             # Redirect based on whether this is first-time setup or edit
             if is_new_profile:

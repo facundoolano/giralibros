@@ -25,15 +25,6 @@
     {% if 'wanted' in request.GET or 'photo' in request.GET %} que coinciden con{% else %} para{% endif %}
     "<strong>{{ request.GET.search }}</strong>"
   {% endif %}
-  en
-  {% if 'my_locations' in request.GET %}
-    {% for location in user.locations.all %}
-      <span class="tag location-badge mr-1">{{ location.get_area_display }}</span>
-    {% endfor %}
-  {% else %}
-    todas las ubicaciones
-  {% endif %}
-
   {# Filter editor toggle #}
   <div class="mt-2">
     <a href="#" id="toggle-filters">
@@ -46,12 +37,6 @@
   <div id="filter-form" class="mt-3 is-hidden">
     <form method="get" action="{% url 'home' %}">
       <div class="is-inline-block has-text-left">
-        <div class="field">
-          <label class="checkbox">
-            <input type="checkbox" name="my_locations" {% if 'my_locations' in request.GET %}checked{% endif %}>
-            Solo mis ubicaciones
-          </label>
-        </div>
         <div class="field">
           <label class="checkbox">
             <input type="checkbox" name="wanted" {% if 'wanted' in request.GET %}checked{% endif %}>
