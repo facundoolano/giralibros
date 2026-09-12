@@ -118,11 +118,11 @@
             <div class="is-flex-grow-1 is-flex is-flex-direction-column is-justify-content-space-between" style="min-height: 90px;">
               <div>
                 <div>
-                  <strong>{{ book.title }}</strong>, {{ book.author }}
+                  <strong>{{ book.title }}</strong>
                 </div>
-                {% if book.notes_display %}
-                  <div class="has-text-grey is-size-7 mt-1">{{ book.notes_display }}</div>
-                {% endif %}
+                <div>
+                  {{ book.author }}
+                </div>
               </div>
               <div class="buttons">
                 {% if is_own_profile %}
