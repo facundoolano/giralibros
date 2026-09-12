@@ -2,7 +2,7 @@
 
 {{ requester.first_name }} te envió una solicitud de intercambio para tu libro "{{ book.title }}" de {{ book.author }}.
 
-{{ requester.first_name }} está en {% for location in requester.locations.all %}{{ location.get_area_display }}{% if not forloop.last %}, {% endif %}{% endfor %} y ofrece estos libros:
+{{ requester.first_name }} ofrece estos libros:
 
 {% for requester_book in requester.offered.available.all %}
 - "{{ requester_book.title }}" de {{ requester_book.author }}{% if requester_book.notes %} ({% if requester_book.is_reserved %}[RESERVADO] {% endif %}{{ requester_book.notes }}){% endif %}
