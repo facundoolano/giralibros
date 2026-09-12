@@ -15,14 +15,36 @@
   <br>
   <p>Estos son algunos de los libros ofrecidos por nuestros usuarios:</p>
 </div>
-{% elif 'wanted' in request.GET or request.GET.search %}
+{% elif request.GET.search %}
 <div class="mb-5 has-text-centered" style="margin-top: -1rem">
-  <span>Mostrando libros</span>
-  {% if 'wanted' in request.GET %} <a href="{% url 'my_wanted' %}"><strong>deseados</strong></a>{% endif %}
-  {% if request.GET.search %}
-    {% if 'wanted' in request.GET %} que coinciden con{% else %} para{% endif %}
-    "<strong>{{ request.GET.search }}</strong>"
-  {% endif %}
+  <span>Mostrando libros para "<strong>{{ request.GET.search }}</strong>"</span>
+</div>
+{% endif %}
+
+{% if user.is_authenticated and not request.GET.search %}
+<div class="tabs is-centered is-boxed">
+  <ul>
+    <li{% if 'wanted' not in request.GET %} class="is-active"{% endif %}>
+      <a href="{% url 'home' %}">
+        <span class="is-hidden-mobile">Recién agregados</span>
+        <span class="is-hidden-tablet">Recientes</span>
+      </a>
+    </li>
+    <li>
+      <a aria-disabled="true">
+        <span class="is-hidden-mobile">Más populares</span>
+        <span class="is-hidden-tablet">Populares</span>
+      </a>
+    </li>
+    {% if user.wanted.exists %}
+    <li{% if 'wanted' in request.GET %} class="is-active"{% endif %}>
+      <a href="{% url 'home' %}?wanted">
+        <span class="is-hidden-mobile">Mis deseados</span>
+        <span class="is-hidden-tablet">Deseados</span>
+      </a>
+    </li>
+    {% endif %}
+  </ul>
 </div>
 {% endif %}
 
