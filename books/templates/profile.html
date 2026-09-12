@@ -104,7 +104,7 @@
         {% for book in offered_books %}
         <div class="column is-12-mobile is-6-tablet offered-book-item" {% if forloop.counter > books_per_page %}style="display: none;"{% endif %}>
           <div class="is-flex" style="gap: 1rem;">
-            <div class="is-flex-shrink-0 is-flex is-align-items-center book-cover-container-small">
+            <div class="is-flex-shrink-0 is-flex is-align-items-center book-cover-container-small is-clickable js-book-details-btn" data-modal-id="modal-{{ book.id }}">
               {% if book.cover_image %}
                 <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover-small">
               {% else %}
@@ -148,6 +148,7 @@
               </div>
             </div>
           </div>
+          {% include '_book_details_modal.html' %}
         </div>
         {% endfor %}
       </div>
@@ -295,6 +296,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  document.querySelectorAll('.js-book-details-btn').forEach(cover => {
+    cover.addEventListener('click', () => {
+      document.getElementById(cover.dataset.modalId).classList.add('is-active');
+    });
+  });
 
   // Timeago tooltips
   document.querySelectorAll('.timeago-tooltip').forEach(element => {

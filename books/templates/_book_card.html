@@ -140,63 +140,7 @@
       </div>
     </div>
 
-    <!-- Modal for book details - only for authenticated users -->
-    {% if request.user.is_authenticated %}
-    <div id="modal-{{ book.id }}" class="modal">
-      <div class="modal-background" onclick="document.getElementById('modal-{{ book.id }}').classList.remove('is-active')"></div>
-      <div class="modal-content">
-        <div class="box">
-          <button class="delete is-pulled-right" aria-label="close" onclick="document.getElementById('modal-{{ book.id }}').classList.remove('is-active')"></button>
-
-          <!-- User meta: avatar + username · timeago -->
-          <div class="is-flex is-align-items-center book-card-meta-row mb-3">
-            <a href="{% url 'profile' username=book.user.username %}" style="flex-shrink: 0;" class="mr-2">
-              {% if book.user.profile.profile_picture %}
-              <img src="{{ book.user.profile.profile_picture.url }}" alt="{{ book.user.username }}" class="book-card-avatar">
-              {% else %}
-              <span class="book-card-avatar-placeholder">
-                <span class="icon is-medium has-text-grey"><i class="fas fa-user fa-lg"></i></span>
-              </span>
-              {% endif %}
-            </a>
-            <a href="{% url 'profile' username=book.user.username %}" class="is-size-6" title="Ver el perfil de {{ book.user.username }}">{{ book.user.username }}</a>
-            <span class="has-text-grey mx-2">·</span>
-            <span class="is-size-7 has-text-grey timeago-tooltip" data-timestamp="{{ book.last_activity_date|date:'c' }}">{{ book.last_activity_date|timeago }}</span>
-            <span class="has-text-grey mx-2">·</span>
-            {% if book.user != request.user %}
-            <button class="search-icon-button js-like-btn is-size-7 {% if book.already_liked %}has-text-danger{% else %}has-text-grey{% endif %}" data-book-id="{{ book.id }}" title="Me gusta"><i class="fas fa-heart"></i></button>
-            {% else %}
-            <span class="is-size-7 {% if book.already_liked %}has-text-danger{% else %}has-text-grey{% endif %}"><i class="fas fa-heart"></i></span>
-            {% endif %}
-            <span class="js-like-count is-size-7{% if not book.likes %} is-hidden{% endif %}" data-book-id="{{ book.id }}">{{ book.likes }}</span>
-          </div>
-
-          <!-- Cover left, title + author right; image scales with viewport -->
-          <div class="is-flex mb-3" style="gap: 1rem;">
-            <div style="width: min(40%, 220px); flex-shrink: 0;">
-              {% if book.cover_image %}
-              <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" style="width: 100%; border-radius: 4px;">
-              {% else %}
-              <div class="book-placeholder is-flex is-justify-content-center is-align-items-center" style="aspect-ratio: 2/3;">
-                <span class="icon is-large has-text-grey"><i class="fas fa-book fa-3x"></i></span>
-              </div>
-              {% endif %}
-            </div>
-            <div>
-              <p class="title is-5 mb-2">{{ book.title }}</p>
-              <p class="subtitle is-6 mb-2 has-text-grey-dark">
-                <a href="{% url 'home' %}?search={{ book.author|urlencode }}" class="has-text-grey-dark" title="Buscar libros de este autor">{{ book.author }}</a>
-              </p>
-              {% if book.notes_display %}
-              <div class="content is-size-7">{{ book.notes_display|linebreaks }}</div>
-              {% endif %}
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-    {% endif %}
+    {% include '_book_details_modal.html' %}
 
   </div>
 </div>
