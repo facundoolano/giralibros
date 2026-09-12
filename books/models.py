@@ -174,10 +174,9 @@ class OfferedBookManager(models.Manager):
         """
         Return books for a profile page.
 
-        - If viewing own profile: returns all books without annotation
-        - If viewing another user's profile: annotates with 'already_requested' flag
+        Includes last activity and viewer-specific request and like annotations.
         """
-        queryset = (
+        queryset = self._annotate_last_activity(
             self.available()
             .filter(user=profile_user)
             .select_related("user", "user__profile")

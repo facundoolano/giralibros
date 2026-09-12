@@ -123,6 +123,16 @@
                 <div>
                   {{ book.author }}
                 </div>
+                <div class="is-size-7 has-text-grey mt-1">
+                  <span class="icon is-small"><i class="fas fa-clock"></i></span>
+                  <span class="timeago-tooltip" data-timestamp="{{ book.last_activity_date|date:'c' }}">{{ book.last_activity_date|timeago }}</span>
+                  {% if book.user != request.user %}
+                    <button class="search-icon-button js-like-btn{% if book.already_liked %} has-text-danger{% endif %} ml-1" data-book-id="{{ book.id }}" title="Me gusta"><i class="fas fa-heart"></i></button>
+                  {% else %}
+                    <span{% if book.already_liked %} class="has-text-danger ml-1"{% else %} class="ml-1"{% endif %}><i class="fas fa-heart"></i></span>
+                  {% endif %}
+                  <span class="js-like-count{% if not book.likes %} is-hidden{% endif %}" data-book-id="{{ book.id }}">{{ book.likes }}</span>
+                </div>
               </div>
               <div class="buttons">
                 {% if is_own_profile %}

@@ -88,8 +88,8 @@ body {
 }
 
 .book-cover-small {
-    max-width: 60px;
-    max-height: 90px;
+    max-width: 80px;
+    max-height: 120px;
     border-radius: 4px;
 }
 
@@ -190,8 +190,8 @@ body {
 }
 
 .book-cover-container-small {
-    width: 60px;
-    height: 90px;
+    width: 80px;
+    height: 120px;
 }
 
 /* Book entry form styles */
