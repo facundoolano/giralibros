@@ -47,6 +47,7 @@ class UserProfile(models.Model):
         )
 
 
+# TODO: Remove location models once their database table can be retired.
 class LocationArea(models.TextChoices):
     CABA_CENTRO = "CABA_CENTRO", "CABA Centro"
     CABA_SUR = "CABA_SUR", "CABA Sur"
