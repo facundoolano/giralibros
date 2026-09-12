@@ -252,14 +252,12 @@ def list_books(request):
     # Parse query params
     search_query = request.GET.get("search", "").strip()
     wanted = "wanted" in request.GET
-    photo = "photo" in request.GET
 
     # Get books with all filters applied
     offered_books = OfferedBook.objects.for_user(
         request.user,
         search=search_query or None,
         wanted=wanted,
-        photo=photo,
     )
 
     # Paginate results

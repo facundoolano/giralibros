@@ -135,7 +135,7 @@ class OfferedBookManager(models.Manager):
             )
         )
 
-    def for_user(self, user, search=None, wanted=False, photo=False):
+    def for_user(self, user, search=None, wanted=False):
         """
         Return books available to the user with all filters applied.
 
@@ -143,7 +143,6 @@ class OfferedBookManager(models.Manager):
             user: User object (authenticated or anonymous)
             search: Search query string (optional)
             wanted: Filter to user's wanted books (boolean)
-            photo: Filter to books with uploaded photos (boolean)
         """
         queryset = self.available().select_related("user", "user__profile")
 
@@ -152,10 +151,6 @@ class OfferedBookManager(models.Manager):
             queryset = self._search(queryset, search)
         if wanted and user.is_authenticated:
             queryset = self._filter_by_wanted(queryset, user)
-        if photo:
-            queryset = queryset.filter(cover_image__isnull=False).exclude(
-                cover_image=""
-            )
 
         queryset = self._annotate_last_activity(queryset)
         queryset = queryset.order_by("-last_activity_date")
