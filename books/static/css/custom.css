@@ -82,9 +82,14 @@ body {
 }
 
 /* Book cover images in cards - zoomed in */
-.card .book-cover-image {
+.card > .card-content .book-cover-image {
     object-position: center 35%;
     transform: scale(1.2);
+}
+
+/* Use more of the viewport before a book-detail modal needs to scroll. */
+.book-details-modal {
+    --bulma-modal-content-spacing-mobile: 2.5rem;
 }
 
 .book-cover-small {
@@ -92,6 +97,7 @@ body {
     max-height: 120px;
     border-radius: 4px;
 }
+
 
 /* Book cover container - default for forms and profile */
 .book-cover-container {
@@ -153,6 +159,10 @@ body {
 @media screen and (min-width: 769px) {
     .book-card-cover-bg {
         min-height: 360px;
+    }
+
+    .book-details-modal .modal-content {
+        max-width: 480px;
     }
 
     .columns.is-multiline > .column > .card {

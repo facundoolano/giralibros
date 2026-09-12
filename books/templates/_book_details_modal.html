@@ -1,6 +1,6 @@
 {% load book_filters %}
 {% if request.user.is_authenticated %}
-<div id="modal-{{ book.id }}" class="modal">
+<div id="modal-{{ book.id }}" class="modal book-details-modal">
   <div class="modal-background" onclick="document.getElementById('modal-{{ book.id }}').classList.remove('is-active')"></div>
   <div class="modal-content">
     <div class="box">
@@ -28,25 +28,27 @@
         <span class="js-like-count is-size-7{% if not book.likes %} is-hidden{% endif %}" data-book-id="{{ book.id }}">{{ book.likes }}</span>
       </div>
 
-      <div class="is-flex mb-3" style="gap: 1rem;">
-        <div style="width: min(40%, 220px); flex-shrink: 0;">
-          {% if book.cover_image %}
-          <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" style="width: 100%; border-radius: 4px;">
-          {% else %}
-          <div class="book-placeholder is-flex is-justify-content-center is-align-items-center" style="aspect-ratio: 2/3;">
-            <span class="icon is-large has-text-grey"><i class="fas fa-book fa-3x"></i></span>
-          </div>
-          {% endif %}
+      <div class="is-flex is-justify-content-center mb-3">
+        <div class="column is-three-quarters-mobile is-half-tablet is-two-thirds-desktop">
+          <figure class="image is-2by3">
+            {% if book.cover_image %}
+            <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover-image">
+            {% else %}
+            <div class="book-placeholder is-flex is-justify-content-center is-align-items-center">
+              <span class="icon is-large has-text-grey"><i class="fas fa-book fa-3x"></i></span>
+            </div>
+            {% endif %}
+          </figure>
         </div>
-        <div>
-          <p class="title is-5 mb-2">{{ book.title }}</p>
-          <p class="subtitle is-6 mb-2 has-text-grey-dark">
-            <a href="{% url 'home' %}?search={{ book.author|urlencode }}" class="has-text-grey-dark" title="Buscar libros de este autor">{{ book.author }}</a>
-          </p>
-          {% if book.notes_display %}
-          <div class="content is-size-7">{{ book.notes_display|linebreaks }}</div>
-          {% endif %}
-        </div>
+      </div>
+      <div>
+        <p class="title is-5 mb-2">{{ book.title }}</p>
+        <p class="subtitle is-6 mb-2 has-text-grey-dark">
+          <a href="{% url 'home' %}?search={{ book.author|urlencode }}" class="has-text-grey-dark" title="Buscar libros de este autor">{{ book.author }}</a>
+        </p>
+        {% if book.notes_display %}
+        <div class="content is-size-7">{{ book.notes_display|linebreaks }}</div>
+        {% endif %}
       </div>
     </div>
   </div>
