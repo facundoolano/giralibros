@@ -1272,6 +1272,77 @@ class BooksTest(BookTestMixin, TestCase):
         # Should NOT match "El túnel" (different author)
         self.assertNotContains(response, "El túnel")
 
+    def test_filter_by_popularity(self):
+        """Test that popular books are ordered by likes and recency and exclude unavailable books."""
+        self.register_and_verify_user(
+            username="owner", email="owner@example.com", fill_profile=True
+        )
+        self.add_books(
+            [
+                ("Older Unliked", "Author"),
+                ("Newer Unliked", "Author"),
+                ("Liked Once", "Author"),
+                ("Most Liked", "Author"),
+                ("Reserved Book", "Author"),
+                ("Traded Book", "Author"),
+                ("Deleted Book", "Author"),
+            ]
+        )
+        response = self.client.get(reverse("home"))
+        book_ids = {book.title: book.id for book in response.context["offered_books"]}
+
+        self.client.post(
+            reverse(
+                "reserve_offered_book", kwargs={"book_id": book_ids["Reserved Book"]}
+            )
+        )
+        self.client.post(
+            reverse(
+                "trade_offered_book", kwargs={"book_id": book_ids["Traded Book"]}
+            )
+        )
+        self.client.post(
+            reverse(
+                "delete_offered_book", kwargs={"book_id": book_ids["Deleted Book"]}
+            )
+        )
+        self.client.logout()
+
+        self.register_and_verify_user(
+            username="liker1", email="liker1@example.com", fill_profile=True
+        )
+        self.client.post(
+            reverse("like_book", kwargs={"book_id": book_ids["Most Liked"]})
+        )
+        self.client.post(
+            reverse("like_book", kwargs={"book_id": book_ids["Liked Once"]})
+        )
+        self.client.logout()
+
+        self.register_and_verify_user(
+            username="liker2", email="liker2@example.com", fill_profile=True
+        )
+        self.client.post(
+            reverse("like_book", kwargs={"book_id": book_ids["Most Liked"]})
+        )
+
+        response = self.client.get(reverse("home"), {"popular": ""})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Most Liked")
+        self.assertContains(response, "Liked Once")
+        self.assertContains(response, "Newer Unliked")
+        self.assertContains(response, "Older Unliked")
+        self.assertNotContains(response, "Reserved Book")
+        self.assertNotContains(response, "Traded Book")
+        self.assertNotContains(response, "Deleted Book")
+
+        content = response.content
+        self.assertLess(content.index(b"Most Liked"), content.index(b"Liked Once"))
+        self.assertLess(content.index(b"Liked Once"), content.index(b"Newer Unliked"))
+        self.assertLess(
+            content.index(b"Newer Unliked"), content.index(b"Older Unliked")
+        )
+
 
 class BooksPaginationTest(BookTestMixin, TestCase):
     def test_pagination_limits_results(self):
@@ -1491,6 +1562,31 @@ class BooksPaginationTest(BookTestMixin, TestCase):
 
         # Second page of wanted filter
         response = self.client.get(reverse("home"), {"wanted": "", "page": 2})
+        self.assertEqual(response.status_code, 200)
+        offered_books = response.context["offered_books"]
+        self.assertEqual(len(offered_books), 5)
+        self.assertFalse(response.context["has_next"])
+
+    def test_pagination_with_popular_filter(self):
+        """Test that pagination works correctly with the popular-books filter."""
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
+        books = [(f"Book {i}", f"Author {i}") for i in range(25)]
+        self.add_books(books)
+        self.client.logout()
+
+        self.register_and_verify_user(
+            username="user2", email="user2@example.com", fill_profile=True
+        )
+
+        response = self.client.get(reverse("home"), {"popular": ""})
+        self.assertEqual(response.status_code, 200)
+        offered_books = response.context["offered_books"]
+        self.assertEqual(len(offered_books), 20)
+        self.assertTrue(response.context["has_next"])
+
+        response = self.client.get(reverse("home"), {"popular": "", "page": 2})
         self.assertEqual(response.status_code, 200)
         offered_books = response.context["offered_books"]
         self.assertEqual(len(offered_books), 5)

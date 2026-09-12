@@ -24,14 +24,14 @@
 {% if user.is_authenticated and not request.GET.search %}
 <div class="tabs is-centered is-boxed">
   <ul>
-    <li{% if 'wanted' not in request.GET %} class="is-active"{% endif %}>
+    <li{% if 'wanted' not in request.GET and 'popular' not in request.GET %} class="is-active"{% endif %}>
       <a href="{% url 'home' %}">
         <span class="is-hidden-mobile">Recién agregados</span>
         <span class="is-hidden-tablet">Recientes</span>
       </a>
     </li>
-    <li>
-      <a aria-disabled="true">
+    <li{% if 'popular' in request.GET %} class="is-active"{% endif %}>
+      <a href="{% url 'home' %}?popular">
         <span class="is-hidden-mobile">Más populares</span>
         <span class="is-hidden-tablet">Populares</span>
       </a>

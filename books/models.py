@@ -135,7 +135,7 @@ class OfferedBookManager(models.Manager):
             )
         )
 
-    def for_user(self, user, search=None, wanted=False):
+    def for_user(self, user, search=None, wanted=False, popular=False):
         """
         Return books available to the user with all filters applied.
 
@@ -143,8 +143,11 @@ class OfferedBookManager(models.Manager):
             user: User object (authenticated or anonymous)
             search: Search query string (optional)
             wanted: Filter to user's wanted books (boolean)
+            popular: Order available, unreserved books by likes (boolean)
         """
         queryset = self.available().select_related("user", "user__profile")
+        if popular:
+            queryset = queryset.exclude(status=BookStatus.RESERVED)
 
         # Apply filters in order
         if search:
@@ -153,7 +156,10 @@ class OfferedBookManager(models.Manager):
             queryset = self._filter_by_wanted(queryset, user)
 
         queryset = self._annotate_last_activity(queryset)
-        queryset = queryset.order_by("-last_activity_date")
+        if popular:
+            queryset = queryset.order_by("-likes", "-last_activity_date")
+        else:
+            queryset = queryset.order_by("-last_activity_date")
 
         if user.is_authenticated:
             queryset = self._annotate_already_requested(queryset, user)
