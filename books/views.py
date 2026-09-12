@@ -354,10 +354,11 @@ def profile_edit(request):
                     processed_avatar.name, processed_avatar, save=True
                 )
 
-            # Update UserLocation entries
-            UserLocation.objects.filter(user=request.user).delete()
-            for area in form.cleaned_data["locations"]:
-                UserLocation.objects.create(user=request.user, area=area)
+            # FIXME Keep accepting explicitly posted locations until location filtering is removed.
+            if "locations" in request.POST:
+                UserLocation.objects.filter(user=request.user).delete()
+                for area in form.cleaned_data["locations"]:
+                    UserLocation.objects.create(user=request.user, area=area)
 
             # Redirect based on whether this is first-time setup or edit
             if is_new_profile:
@@ -373,7 +374,6 @@ def profile_edit(request):
                 "email": profile.contact_email,
                 "alternate_contact": profile.alternate_contact,
                 "about": profile.about,
-                "locations": [loc.area for loc in request.user.locations.all()],
             }
         else:
             # Default email to registration email and first_name to capitalized username

@@ -48,7 +48,6 @@ class BookTestMixin:
                 {
                     "first_name": first_name,
                     "email": email,
-                    "locations": ["CABA_CENTRO"],
                 },
             )
 
@@ -483,7 +482,6 @@ class UserTest(BookTestMixin, TestCase):
             {
                 "first_name": "Test",
                 "email": "test@example.com",
-                "locations": ["CABA_CENTRO"],
             },
         )
         self.assertRedirects(
@@ -504,7 +502,6 @@ class UserTest(BookTestMixin, TestCase):
             {
                 "first_name": "Test",
                 "email": "test@example.com",
-                "locations": ["CABA_CENTRO"],
             },
         )
         self.assertRedirects(
@@ -517,7 +514,6 @@ class UserTest(BookTestMixin, TestCase):
             {
                 "first_name": "Updated Name",
                 "email": "test@example.com",
-                "locations": ["CABA_CENTRO", "GBA_NORTE"],
             },
         )
         # Subsequent edits should redirect to profile view

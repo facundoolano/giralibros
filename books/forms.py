@@ -99,7 +99,7 @@ class CustomSetPasswordForm(BulmaFormMixin, SetPasswordForm):
 class ProfileForm(BulmaFormMixin, forms.Form):
     """
     Form for creating/editing user profile.
-    Handles User.first_name, UserProfile fields, and UserLocation selections.
+    Handles User.first_name and UserProfile fields.
     """
 
     first_name = forms.CharField(max_length=150)
@@ -111,8 +111,8 @@ class ProfileForm(BulmaFormMixin, forms.Form):
     )
     locations = forms.MultipleChoiceField(
         choices=LocationArea.choices,
-        widget=forms.CheckboxSelectMultiple,
-        required=True,
+        widget=forms.MultipleHiddenInput,
+        required=False,
     )
     about = forms.CharField(
         required=False,
