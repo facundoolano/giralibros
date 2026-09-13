@@ -10,14 +10,25 @@
 
     <p>{{ requester.first_name }} ofrece estos libros:</p>
 
-    <ul>
-    {% for requester_book in requester.offered.available.all %}
-        <li><strong>"{{ requester_book.title }}"</strong> de {{ requester_book.author }}{% if requester_book.notes %} <em>({% if requester_book.is_reserved %}[RESERVADO] {% endif %}{{ requester_book.notes }})</em>{% endif %}</li>
-    {% endfor %}
-    </ul>
-
     <p>Para coordinar el intercambio, ponete en contacto con {{ requester.first_name }} en {{ requester.profile.contact_email }}{% if requester.profile.alternate_contact %} o en {{ requester.profile.alternate_contact }}{% endif %} o directamente respondiendo a este correo.
     </p>
+
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse; width: 100%;">
+    {% for requester_book in requester_books %}
+        <tr>
+            <td style="padding: 0 12px 12px 0; vertical-align: top; width: 72px;">
+                {% if requester_book.cover_url %}
+                <img src="{{ requester_book.cover_url }}" alt="Tapa de {{ requester_book.book.title }}" width="72" height="108" style="display: block; border-radius: 4px; object-fit: cover;">
+                {% endif %}
+            </td>
+            <td style="padding: 0 0 12px; vertical-align: top;">
+                <strong style="display: block;">{{ requester_book.book.title }}</strong>
+                <div>{{ requester_book.book.author }}</div>
+                {% if requester_book.book.notes %}<div><em>{% if requester_book.book.is_reserved %}[RESERVADO] {% endif %}{{ requester_book.book.notes }}</em></div>{% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </table>
 
     <p>
         <a href="{{ requester_profile_url }}">Ver el perfil de completo {{ requester.first_name }}</a>

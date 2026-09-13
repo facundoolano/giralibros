@@ -642,6 +642,17 @@ def request_exchange(request, book_id):
                 "profile", kwargs={"username": request.user.username}
             )
             requester_profile_url = request.build_absolute_uri(profile_path)
+            requester_books = [
+                {
+                    "book": requester_book,
+                    "cover_url": (
+                        request.build_absolute_uri(requester_book.cover_image.url)
+                        if requester_book.cover_image
+                        else None
+                    ),
+                }
+                for requester_book in request.user.offered.available()
+            ]
 
             _send_templated_email(
                 to_email=book.user.profile.contact_email,
@@ -652,6 +663,7 @@ def request_exchange(request, book_id):
                     "book": book,
                     "exchange_request": exchange_request,
                     "requester_profile_url": requester_profile_url,
+                    "requester_books": requester_books,
                 },
                 reply_to=request.user.profile.contact_email,
             )
