@@ -4,6 +4,8 @@ Development settings for giralibros project.
 These settings are used for local development.
 """
 
+import os
+
 from .base import *  # noqa: F403, F401
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -18,5 +20,10 @@ ALLOWED_HOSTS = []
 # Disable password validators in development for easier testing
 AUTH_PASSWORD_VALIDATORS = []
 
-# Email backend - prints emails to console
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# Email backend - prints emails to console unless run through Mailpit
+if os.environ.get("GIRALIBROS_USE_MAILPIT") == "1":
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = "127.0.0.1"
+    EMAIL_PORT = 1025
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

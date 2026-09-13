@@ -1,4 +1,4 @@
-.PHONY: test run deploy collectstatic sql shell
+.PHONY: test run run-mail deploy collectstatic sql shell
 django=uv run manage.py
 
 test:
@@ -6,6 +6,9 @@ test:
 
 run:
 	$(django) runserver
+
+run-mail:
+	@mailpit & mailpit_pid=$$!; trap 'kill $$mailpit_pid 2>/dev/null || true' EXIT; GIRALIBROS_USE_MAILPIT=1 $(django) runserver
 
 shell:
 	$(django) shell
