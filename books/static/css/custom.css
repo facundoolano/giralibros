@@ -82,16 +82,22 @@ body {
 }
 
 /* Book cover images in cards - zoomed in */
-.card .book-cover-image {
+.card > .card-content .book-cover-image {
     object-position: center 35%;
     transform: scale(1.2);
 }
 
+/* Use more of the viewport before a book-detail modal needs to scroll. */
+.book-details-modal {
+    --bulma-modal-content-spacing-mobile: 2.5rem;
+}
+
 .book-cover-small {
-    max-width: 60px;
-    max-height: 90px;
+    max-width: 80px;
+    max-height: 120px;
     border-radius: 4px;
 }
+
 
 /* Book cover container - default for forms and profile */
 .book-cover-container {
@@ -155,6 +161,10 @@ body {
         min-height: 360px;
     }
 
+    .book-details-modal .modal-content {
+        max-width: 480px;
+    }
+
     .columns.is-multiline > .column > .card {
         max-width: 240px;
         margin-left: auto;
@@ -190,8 +200,8 @@ body {
 }
 
 .book-cover-container-small {
-    width: 60px;
-    height: 90px;
+    width: 80px;
+    height: 120px;
 }
 
 /* Book entry form styles */

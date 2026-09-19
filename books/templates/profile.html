@@ -104,7 +104,7 @@
         {% for book in offered_books %}
         <div class="column is-12-mobile is-6-tablet offered-book-item" {% if forloop.counter > books_per_page %}style="display: none;"{% endif %}>
           <div class="is-flex" style="gap: 1rem;">
-            <div class="is-flex-shrink-0 is-flex is-align-items-center book-cover-container-small">
+            <div class="is-flex-shrink-0 is-flex is-align-items-center book-cover-container-small is-clickable js-book-details-btn" data-modal-id="modal-{{ book.id }}">
               {% if book.cover_image %}
                 <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover-small">
               {% else %}
@@ -118,11 +118,21 @@
             <div class="is-flex-grow-1 is-flex is-flex-direction-column is-justify-content-space-between" style="min-height: 90px;">
               <div>
                 <div>
-                  <strong>{{ book.title }}</strong>, {{ book.author }}
+                  <strong>{{ book.title }}</strong>
                 </div>
-                {% if book.notes_display %}
-                  <div class="has-text-grey is-size-7 mt-1">{{ book.notes_display }}</div>
-                {% endif %}
+                <div>
+                  {{ book.author }}
+                </div>
+                <div class="is-size-7 has-text-grey mt-1">
+                  <span class="icon is-small"><i class="fas fa-clock"></i></span>
+                  <span class="timeago-tooltip" data-timestamp="{{ book.last_activity_date|date:'c' }}">{{ book.last_activity_date|timeago }}</span>
+                  {% if book.user != request.user %}
+                    <button class="search-icon-button js-like-btn{% if book.already_liked %} has-text-danger{% endif %} ml-1" data-book-id="{{ book.id }}" title="Me gusta"><i class="fas fa-heart"></i></button>
+                  {% else %}
+                    <span{% if book.already_liked %} class="has-text-danger ml-1"{% else %} class="ml-1"{% endif %}><i class="fas fa-heart"></i></span>
+                  {% endif %}
+                  <span class="js-like-count{% if not book.likes %} is-hidden{% endif %}" data-book-id="{{ book.id }}">{{ book.likes }}</span>
+                </div>
               </div>
               <div class="buttons">
                 {% if is_own_profile %}
@@ -138,6 +148,7 @@
               </div>
             </div>
           </div>
+          {% include '_book_details_modal.html' %}
         </div>
         {% endfor %}
       </div>
@@ -285,6 +296,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  document.querySelectorAll('.js-book-details-btn').forEach(cover => {
+    cover.addEventListener('click', () => {
+      document.getElementById(cover.dataset.modalId).classList.add('is-active');
+    });
+  });
 
   // Timeago tooltips
   document.querySelectorAll('.timeago-tooltip').forEach(element => {
