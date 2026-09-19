@@ -2,8 +2,8 @@
 {% load static %}
 {% load book_filters %}
 {% block logged_content %}
+{% if not user.is_authenticated %}
 <div class="mb-5 has-text-centered" style="margin-top: -1rem">
-  {% if not user.is_authenticated %}
   <h1 class="title has-text-centered mb-3">📚 GiraLibros</h1>
   <p class="has-text-centered has-text-grey mb-5">
     La comunidad gratuita de intercambio de libros en Buenos Aires
@@ -14,67 +14,45 @@
   </div>
   <br>
   <p>Estos son algunos de los libros ofrecidos por nuestros usuarios:</p>
-  {% else %}
-{# Dynamic filter summary #}
-  <span>Mostrando libros</span>
-  {% if 'wanted' in request.GET %} <a href="{% url 'my_wanted' %}"><strong>deseados</strong></a>{% endif %}
-  {% if 'photo' in request.GET %}
-    {% if 'wanted' in request.GET %} y {% endif %}<strong>con foto</strong>
-  {% endif %}
-  {% if request.GET.search %}
-    {% if 'wanted' in request.GET or 'photo' in request.GET %} que coinciden con{% else %} para{% endif %}
-    "<strong>{{ request.GET.search }}</strong>"
-  {% endif %}
-  en
-  {% if 'my_locations' in request.GET %}
-    {% for location in user.locations.all %}
-      <span class="tag location-badge mr-1">{{ location.get_area_display }}</span>
-    {% endfor %}
-  {% else %}
-    todas las ubicaciones
-  {% endif %}
-
-  {# Filter editor toggle #}
-  <div class="mt-2">
-    <a href="#" id="toggle-filters">
-      <span class="edit-text"><i class="fas fa-edit"></i> editar filtros</span>
-      <span class="hide-text is-hidden"><i class="fas fa-times"></i> ocultar filtros</span>
-    </a>
-  </div>
-
-  {# Filter form (hidden by default) #}
-  <div id="filter-form" class="mt-3 is-hidden">
-    <form method="get" action="{% url 'home' %}">
-      <div class="is-inline-block has-text-left">
-        <div class="field">
-          <label class="checkbox">
-            <input type="checkbox" name="my_locations" {% if 'my_locations' in request.GET %}checked{% endif %}>
-            Solo mis ubicaciones
-          </label>
-        </div>
-        <div class="field">
-          <label class="checkbox">
-            <input type="checkbox" name="wanted" {% if 'wanted' in request.GET %}checked{% endif %}>
-            Solo libros deseados
-          </label>
-        </div>
-        <div class="field">
-          <label class="checkbox">
-            <input type="checkbox" name="photo" {% if 'photo' in request.GET %}checked{% endif %}>
-            Solo libros con foto
-          </label>
-        </div>
-      </div>
-      {% if request.GET.search %}
-      <input type="hidden" name="search" value="{{ request.GET.search }}">
-      {% endif %}
-      <div class="field mt-3">
-        <button type="submit" class="button is-small is-primary">Aplicar</button>
-      </div>
-    </form>
-  </div>
-  {% endif %}
 </div>
+{% elif request.GET.search %}
+<div class="mb-5 has-text-centered" style="margin-top: -1rem">
+  <span>Mostrando libros para "<strong>{{ request.GET.search }}</strong>"</span>
+</div>
+{% endif %}
+
+{% if user.is_authenticated and not request.GET.search %}
+<div class="block is-hidden-tablet">
+  <a href="{% url 'my_offered' %}" class="button is-primary is-fullwidth">Publicar libro</a>
+</div>
+<div class="is-flex is-justify-content-space-between is-align-items-center mb-5">
+  <div class="tabs is-boxed mb-0">
+    <ul>
+      <li{% if 'wanted' not in request.GET and 'popular' not in request.GET %} class="is-active"{% endif %}>
+        <a href="{% url 'home' %}">
+          <span class="is-hidden-mobile">Recién agregados</span>
+          <span class="is-hidden-tablet">Recientes</span>
+        </a>
+      </li>
+      <li{% if 'popular' in request.GET %} class="is-active"{% endif %}>
+        <a href="{% url 'home' %}?popular">
+          <span class="is-hidden-mobile">Más populares</span>
+          <span class="is-hidden-tablet">Populares</span>
+        </a>
+      </li>
+      {% if user.wanted.exists %}
+      <li{% if 'wanted' in request.GET %} class="is-active"{% endif %}>
+        <a href="{% url 'home' %}?wanted">
+          <span class="is-hidden-mobile">Mis deseados</span>
+          <span class="is-hidden-tablet">Deseados</span>
+        </a>
+      </li>
+      {% endif %}
+    </ul>
+  </div>
+  <a href="{% url 'my_offered' %}" class="button is-primary is-hidden-mobile">Publicar libro</a>
+</div>
+{% endif %}
 
 {% if user.is_authenticated and not user.offered.available.exists %}
 <div class="columns is-centered">
@@ -137,20 +115,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize tooltips for initial page load
   initTimeagoTooltips();
-
-  // Filter form toggle
-  const toggleFiltersLink = document.getElementById('toggle-filters');
-  const filterForm = document.getElementById('filter-form');
-
-  if (toggleFiltersLink && filterForm) {
-    toggleFiltersLink.addEventListener('click', (e) => {
-      e.preventDefault();
-      filterForm.classList.toggle('is-hidden');
-      toggleFiltersLink.querySelectorAll('.edit-text, .hide-text').forEach(el => {
-        el.classList.toggle('is-hidden');
-      });
-    });
-  }
 
   // Infinite scroll functionality
   const sentinel = document.getElementById('infinite-scroll-sentinel');

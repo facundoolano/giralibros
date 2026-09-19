@@ -48,7 +48,6 @@ class BookTestMixin:
                 {
                     "first_name": first_name,
                     "email": email,
-                    "locations": ["CABA_CENTRO"],
                 },
             )
 
@@ -483,7 +482,6 @@ class UserTest(BookTestMixin, TestCase):
             {
                 "first_name": "Test",
                 "email": "test@example.com",
-                "locations": ["CABA_CENTRO"],
             },
         )
         self.assertRedirects(
@@ -504,7 +502,6 @@ class UserTest(BookTestMixin, TestCase):
             {
                 "first_name": "Test",
                 "email": "test@example.com",
-                "locations": ["CABA_CENTRO"],
             },
         )
         self.assertRedirects(
@@ -517,7 +514,6 @@ class UserTest(BookTestMixin, TestCase):
             {
                 "first_name": "Updated Name",
                 "email": "test@example.com",
-                "locations": ["CABA_CENTRO", "GBA_NORTE"],
             },
         )
         # Subsequent edits should redirect to profile view
@@ -806,99 +802,8 @@ class BooksTest(BookTestMixin, TestCase):
         self.assertContains(response, "Book C")
         self.assertContains(response, "Book D")
 
-    def test_default_all_locations(self):
-        """Test that by default, users see books from all locations."""
-        # Register 4 users, each in a different location with one book
-        locations = ["CABA_CENTRO", "GBA_NORTE", "GBA_OESTE", "GBA_SUR"]
-        for i, location in enumerate(locations):
-            username = f"user{i + 1}"
-            email = f"user{i + 1}@example.com"
-            self.register_and_verify_user(username=username, email=email)
-            self.client.post(
-                reverse("profile_edit"),
-                {
-                    "first_name": f"User {i + 1}",
-                    "email": email,
-                    "locations": [location],
-                },
-            )
-            self.add_books([(f"Book {location}", f"Author {i + 1}")])
-            self.client.logout()
-
-        # Register user 5 with only 2 locations
-        self.register_and_verify_user(username="user5", email="user5@example.com")
-        self.client.post(
-            reverse("profile_edit"),
-            {
-                "first_name": "User Five",
-                "email": "user5@example.com",
-                "locations": ["CABA_CENTRO", "GBA_NORTE"],
-            },
-        )
-
-        # Without my_locations param, should see all books regardless of user's locations
-        response = self.client.get(reverse("home"))
-        self.assertContains(response, "Book CABA_CENTRO")
-        self.assertContains(response, "Book GBA_NORTE")
-        self.assertContains(response, "Book GBA_OESTE")
-        self.assertContains(response, "Book GBA_SUR")
-
-    def test_filter_by_location(self):
-        """Test that ?my_locations filters books by user's selected location areas."""
-        # Register 4 users, each in a different location with one book
-        locations = ["CABA_CENTRO", "GBA_NORTE", "GBA_OESTE", "GBA_SUR"]
-        for i, location in enumerate(locations):
-            username = f"user{i + 1}"
-            email = f"user{i + 1}@example.com"
-            self.register_and_verify_user(username=username, email=email)
-            self.client.post(
-                reverse("profile_edit"),
-                {
-                    "first_name": f"User {i + 1}",
-                    "email": email,
-                    "locations": [location],
-                },
-            )
-            self.add_books([(f"Book {location}", f"Author {i + 1}")])
-            self.client.logout()
-
-        # Register user 5 with 2 locations
-        self.register_and_verify_user(username="user5", email="user5@example.com")
-        self.client.post(
-            reverse("profile_edit"),
-            {
-                "first_name": "User Five",
-                "email": "user5@example.com",
-                "locations": ["CABA_CENTRO", "GBA_NORTE"],
-            },
-        )
-
-        # With my_locations param, should see only books from user's locations
-        response = self.client.get(reverse("home") + "?my_locations")
-        self.assertContains(response, "Book CABA_CENTRO")
-        self.assertContains(response, "Book GBA_NORTE")
-        self.assertNotContains(response, "Book GBA_OESTE")
-        self.assertNotContains(response, "Book GBA_SUR")
-
-        # Edit user to have all 4 locations
-        self.client.post(
-            reverse("profile_edit"),
-            {
-                "first_name": "User Five",
-                "email": "user5@example.com",
-                "locations": ["CABA_CENTRO", "GBA_NORTE", "GBA_OESTE", "GBA_SUR"],
-            },
-        )
-
-        # With my_locations param and all locations, should see all books
-        response = self.client.get(reverse("home") + "?my_locations")
-        self.assertContains(response, "Book CABA_CENTRO")
-        self.assertContains(response, "Book GBA_NORTE")
-        self.assertContains(response, "Book GBA_OESTE")
-        self.assertContains(response, "Book GBA_SUR")
-
     def test_anonymous_user_home(self):
-        """Test that a logged out user sees available books from all locations"""
+        """Test that a logged-out user sees all available books."""
         # Register 3 users with books
         for i in range(3):
             username = f"user{i + 1}"
@@ -915,7 +820,7 @@ class BooksTest(BookTestMixin, TestCase):
         # Should return 200 (not redirect to login)
         self.assertEqual(response.status_code, 200)
 
-        # Should see all books (no location filtering)
+        # Should see all available books
         self.assertContains(response, "Book 1")
         self.assertContains(response, "Book 2")
         self.assertContains(response, "Book 3")
@@ -1367,6 +1272,77 @@ class BooksTest(BookTestMixin, TestCase):
         # Should NOT match "El túnel" (different author)
         self.assertNotContains(response, "El túnel")
 
+    def test_filter_by_popularity(self):
+        """Test that popular books are ordered by likes and recency and exclude unavailable books."""
+        self.register_and_verify_user(
+            username="owner", email="owner@example.com", fill_profile=True
+        )
+        self.add_books(
+            [
+                ("Older Unliked", "Author"),
+                ("Newer Unliked", "Author"),
+                ("Liked Once", "Author"),
+                ("Most Liked", "Author"),
+                ("Reserved Book", "Author"),
+                ("Traded Book", "Author"),
+                ("Deleted Book", "Author"),
+            ]
+        )
+        response = self.client.get(reverse("home"))
+        book_ids = {book.title: book.id for book in response.context["offered_books"]}
+
+        self.client.post(
+            reverse(
+                "reserve_offered_book", kwargs={"book_id": book_ids["Reserved Book"]}
+            )
+        )
+        self.client.post(
+            reverse(
+                "trade_offered_book", kwargs={"book_id": book_ids["Traded Book"]}
+            )
+        )
+        self.client.post(
+            reverse(
+                "delete_offered_book", kwargs={"book_id": book_ids["Deleted Book"]}
+            )
+        )
+        self.client.logout()
+
+        self.register_and_verify_user(
+            username="liker1", email="liker1@example.com", fill_profile=True
+        )
+        self.client.post(
+            reverse("like_book", kwargs={"book_id": book_ids["Most Liked"]})
+        )
+        self.client.post(
+            reverse("like_book", kwargs={"book_id": book_ids["Liked Once"]})
+        )
+        self.client.logout()
+
+        self.register_and_verify_user(
+            username="liker2", email="liker2@example.com", fill_profile=True
+        )
+        self.client.post(
+            reverse("like_book", kwargs={"book_id": book_ids["Most Liked"]})
+        )
+
+        response = self.client.get(reverse("home"), {"popular": ""})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Most Liked")
+        self.assertContains(response, "Liked Once")
+        self.assertContains(response, "Newer Unliked")
+        self.assertContains(response, "Older Unliked")
+        self.assertNotContains(response, "Reserved Book")
+        self.assertNotContains(response, "Traded Book")
+        self.assertNotContains(response, "Deleted Book")
+
+        content = response.content
+        self.assertLess(content.index(b"Most Liked"), content.index(b"Liked Once"))
+        self.assertLess(content.index(b"Liked Once"), content.index(b"Newer Unliked"))
+        self.assertLess(
+            content.index(b"Newer Unliked"), content.index(b"Older Unliked")
+        )
+
 
 class BooksPaginationTest(BookTestMixin, TestCase):
     def test_pagination_limits_results(self):
@@ -1586,6 +1562,31 @@ class BooksPaginationTest(BookTestMixin, TestCase):
 
         # Second page of wanted filter
         response = self.client.get(reverse("home"), {"wanted": "", "page": 2})
+        self.assertEqual(response.status_code, 200)
+        offered_books = response.context["offered_books"]
+        self.assertEqual(len(offered_books), 5)
+        self.assertFalse(response.context["has_next"])
+
+    def test_pagination_with_popular_filter(self):
+        """Test that pagination works correctly with the popular-books filter."""
+        self.register_and_verify_user(
+            username="user1", email="user1@example.com", fill_profile=True
+        )
+        books = [(f"Book {i}", f"Author {i}") for i in range(25)]
+        self.add_books(books)
+        self.client.logout()
+
+        self.register_and_verify_user(
+            username="user2", email="user2@example.com", fill_profile=True
+        )
+
+        response = self.client.get(reverse("home"), {"popular": ""})
+        self.assertEqual(response.status_code, 200)
+        offered_books = response.context["offered_books"]
+        self.assertEqual(len(offered_books), 20)
+        self.assertTrue(response.context["has_next"])
+
+        response = self.client.get(reverse("home"), {"popular": "", "page": 2})
         self.assertEqual(response.status_code, 200)
         offered_books = response.context["offered_books"]
         self.assertEqual(len(offered_books), 5)

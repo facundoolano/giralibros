@@ -16,45 +16,6 @@
         </div>
       {% endif %}
 
-      <div class="field">
-        <label class="label">Ubicación <span class="has-text-danger">*</span></label>
-        <p class="mb-3">
-          Seleccioná las zonas donde quieras hacer intercambios.
-          Te vamos a mostrar libros de esas zonas.
-        </p>
-        <div class="control">
-          <div class="location-grid">
-            <label class="tag is-medium is-light location-tag location-tag-checkbox">
-              <input type="checkbox" name="locations" value="CABA_NORTE" {% if 'CABA_NORTE' in form.locations.value|default:'' %}checked{% endif %} />
-              CABA Norte
-            </label>
-            <label class="tag is-medium is-light location-tag location-tag-checkbox">
-              <input type="checkbox" name="locations" value="CABA_CENTRO" {% if 'CABA_CENTRO' in form.locations.value|default:'' %}checked{% endif %} />
-              CABA Centro
-            </label>
-            <label class="tag is-medium is-light location-tag location-tag-checkbox">
-              <input type="checkbox" name="locations" value="CABA_SUR" {% if 'CABA_SUR' in form.locations.value|default:'' %}checked{% endif %} />
-              CABA Sur
-            </label>
-            <label class="tag is-medium is-light location-tag location-tag-checkbox">
-              <input type="checkbox" name="locations" value="GBA_NORTE" {% if 'GBA_NORTE' in form.locations.value|default:'' %}checked{% endif %} />
-              GBA Norte
-            </label>
-            <label class="tag is-medium is-light location-tag location-tag-checkbox">
-              <input type="checkbox" name="locations" value="GBA_OESTE" {% if 'GBA_OESTE' in form.locations.value|default:'' %}checked{% endif %} />
-              GBA Oeste
-            </label>
-            <label class="tag is-medium is-light location-tag location-tag-checkbox">
-              <input type="checkbox" name="locations" value="GBA_SUR" {% if 'GBA_SUR' in form.locations.value|default:'' %}checked{% endif %} />
-              GBA Sur
-            </label>
-          </div>
-        </div>
-        {% if form.locations.errors %}
-          <p class="help is-danger">{{ form.locations.errors.0 }}</p>
-        {% endif %}
-      </div>
-
       <div class="box">
         <h2 class="title is-5">Datos de contacto</h2>
         <p class="mb-4">
@@ -161,29 +122,6 @@
       avatarUploadBtn.querySelector('span:not(.icon)').textContent = 'Cambiar foto';
     };
     reader.readAsDataURL(file);
-  });
-
-  // Update tag styling based on checkbox state
-  document.querySelectorAll(".location-tag").forEach((tag) => {
-    const checkbox = tag.querySelector('input[type="checkbox"]');
-
-    // Update tag style based on checkbox state
-    function updateTagStyle() {
-      if (checkbox.checked) {
-        tag.classList.remove("is-light");
-        tag.classList.add("is-info");
-      } else {
-        tag.classList.remove("is-info");
-        tag.classList.add("is-light");
-      }
-    }
-
-    // Initialize style on page load
-    updateTagStyle();
-
-    // Update style whenever checkbox changes
-    // The label already handles toggling the checkbox, we just update the visual style
-    checkbox.addEventListener("change", updateTagStyle);
   });
 </script>
 {% endblock %}

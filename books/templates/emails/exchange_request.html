@@ -8,7 +8,7 @@
 
     <p>{{ requester.first_name }} te envió una solicitud de intercambio para tu libro <strong>"{{ book.title }}"</strong> de {{ book.author }}.</p>
 
-    <p>{{ requester.first_name }} está en {% for location in requester.locations.all %}{{ location.get_area_display }}{% if not forloop.last %}, {% endif %}{% endfor %} y ofrece estos libros:</p>
+    <p>{{ requester.first_name }} ofrece estos libros:</p>
 
     <ul>
     {% for requester_book in requester.offered.available.all %}

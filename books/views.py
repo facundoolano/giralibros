@@ -35,7 +35,6 @@ from books.models import (
     BookStatus,
     ExchangeRequest,
     OfferedBook,
-    UserLocation,
     UserProfile,
     WantedBook,
 )
@@ -253,16 +252,14 @@ def list_books(request):
     # Parse query params
     search_query = request.GET.get("search", "").strip()
     wanted = "wanted" in request.GET
-    photo = "photo" in request.GET
-    my_locations = "my_locations" in request.GET
+    popular = "popular" in request.GET
 
     # Get books with all filters applied
     offered_books = OfferedBook.objects.for_user(
         request.user,
         search=search_query or None,
         wanted=wanted,
-        photo=photo,
-        my_locations=my_locations,
+        popular=popular,
     )
 
     # Paginate results
@@ -354,11 +351,6 @@ def profile_edit(request):
                     processed_avatar.name, processed_avatar, save=True
                 )
 
-            # Update UserLocation entries
-            UserLocation.objects.filter(user=request.user).delete()
-            for area in form.cleaned_data["locations"]:
-                UserLocation.objects.create(user=request.user, area=area)
-
             # Redirect based on whether this is first-time setup or edit
             if is_new_profile:
                 return redirect("home")
@@ -373,7 +365,6 @@ def profile_edit(request):
                 "email": profile.contact_email,
                 "alternate_contact": profile.alternate_contact,
                 "about": profile.about,
-                "locations": [loc.area for loc in request.user.locations.all()],
             }
         else:
             # Default email to registration email and first_name to capitalized username

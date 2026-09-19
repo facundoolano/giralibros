@@ -7,7 +7,7 @@ from django.contrib.auth.forms import (
 )
 from django.contrib.auth.models import User
 
-from books.models import LocationArea, OfferedBook, WantedBook
+from books.models import OfferedBook, WantedBook
 
 
 class BulmaFormMixin:
@@ -99,7 +99,7 @@ class CustomSetPasswordForm(BulmaFormMixin, SetPasswordForm):
 class ProfileForm(BulmaFormMixin, forms.Form):
     """
     Form for creating/editing user profile.
-    Handles User.first_name, UserProfile fields, and UserLocation selections.
+    Handles User.first_name and UserProfile fields.
     """
 
     first_name = forms.CharField(max_length=150)
@@ -108,11 +108,6 @@ class ProfileForm(BulmaFormMixin, forms.Form):
         required=False,
         max_length=200,
         widget=forms.TextInput(attrs={"placeholder": "@usuario, teléfono, etc."}),
-    )
-    locations = forms.MultipleChoiceField(
-        choices=LocationArea.choices,
-        widget=forms.CheckboxSelectMultiple,
-        required=True,
     )
     about = forms.CharField(
         required=False,

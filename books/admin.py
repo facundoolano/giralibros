@@ -5,7 +5,7 @@ from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group, User
 from django.db.models import Count, Exists, OuterRef
 
-from .models import ExchangeRequest, OfferedBook, UserLocation, UserProfile, WantedBook
+from .models import ExchangeRequest, OfferedBook, UserProfile, WantedBook
 
 
 class CustomUserChangeForm(UserChangeForm):
@@ -27,16 +27,10 @@ class UserProfileInline(admin.StackedInline):
     fk_name = "user"
 
 
-class UserLocationInline(admin.TabularInline):
-    model = UserLocation
-    extra = 1
-    verbose_name_plural = "Exchange Locations"
-
-
 class UserAdmin(BaseUserAdmin):
     form = CustomUserChangeForm
     add_form = CustomUserCreationForm
-    inlines = [UserProfileInline, UserLocationInline]
+    inlines = [UserProfileInline]
     list_display = ["username", "email", "has_profile", "is_full_user", "offered_books_count", "date_joined", "last_login"]
     list_filter = ["is_staff", "is_superuser", "is_active", "date_joined"]
     ordering = ["-date_joined"]
