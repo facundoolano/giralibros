@@ -1325,19 +1325,24 @@ class BooksTest(BookTestMixin, TestCase):
         self.client.post(
             reverse("like_book", kwargs={"book_id": book_ids["Most Liked"]})
         )
+        self.client.logout()
+
+        self.register_and_verify_user(
+            username="liker3", email="liker3@example.com", fill_profile=True
+        )
+        self.client.post(
+            reverse("like_book", kwargs={"book_id": book_ids["Most Liked"]})
+        )
 
         response = self.client.get(reverse("home"), {"popular": ""})
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Most Liked")
-        self.assertContains(response, "Liked Once")
+        self.assertNotContains(response, "Liked Once")
         self.assertNotContains(response, "Newer Unliked")
         self.assertNotContains(response, "Older Unliked")
         self.assertNotContains(response, "Reserved Book")
         self.assertNotContains(response, "Traded Book")
         self.assertNotContains(response, "Deleted Book")
-
-        content = response.content
-        self.assertLess(content.index(b"Most Liked"), content.index(b"Liked Once"))
 
 
 class BooksPaginationTest(BookTestMixin, TestCase):
