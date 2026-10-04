@@ -93,6 +93,10 @@
 </div>
 {% endif %}
 
+{% if 'wanted' in request.GET %}
+<p class="has-text-centered mt-5">Agregá <a href="{% url 'my_wanted' %}">libros y autores deseados</a> en tu perfil.</p>
+{% endif %}
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   // Initialize timeago tooltips
