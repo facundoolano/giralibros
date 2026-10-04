@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import BooleanField, Exists, F, OuterRef, Q, Value
-from django.db.models.functions import Coalesce, Greatest
+from django.db.models.functions import Coalesce, Greatest, TruncMonth
 from django.utils import timezone
 
 
@@ -143,7 +143,7 @@ class OfferedBookManager(models.Manager):
             user: User object (authenticated or anonymous)
             search: Search query string (optional)
             wanted: Filter to user's wanted books (boolean)
-            popular: Order available, unreserved books by likes (boolean)
+            popular: Order available, unreserved books by publication month, likes, and date (boolean)
         """
         queryset = self.available().select_related("user", "user__profile")
         if popular:
@@ -157,7 +157,9 @@ class OfferedBookManager(models.Manager):
 
         queryset = self._annotate_last_activity(queryset)
         if popular:
-            queryset = queryset.order_by("-likes", "-last_activity_date")
+            queryset = queryset.annotate(publication_month=TruncMonth("created_at")).order_by(
+                "-publication_month", "-likes", "-created_at"
+            )
         else:
             queryset = queryset.order_by("-last_activity_date")
 
