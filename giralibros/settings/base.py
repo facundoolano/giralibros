@@ -141,6 +141,7 @@ EXCHANGE_REQUEST_DAILY_LIMIT = 25  # Maximum exchange requests a user can send i
 
 # Pagination
 BOOKS_PER_PAGE = 20  # Number of books to display per page in infinite scroll
+POPULAR_BOOK_MINIMUM_LIKES = 3
 
 # Book cover image uploads
 BOOK_COVER_MAX_SIZE = 10 * 1024 * 1024  # 10MB maximum upload size

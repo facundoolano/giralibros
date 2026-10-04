@@ -53,6 +53,15 @@ class BookTestMixin:
 
         return response
 
+    def like_from_new_user(self, book_ids, username="liker"):
+        """Register a user who likes the given offered books."""
+        self.register_and_verify_user(
+            username=username, email=f"{username}@example.com", fill_profile=True
+        )
+        for book_id in book_ids:
+            self.client.post(reverse("like_book", kwargs={"book_id": book_id}))
+        self.client.logout()
+
     def get_verification_url_from_email(self, email):
         """
         Extract verification URL from email sent during registration.
@@ -814,6 +823,12 @@ class BooksTest(BookTestMixin, TestCase):
             self.add_books([(f"Book {i + 1}", f"Author {i + 1}")])
             self.client.logout()
 
+        self.client.login(username="user1", password="testpass123")
+        response = self.client.get(reverse("home"))
+        book_ids = [book.id for book in response.context["offered_books"]]
+        self.client.logout()
+        self.like_from_new_user(book_ids)
+
         # Access home page as anonymous user
         response = self.client.get(reverse("home"))
 
@@ -1308,41 +1323,23 @@ class BooksTest(BookTestMixin, TestCase):
         )
         self.client.logout()
 
-        self.register_and_verify_user(
-            username="liker1", email="liker1@example.com", fill_profile=True
+        self.like_from_new_user(
+            [book_ids["Most Liked"], book_ids["Liked Once"]], username="liker1"
         )
-        self.client.post(
-            reverse("like_book", kwargs={"book_id": book_ids["Most Liked"]})
-        )
-        self.client.post(
-            reverse("like_book", kwargs={"book_id": book_ids["Liked Once"]})
-        )
-        self.client.logout()
-
-        self.register_and_verify_user(
-            username="liker2", email="liker2@example.com", fill_profile=True
-        )
-        self.client.post(
-            reverse("like_book", kwargs={"book_id": book_ids["Most Liked"]})
-        )
-        self.client.logout()
-
-        self.register_and_verify_user(
-            username="liker3", email="liker3@example.com", fill_profile=True
-        )
-        self.client.post(
-            reverse("like_book", kwargs={"book_id": book_ids["Most Liked"]})
-        )
+        self.like_from_new_user([book_ids["Most Liked"]], username="liker2")
 
         response = self.client.get(reverse("home"), {"popular": ""})
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Most Liked")
-        self.assertNotContains(response, "Liked Once")
+        self.assertContains(response, "Liked Once")
         self.assertNotContains(response, "Newer Unliked")
         self.assertNotContains(response, "Older Unliked")
         self.assertNotContains(response, "Reserved Book")
         self.assertNotContains(response, "Traded Book")
         self.assertNotContains(response, "Deleted Book")
+
+        content = response.content
+        self.assertLess(content.index(b"Most Liked"), content.index(b"Liked Once"))
 
 
 class BooksPaginationTest(BookTestMixin, TestCase):
@@ -1473,7 +1470,12 @@ class BooksPaginationTest(BookTestMixin, TestCase):
         )
         books = [(f"Book {i}", f"Author {i}") for i in range(25)]
         self.add_books(books)
+        response = self.client.get(reverse("home"))
+        book_ids = [book.id for book in response.context["offered_books"]]
+        response = self.client.get(reverse("home"), {"page": 2})
+        book_ids.extend(book.id for book in response.context["offered_books"])
         self.client.logout()
+        self.like_from_new_user(book_ids)
 
         # Access home as anonymous user - first page should show 20 books
         response = self.client.get(reverse("home"))
@@ -1575,11 +1577,12 @@ class BooksPaginationTest(BookTestMixin, TestCase):
         )
         books = [(f"Book {i}", f"Author {i}") for i in range(25)]
         self.add_books(books)
+        response = self.client.get(reverse("home"))
+        book_ids = [book.id for book in response.context["offered_books"]]
+        response = self.client.get(reverse("home"), {"page": 2})
+        book_ids.extend(book.id for book in response.context["offered_books"])
         self.client.logout()
-
-        self.register_and_verify_user(
-            username="user2", email="user2@example.com", fill_profile=True
-        )
+        self.like_from_new_user(book_ids)
 
         response = self.client.get(reverse("home"), {"popular": ""})
         self.assertEqual(response.status_code, 200)

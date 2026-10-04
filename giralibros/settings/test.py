@@ -18,3 +18,5 @@ ALLOWED_HOSTS = ["*"]
 # Email backend - stores emails in memory for testing
 # Emails can be accessed via django.core.mail.outbox in tests
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+
+POPULAR_BOOK_MINIMUM_LIKES = 1

@@ -29,6 +29,8 @@ See Models (books/models.py)
 
 ### Core Principles
 
+Run the full test suite with `uv run python manage.py test --settings=giralibros.settings.test`. Always use the test settings explicitly; do not change `manage.py` to select test settings.
+
 The goal of testing is to **catch bugs and prevent regressions**. Tests should focus on observable behavior that matters to users, not implementation details.
 
 ### Preferred Testing Approach
