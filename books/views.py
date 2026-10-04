@@ -249,10 +249,15 @@ def list_books(request):
     if request.user.is_authenticated and not hasattr(request.user, "profile"):
         return redirect("profile_edit")
 
-    # Parse query params
-    search_query = request.GET.get("search", "").strip()
-    wanted = "wanted" in request.GET
-    popular = "popular" in request.GET
+    if request.user.is_authenticated:
+        search_query = request.GET.get("search", "").strip()
+        wanted = "wanted" in request.GET
+        popular = "popular" in request.GET
+    else:
+        # visitors always see popular books.
+        search_query = ""
+        wanted = False
+        popular = True
 
     # Get books with all filters applied
     offered_books = OfferedBook.objects.for_user(
