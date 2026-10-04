@@ -1330,18 +1330,14 @@ class BooksTest(BookTestMixin, TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Most Liked")
         self.assertContains(response, "Liked Once")
-        self.assertContains(response, "Newer Unliked")
-        self.assertContains(response, "Older Unliked")
+        self.assertNotContains(response, "Newer Unliked")
+        self.assertNotContains(response, "Older Unliked")
         self.assertNotContains(response, "Reserved Book")
         self.assertNotContains(response, "Traded Book")
         self.assertNotContains(response, "Deleted Book")
 
         content = response.content
         self.assertLess(content.index(b"Most Liked"), content.index(b"Liked Once"))
-        self.assertLess(content.index(b"Liked Once"), content.index(b"Newer Unliked"))
-        self.assertLess(
-            content.index(b"Newer Unliked"), content.index(b"Older Unliked")
-        )
 
 
 class BooksPaginationTest(BookTestMixin, TestCase):

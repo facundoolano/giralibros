@@ -143,11 +143,11 @@ class OfferedBookManager(models.Manager):
             user: User object (authenticated or anonymous)
             search: Search query string (optional)
             wanted: Filter to user's wanted books (boolean)
-            popular: Order available, unreserved books by publication month, likes, and date (boolean)
+            popular: Return liked, available, unreserved books ordered by publication month, likes, and date (boolean)
         """
         queryset = self.available().select_related("user", "user__profile")
         if popular:
-            queryset = queryset.exclude(status=BookStatus.RESERVED)
+            queryset = queryset.exclude(status=BookStatus.RESERVED).filter(likes__gt=0)
 
         # Apply filters in order
         if search:
