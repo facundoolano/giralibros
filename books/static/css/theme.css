@@ -1,0 +1,85 @@
+/* GiraLibros theme */
+:root {
+    --bulma-scheme-h: 38;
+    --bulma-scheme-s: 24%;
+    --bulma-scheme-main-l: 98%;
+    --bulma-scheme-main-bis-l: 95%;
+    --bulma-scheme-main-ter-l: 92%;
+    --bulma-background-l: 94%;
+    --bulma-border-weak-l: 89%;
+    --bulma-border-l: 80%;
+    --bulma-hr-background-color: var(--bulma-border);
+
+    --bulma-text-h: 30;
+    --bulma-text-s: 9%;
+    --bulma-text-l: 28%;
+    --bulma-text-weak-l: 43%;
+    --bulma-text-strong-l: 20%;
+    --bulma-text-title-l: 20%;
+
+    --bulma-primary-h: 140;
+    --bulma-primary-s: 20%;
+    --bulma-primary-l: 40%;
+    --bulma-primary-invert-l: 98%;
+    --bulma-primary-on-scheme-l: 32%;
+    --bulma-link-h: 150;
+    --bulma-link-s: 22%;
+    --bulma-link-l: 32%;
+    --bulma-link-on-scheme-l: 32%;
+
+    --bulma-info-h: 195;
+    --bulma-info-s: 22%;
+    --bulma-info-l: 40%;
+    --bulma-info-on-scheme-l: 32%;
+    --bulma-success-h: 140;
+    --bulma-success-s: 24%;
+    --bulma-success-l: 36%;
+    --bulma-success-invert-l: 98%;
+    --bulma-success-on-scheme-l: 32%;
+    --bulma-warning-h: 38;
+    --bulma-warning-s: 55%;
+    --bulma-warning-l: 55%;
+    --bulma-danger-h: 8;
+    --bulma-danger-s: 40%;
+    --bulma-danger-l: 44%;
+    --bulma-danger-invert-l: 98%;
+    --bulma-danger-on-scheme-l: 40%;
+
+    --bulma-light-h: var(--bulma-scheme-h);
+    --bulma-light-s: var(--bulma-scheme-s);
+    --bulma-light-l: 92%;
+    --bulma-soft-l: 94%;
+    --bulma-focus-shadow-alpha: 0.18;
+    --bulma-radius-small: 0.2rem;
+    --bulma-radius: 0.25rem;
+    --bulma-radius-medium: 0.3rem;
+    --bulma-radius-large: 0.375rem;
+    --bulma-shadow: 0 2px 6px hsl(30 15% 20% / 0.04),
+                    0 0 0 1px hsl(30 15% 20% / 0.06);
+}
+
+/* Retain automatic dark mode, with warm charcoal rather than blue-grey. */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bulma-scheme-s: 8%;
+        --bulma-scheme-main-l: 12%;
+        --bulma-scheme-main-bis-l: 15%;
+        --bulma-scheme-main-ter-l: 18%;
+        --bulma-background-l: 18%;
+        --bulma-border-weak-l: 24%;
+        --bulma-border-l: 32%;
+        --bulma-text-l: 78%;
+        --bulma-text-weak-l: 64%;
+        --bulma-text-strong-l: 92%;
+        --bulma-text-title-l: 92%;
+        --bulma-primary-on-scheme-l: 70%;
+        --bulma-link-l: 70%;
+        --bulma-link-on-scheme-l: 70%;
+        --bulma-info-on-scheme-l: 72%;
+        --bulma-success-on-scheme-l: 70%;
+        --bulma-danger-on-scheme-l: 72%;
+        --bulma-soft-l: 22%;
+        --bulma-shadow: 0 2px 6px hsl(30 15% 2% / 0.15),
+                        0 0 0 1px hsl(38 12% 75% / 0.08);
+    }
+}
