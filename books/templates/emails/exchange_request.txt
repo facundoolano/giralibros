@@ -2,13 +2,13 @@
 
 {{ requester.first_name }} te envió una solicitud de intercambio para tu libro "{{ book.title }}" de {{ book.author }}.
 
+Para coordinar el intercambio, ponete en contacto con {{ requester.first_name }} en {{ requester.profile.contact_email }}{% if requester.profile.alternate_contact %} o en {{ requester.profile.alternate_contact }}{% endif %} o directamente respondiendo a este correo.
+
 {{ requester.first_name }} ofrece estos libros:
 
 {% for requester_book in requester.offered.available.all %}
 - "{{ requester_book.title }}" de {{ requester_book.author }}{% if requester_book.notes %} ({% if requester_book.is_reserved %}[RESERVADO] {% endif %}{{ requester_book.notes }}){% endif %}
 {% endfor %}
-
-Para coordinar el intercambio, ponete en contacto con {{ requester.first_name }} en {{ requester.profile.contact_email }}{% if requester.profile.alternate_contact %} o en {{ requester.profile.alternate_contact }}{% endif %} o directamente respondiendo a este correo.
 
 Podés ver su perfil completo en {{ requester_profile_url }}.
 
