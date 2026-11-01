@@ -17,25 +17,25 @@
     --bulma-text-strong-l: 20%;
     --bulma-text-title-l: 20%;
 
-    --bulma-primary-h: 140;
-    --bulma-primary-s: 20%;
-    --bulma-primary-l: 40%;
+    --bulma-primary-h: 145;
+    --bulma-primary-s: 65%;
+    --bulma-primary-l: 44%;
     --bulma-primary-invert-l: 98%;
-    --bulma-primary-on-scheme-l: 32%;
-    --bulma-link-h: 150;
-    --bulma-link-s: 22%;
-    --bulma-link-l: 32%;
-    --bulma-link-on-scheme-l: 32%;
+    --bulma-primary-on-scheme-l: 38%;
+    --bulma-link-h: 145;
+    --bulma-link-s: 65%;
+    --bulma-link-l: 38%;
+    --bulma-link-on-scheme-l: 38%;
 
     --bulma-info-h: 195;
     --bulma-info-s: 22%;
     --bulma-info-l: 40%;
     --bulma-info-on-scheme-l: 32%;
-    --bulma-success-h: 140;
-    --bulma-success-s: 24%;
-    --bulma-success-l: 36%;
+    --bulma-success-h: 145;
+    --bulma-success-s: 65%;
+    --bulma-success-l: 44%;
     --bulma-success-invert-l: 98%;
-    --bulma-success-on-scheme-l: 32%;
+    --bulma-success-on-scheme-l: 38%;
     --bulma-warning-h: 38;
     --bulma-warning-s: 55%;
     --bulma-warning-l: 55%;
