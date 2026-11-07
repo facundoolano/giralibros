@@ -1,5 +1,37 @@
 /* Site-wide custom styles for GiraLibros */
 
+.card {
+    --bulma-card-radius: var(--bulma-radius-large);
+}
+
+.button {
+    --bulma-button-outer-shadow-a: 0;
+}
+
+.profile-bio {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+/* Older Safari versions need word-break as a fallback for long URLs. */
+.profile-bio a {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+/* Bulma's grey text utilities use fixed hex colors, not theme variables. */
+.has-text-grey {
+    color: var(--bulma-text-weak) !important;
+}
+
+.has-text-grey-dark {
+    color: var(--bulma-text) !important;
+}
+
+.has-text-grey-light {
+    color: var(--bulma-text-weak) !important;
+}
+
 /* Base layout */
 body {
     padding-top: 3.25rem;
@@ -7,7 +39,7 @@ body {
 
 /* Navbar with adaptive color */
 .navbar {
-    background-color: var(--bulma-primary-soft);
+    --bulma-navbar-background-color: var(--bulma-scheme-main-ter);
 }
 
 .navbar-item:hover,
@@ -149,7 +181,7 @@ body {
 }
 
 .book-card-cover-bg .book-card-meta-username {
-    color: #93c5fd;
+    color: #bfd8c7;
 }
 
 .book-card-cover-bg .book-card-timestamp {

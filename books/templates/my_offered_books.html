@@ -22,6 +22,12 @@
     white-space: nowrap;
   }
 
+  .books-table .book-list-line {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   @media screen and (min-width: 769px) {
     #book-form .book-cover-container {
       height: 175px;
@@ -29,6 +35,10 @@
   }
 
   @media screen and (max-width: 768px) {
+    .books-table td:last-child {
+      width: 3.5rem;
+    }
+
     /* Hide cover in right column on mobile */
     #book-form .columns .column.is-narrow {
       display: none;
@@ -92,7 +102,7 @@
     </p>
 
     {# Add/Edit Form #}
-    <div class="box box-mobile-flat">
+    <div class="block box-mobile-flat">
       <form method="post" enctype="multipart/form-data" id="book-form">
         {% csrf_token %}
 
@@ -252,19 +262,25 @@
 
     {# Books List #}
     {% if offered_books %}
-      <div class="box box-mobile-flat">
+      <div class="block box-mobile-flat">
         <div class="table-container">
           <table class="table is-fullwidth books-table">
             <tbody>
               {% for book in offered_books %}
                 <tr id="book-row-{{ book.id }}" data-edit-url="{% url 'edit_offered_book' book.id %}">
-                  <td><strong>{{ book.title }}</strong>, {{ book.author }}</td>
+                  <td>
+                    <span class="is-hidden-mobile"><strong>{{ book.title }}</strong>, {{ book.author }}</span>
+                    <div class="is-hidden-tablet">
+                      <div class="book-list-line"><strong>{{ book.title }}</strong></div>
+                      <div class="book-list-line">{{ book.author }}</div>
+                    </div>
+                  </td>
                   <td class="has-text-right">
-                    <a href="{% url 'edit_offered_book' book.id %}" class="button is-white">
+                    <a href="{% url 'edit_offered_book' book.id %}" class="button is-ghost" aria-label="Editar {{ book.title }}" title="Editar">
                       <span class="icon is-small">
-                        <i class="fas fa-edit"></i>
+                        <i class="fas fa-edit" aria-hidden="true"></i>
                       </span>
-                      <span>Editar</span>
+                      <span class="is-hidden-mobile">Editar</span>
                     </a>
                   </td>
                 </tr>

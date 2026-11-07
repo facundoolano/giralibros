@@ -6,16 +6,7 @@
 {% block logged_content %}
 <div class="columns is-centered">
   <div class="column is-full-mobile is-10-tablet is-8-desktop">
-    <div class="mb-3">
-      <a href="{% url 'home' %}" class="button is-white">
-        <span class="icon is-small">
-          <i class="fas fa-arrow-left"></i>
-        </span>
-        <span>Buscar libros</span>
-      </a>
-    </div>
-
-    <div class="box box-mobile-flat">
+    <div class="block box-mobile-flat">
       {# Header with username and info #}
       <div class="mb-3">
         <div class="is-flex is-align-items-flex-start" style="gap: 0.75rem;">
@@ -31,13 +22,21 @@
               <h1 class="title is-4 mb-0">{{ profile_user.username }}</h1>
               {% if is_own_profile %}
               <div class="buttons mb-0">
-                <a href="{% url 'profile_edit' %}" class="button is-white">
+                <a href="{% url 'profile_edit' %}" class="button is-ghost is-hidden-mobile">
                   <span class="icon is-small"><i class="fas fa-edit"></i></span>
                   <span>Editar</span>
                 </a>
-                <button id="shareProfileBtn" class="button is-white">
+                <a href="{% url 'profile_edit' %}" class="button is-small is-ghost is-hidden-tablet">
+                  <span class="icon is-small"><i class="fas fa-edit"></i></span>
+                  <span>Editar</span>
+                </a>
+                <button class="button is-ghost is-hidden-mobile js-share-profile">
                   <span class="icon is-small"><i class="fas fa-arrow-up-right-from-square"></i></span>
-                  <span id="shareProfileText">Compartir</span>
+                  <span>Compartir</span>
+                </button>
+                <button class="button is-small is-ghost is-hidden-tablet js-share-profile">
+                  <span class="icon is-small"><i class="fas fa-arrow-up-right-from-square"></i></span>
+                  <span>Compartir</span>
                 </button>
               </div>
               {% endif %}
@@ -47,31 +46,31 @@
       </div>
 
       {% if profile_user.profile.about %}
-      <div class="content mb-3">
-        <div class="has-text-grey-dark">{{ profile_user.profile.about|linebreaksbr|urlize }}</div>
-      </div>
+      <article class="message profile-bio my-5">
+        <div class="message-body content">{{ profile_user.profile.about|linebreaksbr|urlize }}</div>
+      </article>
       {% endif %}
 
-      <div class="field is-grouped is-grouped-multiline mb-5">
-        <div class="control is-size-7 has-text-grey">
+      <div class="columns is-multiline is-variable is-1 mb-5">
+        <div class="column is-narrow is-size-7 has-text-grey">
           <span class="icon is-small mr-1">
             <i class="fas fa-calendar-alt"></i>
           </span>
           <span>Miembro desde {{ profile_user.date_joined|date:"F Y" }}</span>
         </div>
-        <div class="control is-size-7 has-text-grey">
+        <div class="column is-narrow is-size-7 has-text-grey">
           <span class="icon is-small mr-1">
             <i class="fas fa-inbox"></i>
           </span>
           <span>{{ profile_user.received_requests.count }} solicitudes recibidas</span>
         </div>
-        <div class="control is-size-7 has-text-grey">
+        <div class="column is-narrow is-size-7 has-text-grey">
           <span class="icon is-small mr-1">
             <i class="fas fa-paper-plane"></i>
           </span>
           <span>{{ profile_user.sent_requests.count }} solicitudes enviadas</span>
         </div>
-        <div class="control is-size-7 has-text-grey">
+        <div class="column is-narrow is-size-7 has-text-grey">
           <span class="icon is-small mr-1">
             <i class="fas fa-rotate"></i>
           </span>
@@ -91,7 +90,11 @@
         </h2>
         {% if is_own_profile %}
         <div class="buttons mb-0">
-          <a href="{% url 'my_offered' %}" class="button is-white">
+          <a href="{% url 'my_offered' %}" class="button is-ghost is-hidden-mobile">
+            <span class="icon is-small"><i class="fas fa-edit"></i></span>
+            <span>Editar</span>
+          </a>
+          <a href="{% url 'my_offered' %}" class="button is-small is-ghost is-hidden-tablet">
             <span class="icon is-small"><i class="fas fa-edit"></i></span>
             <span>Editar</span>
           </a>
@@ -136,7 +139,7 @@
               </div>
               <div class="buttons">
                 {% if is_own_profile %}
-                  <a href="{% url 'edit_offered_book' book.id %}" class="button is-small is-white">
+                  <a href="{% url 'edit_offered_book' book.id %}" class="button is-small is-ghost">
                     <span class="icon is-small">
                       <i class="fas fa-edit"></i>
                     </span>
@@ -177,11 +180,19 @@
         </h2>
         {% if is_own_profile %}
         <div class="buttons mb-0">
-          <a href="{% url 'my_wanted' %}" class="button is-white">
+          <a href="{% url 'my_wanted' %}" class="button is-ghost is-hidden-mobile">
             <span class="icon is-small"><i class="fas fa-edit"></i></span>
             <span>Editar</span>
           </a>
-          <a href="{% url 'home' %}?wanted" class="button is-white">
+          <a href="{% url 'my_wanted' %}" class="button is-small is-ghost is-hidden-tablet">
+            <span class="icon is-small"><i class="fas fa-edit"></i></span>
+            <span>Editar</span>
+          </a>
+          <a href="{% url 'home' %}?wanted" class="button is-ghost is-hidden-mobile">
+            <span class="icon is-small"><i class="fas fa-search"></i></span>
+            <span>Buscar</span>
+          </a>
+          <a href="{% url 'home' %}?wanted" class="button is-small is-ghost is-hidden-tablet">
             <span class="icon is-small"><i class="fas fa-search"></i></span>
             <span>Buscar</span>
           </a>
@@ -320,12 +331,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Share profile functionality
-  const shareBtn = document.getElementById('shareProfileBtn');
-  if (shareBtn) {
+  document.querySelectorAll('.js-share-profile').forEach(shareBtn => {
     shareBtn.addEventListener('click', async () => {
       const profileUrl = window.location.href;
       const username = '{{ profile_user.username }}';
-      const text = shareBtn.querySelector('#shareProfileText');
+      const text = shareBtn.querySelector('span:not(.icon)');
       const icon = shareBtn.querySelector('i');
 
       try {
@@ -357,7 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     });
-  }
+  });
 });
 </script>
 {% endblock %}

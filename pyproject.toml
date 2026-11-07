@@ -15,6 +15,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "django-stubs[compatible-mypy]>=5.2.7",
+    "playwright>=1.63.0",
 ]
 
 [mypy.plugins.django-stubs]

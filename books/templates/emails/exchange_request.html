@@ -8,10 +8,10 @@
 
     <p>{{ requester.first_name }} te envió una solicitud de intercambio para tu libro <strong>"{{ book.title }}"</strong> de {{ book.author }}.</p>
 
-    <p>{{ requester.first_name }} ofrece estos libros:</p>
-
     <p>Para coordinar el intercambio, ponete en contacto con {{ requester.first_name }} en {{ requester.profile.contact_email }}{% if requester.profile.alternate_contact %} o en {{ requester.profile.alternate_contact }}{% endif %} o directamente respondiendo a este correo.
     </p>
+
+    <p>{{ requester.first_name }} ofrece estos libros:</p>
 
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse; width: 100%;">
     {% for requester_book in requester_books %}
